@@ -1,0 +1,3 @@
+.container__item--output .header__extra-info .hstack label:has(input:checked) {
+  color: var(--clr-brand);
+}

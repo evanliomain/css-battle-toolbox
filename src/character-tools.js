@@ -1,3 +1,4 @@
+import { htmlToElement } from "./utils/html-to-element";
 import { minify } from "./utils/minify";
 
 init();
@@ -15,7 +16,12 @@ function init() {
     .querySelector(
       '[class^="Editor_editor"] > .item__header > .header__extra-info > .hstack',
     )
-    .insertAdjacentElement("afterbegin", el);
+    .insertAdjacentElement(
+      "afterbegin",
+      htmlToElement(`
+      <span id="nb-minified-characters" title="Number of characters once your code is minified"></span>
+      `),
+    );
 }
 function insert() {
   document.getElementById("nb-minified-characters").innerText =
