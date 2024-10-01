@@ -1,5 +1,6 @@
 export function minify(code) {
-  return code.trim()
+  return code
+    .trim()
     .replaceAll(/<!--.*-->/g, "")
     .replaceAll(/transparent/g, "#0000")
     .replaceAll(/\s+/g, " ")
@@ -26,5 +27,9 @@ export function minify(code) {
     .replaceAll(/\}\s*/g, "}")
     .replaceAll(/;\s*\}/g, "}")
     .replace(/;?(\s*})*(<\/style>)?$/, "")
-    .replaceAll(/\)*$/g, "");
+    .replaceAll(/\)*$/g, "")
+    .replaceAll(/\"$/g, "")
+    .replaceAll(/\'$/g, "")
+    .replaceAll(/\s*\"$/g, '"')
+    .replaceAll(/\s*\'$/g, "'");
 }

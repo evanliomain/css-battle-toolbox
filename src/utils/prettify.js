@@ -28,7 +28,10 @@ async function formatCSS(css) {
   css = css.replace(/\s+/g, " ").trim();
 
   // Fermer les accolades si elles sont ouvertes sans fermeture
-  let formattedCSS = closeBrackets(css, "(", ")");
+  let formattedCSS = css; //closeBrackets(css, "'", "'");
+  formattedCSS = formattedCSS.replaceAll(/([^\'])'$/g, "$1 ''");
+  formattedCSS = formattedCSS.replaceAll(/([^\"])"$/g, '$1 ""');
+  formattedCSS = closeBrackets(formattedCSS, "(", ")");
   formattedCSS = closeBrackets(formattedCSS);
 
   // Ajouter des points-virgules manquants à la fin des propriétés
