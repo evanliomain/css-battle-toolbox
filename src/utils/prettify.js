@@ -45,7 +45,9 @@ async function formatCSS(css) {
     parser: "css",
     plugins: [prettierPluginCss],
   });
-  formattedCSS = formattedCSS.replaceAll(/\+(\s)+(\d)/g, "+$2");
+  formattedCSS = formattedCSS
+    .replaceAll(/\+(\s)+(\d)/g, "+$2")
+    .replaceAll(/#0000([^a-fA-F0-9])/g, "transparent$1");
   return formattedCSS;
 }
 
