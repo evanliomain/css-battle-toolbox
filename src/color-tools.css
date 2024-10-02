@@ -1,0 +1,44 @@
+.bullet-buttons {
+  transform: translateY(-20%);
+  display: grid;
+  gap: 0.1rem;
+  grid-template-columns: repeat(6, 2rem);
+  height: 2rem;
+}
+
+.bullet-color-button {
+  background: var(--color);
+  border-radius: 50px;
+  height: 1.5rem;
+  width: 1.5rem;
+  aspect-ratio: 1;
+  border: 2px solid var(--clr-text);
+  transition: 0.25s ease;
+
+  &:hover,
+  &:focus-visible {
+    height: 1.8rem;
+    width: 1.8rem;
+  }
+}
+
+.bullet-reset-button {
+  background: linear-gradient(
+      45deg,
+      transparent 0 45%,
+      var(--clr-text) 45% 55%,
+      transparent 0
+    ),
+    linear-gradient(
+      -45deg,
+      transparent 0 45%,
+      var(--clr-text) 45% 55%,
+      transparent 0
+    ),
+    var(--clr-bg);
+}
+
+[data-hint] {
+  font-family: ClashGrotesk;
+  font-weight: 600;
+}
