@@ -20,7 +20,7 @@ async function formatHTMLWithCSS(html) {
     html = html.replace(styleRegex, `\n<style>\n${cssContent}</style>`);
   }
   // Retourner le HTML formaté
-  return html;
+  return html.replace(/^\n/m, '');
 }
 
 async function formatCSS(css) {
