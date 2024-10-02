@@ -1,6 +1,5 @@
 import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
-import { REPLACE_ALL_ICON } from "./utils/replace-all-icon";
 
 const UNITS = [
   "px",
@@ -204,12 +203,22 @@ function resultTemplate(result) {
   return `
   <div
     style="display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr; font-family: monospace; text-align: end;">
-    ${result.map(({ pixelOffset, string }) => `
-    <span class="dropdown-menu__item" style="cursor: pointer; padding: 0;" onclick="navigator.clipboard.writeText('${string}')">${string}</span>
-    <span style="color: var(--clr-text-lightest-final);">${pixelOffset}</span>
-    `).join('')}
+    ${result
+      .map(
+        ({ pixelOffset, string }) => `
+    <span
+      class="dropdown-menu__item" style="cursor: pointer; padding: 0;"
+      onclick="navigator.clipboard.writeText('${string}')"
+      title="Click to copy ${string}"
+    >
+      ${string}
+    </span>
+    <span style="color: var(--clr-text-lightest-final);">
+      ${pixelOffset}
+    </span>
+    `,
+      )
+      .join("")}
   </div>
   `;
 }
-
-

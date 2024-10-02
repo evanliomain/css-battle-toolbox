@@ -184,7 +184,9 @@ function unCheckSlideNCompare() {
   );
   label.childNodes[2].remove();
   label.insertAdjacentElement("beforeend", htmlToElement(slideNCompareIcon()));
-  label.setAttribute("title", "Slide and Compare");
+  label.setAttribute("data-hint", "Slide and Compare");
+  label.setAttribute("aria-label", "Slide and Compare");
+  label.classList = "hint--bottom-right";
 
   node.click();
 
@@ -200,7 +202,9 @@ function displayDiff() {
   }
   label.childNodes[2].remove();
   label.insertAdjacentElement("beforeend", htmlToElement(diffIcon()));
-  label.setAttribute("title", "Show the difference between target and output");
+  label.setAttribute("data-hint", "Show the difference");
+  label.setAttribute("aria-label", "Show the difference");
+  label.classList = "hint--bottom-right";
 
   return true;
 }
@@ -208,7 +212,9 @@ function displayDiff() {
 function addCompareOption() {
   const template = `
   <label
-    title="Show the target on output, with a 0.7 opacity"
+    class="hint--bottom"
+    aria-label="Show the target on output"
+    data-hint="Show the target on output"
     style="display: flex; gap: 0.25rem; align-items: center;"
   >
     <input
@@ -237,7 +243,9 @@ function addCompareOption() {
 function addGridOption() {
   const template = `
   <label
-    title="Show a grid on output : 100x100, 50x50, 10x10"
+    class="hint--bottom-left"
+    aria-label="Show a 10x10 grid on output"
+    data-hint="Show a 10x10 grid on output"
     style="display: flex; gap: 0.25rem; align-items: center;"
   >
     <input
@@ -285,7 +293,9 @@ function addGridOption() {
 function addOutlineOption() {
   const template = `
   <label
-    title="Show outline on every tags of the output"
+    class="hint--bottom-left"
+    aria-label="Show outline on every tags of the output"
+    data-hint="Show outline on every tags of the output"
     style="display: flex; gap: 0.25rem; align-items: center;"
   >
     <input
@@ -313,7 +323,9 @@ function addOutlineOption() {
 function addBackgroundOption() {
   const template = `
   <label
-    title="Show background on every tags of the output"
+    class="hint--bottom-left"
+    aria-label="Show background on every tags of the output"
+    data-hint="Show background on every tags of the output"
     style="display: flex; gap: 0.25rem; align-items: center;"
   >
     <input

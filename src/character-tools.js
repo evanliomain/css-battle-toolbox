@@ -19,7 +19,12 @@ function init() {
     .insertAdjacentElement(
       "afterbegin",
       htmlToElement(`
-      <span id="nb-minified-characters" title="Number of characters once your code is minified"></span>
+        <span
+          id="nb-minified-characters"
+          class="hint--bottom"
+          aria-label="Number of characters once your code is minified"
+          data-hint="Number of characters once your code is minified"
+        ></span>
       `),
     );
 }
