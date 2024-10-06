@@ -8,13 +8,13 @@
 
 ## Color tools:
 - The color tools is now base only on https://48dvyq.csb.app/ and it display more matching colors
-- Add an empty color button on bckground color input
+- Add an empty color button on background color input
 - Add tooltip on the color button
 
 ## Source code tools:
 - Handle the trailing `font: 10%a''` minification and prettification by removing/adding trailing `'` or `"`
-- Prettication now replace `#0000` by `transparent`
-- Prettication does not add unecessary line when their are no html tags
+- Prettification now replace `#0000` by `transparent`
+- Prettification does not add unecessary line when their are no html tags
 - Add tooltip on the minified code character counter
 
 Add this changelog to keep track of changes across version.
