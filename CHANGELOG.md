@@ -1,4 +1,9 @@
 
+# 0.0.0.3
+
+## Bug fixes:
+- Fix critical bug on chrome 130: upgrade vite and @crxjs/vite-plugin dependancies
+
 # 0.0.0.2
 
 ## Output code tools:
