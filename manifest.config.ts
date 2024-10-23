@@ -16,8 +16,6 @@ export default defineManifest(async (env) => ({
     "128": "images/favicon/mstile-144x144.png",
   },
   action: { default_popup: "index.html" },
-  options_page: "src/options.html",
-  permissions: ["storage"],
   content_scripts: [
     {
       js: [
