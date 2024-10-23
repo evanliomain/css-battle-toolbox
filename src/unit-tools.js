@@ -84,7 +84,6 @@ function computeUnit() {
   if (pxWidth > 0) {
     result = convertAndSort(pxWidth, units, 0.2);
   }
-  console.log({ unit, font, calcDiv }, result);
   displayResults(result);
 }
 
