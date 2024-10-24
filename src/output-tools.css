@@ -4,5 +4,8 @@
 
 .display-ouline * {
   outline: 3px dotted red;
+}
 
+.container__item--scrollable .item__header {
+  z-index: 3;
 }

@@ -8,7 +8,8 @@ export default defineManifest(async (env) => ({
   manifest_version: 3,
   version,
   name: env.mode === "development" ? `[DEV] ${extensionName}` : extensionName,
-  description: "A set of tools for Css Battle, directly in the battle interface.",
+  description:
+    "A set of tools for Css Battle, directly in the battle interface.",
   icons: {
     "16": "images/favicon/favicon-16x16.png",
     "32": "images/favicon/favicon-32x32.png",
@@ -16,6 +17,11 @@ export default defineManifest(async (env) => ({
     "128": "images/favicon/mstile-144x144.png",
   },
   action: { default_popup: "index.html" },
+  options_ui: {
+    page: "src/options.html",
+    open_in_tab: true,
+  },
+  permissions: ["storage"],
   content_scripts: [
     {
       js: [
@@ -28,6 +34,7 @@ export default defineManifest(async (env) => ({
         "src/autoclose-tools.js",
         "src/character-tools.js",
         "src/remove-ads.js",
+        "src/options-effect.js",
       ],
       matches: ["https://cssbattle.dev/play/*"],
     },

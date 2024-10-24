@@ -55,7 +55,7 @@ function createComputeIFrame() {
 
 function template() {
   return `
-    <div style="display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr;">
+    <div id="unit-golf-tool" style="display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr;">
       <div class="input-container" style="margin-bottom: 0;">
         <label for="unit-input-background">Unit</label>
         <input id="unit-input-background" type="text" class="js-unit-input-minify" placeholder="20px" />

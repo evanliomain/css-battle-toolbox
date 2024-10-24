@@ -7,6 +7,7 @@ export function addButton(label, cb) {
   btn.type = "button";
   btn.classList = "button";
   btn.innerText = label;
+  btn.dataset.hide = true;
   buttonsEditor.insertAdjacentElement("afterbegin", btn);
 
   btn.addEventListener("click", cb);

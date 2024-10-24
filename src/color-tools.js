@@ -20,7 +20,7 @@ function addTool() {
 function template() {
   const colors = getAllColors();
   return `
-  <div style="display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr;">
+  <div id="color-mixer-tool" style="display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr;">
     <div class="input-container">
       <label for="color-input-background">Background color</label>
       <input id="color-input-background" type="text" class="js-color-input-minify" placeholder="#FFFFFF" />

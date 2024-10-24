@@ -10,8 +10,9 @@ Features :
 - A tool to find shorter css color in hexa (integration of https://48dvyq.csb.app/)
 - Print, on the fly, the number of characters your code should be once minified
 - Replace default skeleton by a shorter and more helpfull one.
+- You can hide any almost any part of the interface, including tools bring with this extension.
 
-It's a first version. Nothing is configurable, for now.
+It's a first version.
 Minification and prettification work well with code style like :
 
 ```html

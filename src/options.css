@@ -1,0 +1,72 @@
+:root {
+  /* Configure your color scheme */
+  --dark-color: hsl(251deg 25% 25%);
+  --light-color: hsl(0deg 0% 90%);
+  --accent-color: hsl(341deg 81% 62%);
+
+  /* css custom properties to use in your styles */
+  /* Multiply all animation timing by --motion to turn animation off for prefer-reduced-motion users */
+  --motion: 1;
+
+  /* Main text color, support light and dark theme */
+  --text-color: light-dark(var(--dark-color), var(--light-color));
+
+  /* Main background color, support light and dark theme */
+  --background-color: light-dark(var(--light-color), var(--dark-color));
+
+  /* Main accent color */
+  --accent-color: var(--accent-color);
+
+  color: var(--text-color);
+  font-weight: 400;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+
+  background-color: var(--background-color);
+  color-scheme: light dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
+  text-rendering: optimizelegibility;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion: 0;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: var(--light-color);
+  }
+}
+
+h1 {
+  margin: 0;
+}
+
+ul {
+  padding-inline-start: 20px;
+}
+
+li {
+  font-size: 16px;
+}
+li img {
+  width: 16px;
+  aspect-ratio: 1;
+}
+
+a {
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+label {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  color: red;
+}

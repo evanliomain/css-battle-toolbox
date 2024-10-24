@@ -1,0 +1,249 @@
+<!doctype html>
+<html>
+  <head>
+    <title>CSS Battle Toolbox Extension Options</title>
+    <style>
+      :root {
+        /* Configure your color scheme */
+        --dark-color: #07080b;
+        --light-color: #edf2f7;
+        --accent-color: #976e06;
+
+        --clr-border: #cbd5e0;
+        --clr-btn-primary: #0060ca;
+        --clr-btn-primary-hover: #0050b0;
+        --clr-btn-text: #fff;
+        --clr-btn-hover: #43515e;
+
+        /* css custom properties to use in your styles */
+        /* Multiply all animation timing by --motion to turn animation off for prefer-reduced-motion users */
+        --motion: 1;
+
+        /* Main text color, support light and dark theme */
+        --text-color: light-dark(var(--dark-color), var(--light-color));
+
+        /* Main background color, support light and dark theme */
+        --background-color: light-dark(var(--light-color), var(--dark-color));
+
+        color: var(--text-color);
+        font-weight: 400;
+        font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+
+        background-color: var(--background-color);
+        color-scheme: light dark;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-synthesis: none;
+        text-rendering: optimizelegibility;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        :root {
+          --motion: 0;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --accent-color: #ffdf00;
+          --clr-border: #27313a;
+          --clr-btn-hover: #b6c0c9;
+        }
+      }
+
+      h1 {
+        margin: 0;
+      }
+
+      ul {
+        padding-inline-start: 20px;
+      }
+
+      li {
+        font-size: 16px;
+      }
+      li img {
+        width: 16px;
+        aspect-ratio: 1;
+      }
+
+      a {
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      label {
+        display: flex;
+        gap: 0.25rem;
+        align-items: center;
+
+        &:has(input[type="checkbox"]:checked) {
+          color: var(--accent-color);
+        }
+      }
+      fieldset {
+        border: 2px solid var(--clr-border);
+        border-radius: 16px;
+      }
+
+      .form {
+        --min-column-size: 300px;
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fill,
+          minmax(min(var(--min-column-size), 100%), 1fr)
+        );
+        grid-template-rows: 1fr;
+        gap: 20px;
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: row;
+        gap: 0.25rem;
+        margin-top: 20px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.6rem 0.9rem;
+        border: 0;
+        border-radius: 40px;
+        box-shadow: inset 1px 1px 2px hsla(0, 0%, 100%, 0.1);
+        background-color: var(--clr-btn);
+        color: var(--clr-btn-secondary-text);
+        text-decoration: none;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s ease;
+        line-height: 1.2;
+        transition-property: transform, background-color;
+        font-family: ClashGrotesk;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        text-align: left;
+
+        &:hover {
+          transform: translateY(-3px);
+          background-color: var(--clr-btn-hover);
+        }
+      }
+
+      .button--primary {
+        background-color: var(--clr-btn-primary);
+        color: var(--clr-btn-text);
+        &:hover {
+          background: var(--clr-btn-primary-hover);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form">
+      <fieldset>
+        <legend>Output code tool</legend>
+        <label>
+          <input type="checkbox" id="hideSlideAndCompare" />
+          Hide slide and compare
+        </label>
+        <label>
+          <input type="checkbox" id="hideDifference" />
+          Hide difference
+        </label>
+        <label>
+          <input type="checkbox" id="hideTargetOnOutput" />
+          Hide target on output
+        </label>
+        <label>
+          <input type="checkbox" id="hideGrid" />
+          Hide grid
+        </label>
+        <label>
+          <input type="checkbox" id="hideOutline" />
+          Hide outline
+        </label>
+        <label>
+          <input type="checkbox" id="hideBackground" />
+          Hide background
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Layout</legend>
+        <label>
+          <input type="checkbox" id="hideHeader" />
+          Hide header
+        </label>
+        <label>
+          <input type="checkbox" id="hideFooter" />
+          Hide footer
+        </label>
+        <label>
+          <input type="checkbox" id="hideOutputCode" />
+          Hide output code (code in the dark)
+        </label>
+        <label>
+          <input type="checkbox" id="hideTarget" />
+          Hide target image
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Editor button</legend>
+        <label>
+          <input type="checkbox" id="hidePrettify" />
+          Hide prettify button
+        </label>
+        <label>
+          <input type="checkbox" id="hideMinify" />
+          Hide minify button
+        </label>
+        <label>
+          <input type="checkbox" id="hidePlugins" />
+          Hide plugins button
+        </label>
+        <label>
+          <input type="checkbox" id="hideMySolution" />
+          Hide my solution button
+        </label>
+        <label>
+          <input type="checkbox" id="hideTopSolution" />
+          Hide top solutions button for today daily targets
+        </label>
+        <label>
+          <input type="checkbox" id="hideSubmit" />
+          Hide submit button for past daily targets
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Tools</legend>
+        <label>
+          <input type="checkbox" id="hideNbMinifiedCharacters" />
+          Hide the number of minified characters
+        </label>
+
+        <label>
+          <input type="checkbox" id="hideColorMixer" />
+          Hide the color mixer tool
+        </label>
+
+        <label>
+          <input type="checkbox" id="hideUnitGolf" />
+          Hide the unit golf tool
+        </label>
+      </fieldset>
+    </div>
+
+    <div class="actions">
+      <button id="save" type="submit" class="button button--primary">
+        Save
+      </button>
+      <div id="status"></div>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>
