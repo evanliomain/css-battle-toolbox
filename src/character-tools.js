@@ -3,10 +3,15 @@ import { minify } from "./utils/minify";
 
 init();
 
-setInterval(insert, 100);
+const observer = new MutationObserver(insert);
+
+observer.observe(document.querySelector('[contenteditable]'), { attributes: true, childList: true });
+
+insert();
 
 function getMinifiedNbCharacters() {
-  return minify(document.querySelector("[contenteditable]").textContent).length;
+  return minify(document.querySelector("[contenteditable]")?.textContent ?? "")
+    .length;
 }
 
 function init() {
