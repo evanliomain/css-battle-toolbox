@@ -14,6 +14,9 @@ chrome.storage.onChanged.addListener((changes) => {
 function applySettings(settings) {
   for (let [key, value] of Object.entries(settings)) {
     document.body.classList.toggle(key, value);
+    if (key.startsWith("nb")) {
+      document.body.style.setProperty("--" + key, value);
+    }
   }
 }
 

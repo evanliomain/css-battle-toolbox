@@ -6,7 +6,6 @@ body {
       }
     }
   }
-
   &.hideDifference {
     .container__item--output .item__header .header__extra-info .hstack {
       > label:nth-child(2) {
@@ -122,6 +121,17 @@ body {
   &.hideUnitGolf {
     #unit-golf-tool {
       display: none !important;
+    }
+  }
+
+  --invert: 0;
+
+  &.invertDifference {
+    --invert: 1;
+  }
+  &.diff-tool {
+    .target-container {
+      filter: brightness(var(--nbBrightnessDifference)) invert(var(--invert));
     }
   }
 }

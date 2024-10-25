@@ -11,6 +11,7 @@ Features :
 - Print, on the fly, the number of characters your code should be once minified
 - Replace default skeleton by a shorter and more helpfull one.
 - You can hide any almost any part of the interface, including tools bring with this extension.
+- You can invert color of the difference tool
 
 It's a first version.
 Minification and prettification work well with code style like :

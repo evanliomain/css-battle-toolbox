@@ -2,6 +2,7 @@
 # 0.0.0.4
 
 - Extension is now configurable, go to options of the extension, and you can choose which part of the UI you want to hide
+- Add configuration to alter the difference tool: you can invert color (black to white), and increase the brightness. The compare tool is also disabled when diff is active.
 
 # 0.0.0.3
 

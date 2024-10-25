@@ -9,3 +9,11 @@
 .container__item--scrollable .item__header {
   z-index: 3;
 }
+
+body {
+  &.compare-tool.diff-tool {
+    #overlay-compare {
+      opacity: 1 !important;
+    }
+  }
+}

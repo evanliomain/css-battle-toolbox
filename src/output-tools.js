@@ -13,7 +13,9 @@ addBackgroundOption();
 doAsync(unCheckSlideNCompare)();
 doAsync(displayDiff)();
 
-function displayCompare() {
+function displayCompare(display) {
+  document.body.classList.toggle("compare-tool", display);
+
   const target = document.querySelector(
     ".target-container > div:not(#overlay-grid)",
   );
@@ -206,6 +208,10 @@ function displayDiff() {
   label.setAttribute("aria-label", "Show the difference");
   label.classList = "hint--bottom-right";
 
+  label.addEventListener("change", (e) => {
+    document.body.classList.toggle("diff-tool", e.target.checked);
+  });
+
   return true;
 }
 
@@ -231,12 +237,17 @@ function addCompareOption() {
     .querySelector(".container__item--output .header__extra-info .hstack")
     .appendChild(htmlToElement(template));
 
-  displayCompare();
+  const target = document.querySelector(
+    ".target-container > div:not(#overlay-grid)",
+  );
+  target.id = "overlay-compare";
+
+  displayCompare(true);
 
   document
     .getElementById("output-compare-input")
     .addEventListener("input", (e) => {
-      displayCompare();
+      displayCompare(e.target.checked);
     });
 }
 

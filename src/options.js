@@ -18,11 +18,19 @@ const OPTIONS_KEYS = [
   "hideNbMinifiedCharacters",
   "hideColorMixer",
   "hideUnitGolf",
+  "invertDifference",
+  "nbBrightnessDifference",
 ];
+
 // Saves options to chrome.storage
 const saveOptions = () => {
   const optionValues = Object.fromEntries(
-    OPTIONS_KEYS.map((key) => [key, document.getElementById(key).checked]),
+    OPTIONS_KEYS.map((key) => {
+      if (key.startsWith("nb")) {
+        return [key, document.getElementById(key).value];
+      }
+      return [key, document.getElementById(key).checked];
+    }),
   );
   chrome.storage.sync.set(optionValues, () => {
     // Update status to let user know options were saved.
@@ -39,10 +47,17 @@ const saveOptions = () => {
 const restoreOptions = () => {
   chrome.storage.sync.get(null).then((items) => {
     for (let [key, value] of Object.entries(items)) {
+      if (null === document.getElementById(key)) {
+        continue;
+      }
+      if (key.startsWith("nb")) {
+        document.getElementById(key).value = value;
+        continue;
+      }
       document.getElementById(key).checked = value;
     }
   });
 };
-// restoreOptions();
+
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.getElementById("save").addEventListener("click", saveOptions);
