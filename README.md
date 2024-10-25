@@ -12,8 +12,9 @@ Features :
 - Replace default skeleton by a shorter and more helpfull one.
 - You can hide any almost any part of the interface, including tools bring with this extension.
 - You can invert color of the difference tool
+- You can configure your default code template for new battle and daily target
 
-It's a first version.
+
 Minification and prettification work well with code style like :
 
 ```html

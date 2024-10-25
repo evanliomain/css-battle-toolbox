@@ -20,13 +20,22 @@ const OPTIONS_KEYS = [
   "hideUnitGolf",
   "invertDifference",
   "nbBrightnessDifference",
+  "strDefaultCode",
 ];
+
+const defaultCodeTemplate = `<style>
+& {
+  background: ;
+  * {
+  }
+}
+</style>`;
 
 // Saves options to chrome.storage
 const saveOptions = () => {
   const optionValues = Object.fromEntries(
     OPTIONS_KEYS.map((key) => {
-      if (key.startsWith("nb")) {
+      if (key.startsWith("nb") || key.startsWith("str")) {
         return [key, document.getElementById(key).value];
       }
       return [key, document.getElementById(key).checked];
@@ -50,14 +59,25 @@ const restoreOptions = () => {
       if (null === document.getElementById(key)) {
         continue;
       }
-      if (key.startsWith("nb")) {
+
+      if (key.startsWith("nb") || key.startsWith("str")) {
         document.getElementById(key).value = value;
         continue;
       }
       document.getElementById(key).checked = value;
+    }
+
+    if (undefined === items.strDefaultCode) {
+      document.getElementById("strDefaultCode").value = defaultCodeTemplate;
+      chrome.storage.sync.set({ strDefaultCode: defaultCodeTemplate });
     }
   });
 };
 
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.getElementById("save").addEventListener("click", saveOptions);
+document.getElementById("resetTemplate").addEventListener("click", resetCodeTemplate);
+
+function resetCodeTemplate() {
+  document.getElementById("strDefaultCode").value = defaultCodeTemplate;
+}
