@@ -9,6 +9,7 @@ addCompareOption();
 addGridOption();
 addOutlineOption();
 addBackgroundOption();
+doAsync(useX2Image)();
 
 doAsync(unCheckSlideNCompare)();
 doAsync(displayDiff)();
@@ -360,6 +361,33 @@ function addBackgroundOption() {
       displayBackground();
     });
 }
+
+function useX2Image() {
+  const img = document.querySelector('[class^="Preview_previewTargetImage__"]');
+  if (null === img) {
+    return false;
+  }
+
+  chrome.storage.sync
+    .get("x2Difference")
+    .then((items) => applyX2Settings(items.x2Difference));
+  chrome.storage.onChanged.addListener((changes) => {
+    applyX2Settings(changes.x2Difference.newValue);
+  });
+
+  return true;
+}
+function applyX2Settings(isApply) {
+  const img = document.querySelector('[class^="Preview_previewTargetImage__"]');
+
+  if (isApply) {
+    img.src = img.srcset;
+  } else {
+    img.src = img.src.replace(/@2x\.png/, ".png").replace(/%202x$/, "");
+  }
+}
+
+// Icons
 
 function gridIcon() {
   return `

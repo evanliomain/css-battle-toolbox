@@ -20,6 +20,7 @@ const OPTIONS_KEYS = [
   "hideUnitGolf",
   "invertDifference",
   "nbBrightnessDifference",
+  "x2Difference",
   "strDefaultCode",
 ];
 

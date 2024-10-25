@@ -4,6 +4,7 @@
 - Extension is now configurable, go to options of the extension, and you can choose which part of the UI you want to hide
 - Add configuration to alter the difference tool: you can invert color (black to white), and increase the brightness. The compare tool is also disabled when diff is active.
 - Add configuration to set your default code template for new battle and daily target
+- Add configuration to use the x2 image for difference tool
 
 # 0.0.0.3
 

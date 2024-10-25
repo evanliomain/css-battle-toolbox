@@ -99,6 +99,12 @@
       }
 
       .form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .sub-form {
         --min-column-size: 300px;
         display: grid;
         grid-template-columns: repeat(
@@ -158,129 +164,140 @@
   </head>
   <body>
     <div class="form">
-      <fieldset>
-        <legend>Output code tool</legend>
-        <label>
-          <input type="checkbox" id="hideSlideAndCompare" />
-          Hide slide and compare
-        </label>
-        <label>
-          <input type="checkbox" id="hideDifference" />
-          Hide difference
-        </label>
-        <label>
-          <input type="checkbox" id="hideTargetOnOutput" />
-          Hide target on output
-        </label>
-        <label>
-          <input type="checkbox" id="hideGrid" />
-          Hide grid
-        </label>
-        <label>
-          <input type="checkbox" id="hideOutline" />
-          Hide outline
-        </label>
-        <label>
-          <input type="checkbox" id="hideBackground" />
-          Hide background
-        </label>
-      </fieldset>
-      <fieldset>
-        <legend>Layout</legend>
-        <label>
-          <input type="checkbox" id="hideHeader" />
-          Hide header
-        </label>
-        <label>
-          <input type="checkbox" id="hideFooter" />
-          Hide footer
-        </label>
-        <label>
-          <input type="checkbox" id="hideOutputCode" />
-          Hide output code (code in the dark)
-        </label>
-        <label>
-          <input type="checkbox" id="hideTarget" />
-          Hide target image
-        </label>
-      </fieldset>
-      <fieldset>
-        <legend>Editor button</legend>
-        <label>
-          <input type="checkbox" id="hidePrettify" />
-          Hide prettify button
-        </label>
-        <label>
-          <input type="checkbox" id="hideMinify" />
-          Hide minify button
-        </label>
-        <label>
-          <input type="checkbox" id="hidePlugins" />
-          Hide plugins button
-        </label>
-        <label>
-          <input type="checkbox" id="hideMySolution" />
-          Hide my solution button
-        </label>
-        <label>
-          <input type="checkbox" id="hideTopSolution" />
-          Hide top solutions button for today daily targets
-        </label>
-        <label>
-          <input type="checkbox" id="hideSubmit" />
-          Hide submit button for past daily targets
-        </label>
-      </fieldset>
+      <h2>Hide what you want</h2>
+      <div class="sub-form">
+        <fieldset>
+          <legend>Output code tool</legend>
+          <label>
+            <input type="checkbox" id="hideSlideAndCompare" />
+            Hide slide and compare
+          </label>
+          <label>
+            <input type="checkbox" id="hideDifference" />
+            Hide difference
+          </label>
+          <label>
+            <input type="checkbox" id="hideTargetOnOutput" />
+            Hide target on output
+          </label>
+          <label>
+            <input type="checkbox" id="hideGrid" />
+            Hide grid
+          </label>
+          <label>
+            <input type="checkbox" id="hideOutline" />
+            Hide outline
+          </label>
+          <label>
+            <input type="checkbox" id="hideBackground" />
+            Hide background
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>Layout</legend>
+          <label>
+            <input type="checkbox" id="hideHeader" />
+            Hide header
+          </label>
+          <label>
+            <input type="checkbox" id="hideFooter" />
+            Hide footer
+          </label>
+          <label>
+            <input type="checkbox" id="hideOutputCode" />
+            Hide output code (code in the dark)
+          </label>
+          <label>
+            <input type="checkbox" id="hideTarget" />
+            Hide target image
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>Editor button</legend>
+          <label>
+            <input type="checkbox" id="hidePrettify" />
+            Hide prettify button
+          </label>
+          <label>
+            <input type="checkbox" id="hideMinify" />
+            Hide minify button
+          </label>
+          <label>
+            <input type="checkbox" id="hidePlugins" />
+            Hide plugins button
+          </label>
+          <label>
+            <input type="checkbox" id="hideMySolution" />
+            Hide my solution button
+          </label>
+          <label>
+            <input type="checkbox" id="hideTopSolution" />
+            Hide top solutions button for today daily targets
+          </label>
+          <label>
+            <input type="checkbox" id="hideSubmit" />
+            Hide submit button for past daily targets
+          </label>
+        </fieldset>
 
-      <fieldset>
-        <legend>Tools</legend>
-        <label>
-          <input type="checkbox" id="hideNbMinifiedCharacters" />
-          Hide the number of minified characters
-        </label>
+        <fieldset>
+          <legend>Tools</legend>
+          <label>
+            <input type="checkbox" id="hideNbMinifiedCharacters" />
+            Hide the number of minified characters
+          </label>
 
-        <label>
-          <input type="checkbox" id="hideColorMixer" />
-          Hide the color mixer tool
-        </label>
+          <label>
+            <input type="checkbox" id="hideColorMixer" />
+            Hide the color mixer tool
+          </label>
 
-        <label>
-          <input type="checkbox" id="hideUnitGolf" />
-          Hide the unit golf tool
-        </label>
-      </fieldset>
+          <label>
+            <input type="checkbox" id="hideUnitGolf" />
+            Hide the unit golf tool
+          </label>
+        </fieldset>
+      </div>
 
-      <fieldset>
-        <legend>Difference tool</legend>
+      <h2>Customize</h2>
+      <div class="sub-form">
+        <fieldset>
+          <legend>Difference tool</legend>
 
-        <label>
-          <input type="checkbox" id="invertDifference" />
-          should invert color for the difference output tool ?
-        </label>
-        <label>
-          <input
-            type="number"
-            id="nbBrightnessDifference"
-            value="1"
-            min="1"
-            max="10"
-            step="1"
-            width="10"
-          />
-          brightness for the difference output tool
-        </label>
-      </fieldset>
+          <label>
+            <input type="checkbox" id="invertDifference" />
+            should invert color for the difference output tool ?
+          </label>
+          <label>
+            <input
+              type="number"
+              id="nbBrightnessDifference"
+              value="1"
+              min="1"
+              max="10"
+              step="1"
+              width="10"
+            />
+            brightness for the difference output tool
+          </label>
 
-      <fieldset>
-        <legend>Editor tool</legend>
-        <label>
-          <textarea id="strDefaultCode" cols="30" rows="8"></textarea>
-          default initial code template for new battle and daily target
-        </label>
-        <button id="resetTemplate" type="button" class="button button--small">
-          Reset template
-        </button>
-      </fieldset>
+          <label>
+            <input type="checkbox" id="x2Difference" />
+            use x2 image to compute difference
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Editor tool</legend>
+          <label>
+            <textarea id="strDefaultCode" cols="30" rows="8"></textarea>
+            default initial code template for new battle and daily target
+          </label>
+          <button id="resetTemplate" type="button" class="button button--small">
+            Reset template
+          </button>
+        </fieldset>
+      </div>
     </div>
 
     <div class="actions">
