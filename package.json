@@ -1,18 +1,20 @@
 {
   "name": "css-battle-toolbox",
-  "version": "0.0.0.4",
+  "version": "0.0.0.5",
   "author": "Evan Liomain",
   "license": "MIT",
   "description": "Some usefull tools for Css Battle",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && zip -r css-battle-toolbox.zip dist",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.26",
     "prettier": "^3.3.3",
     "typescript": "^4.5.4",
-    "vite": "^5.4.10"
+    "vite": "^5.4.10",
+    "vitest": "^2.1.3"
   }
 }

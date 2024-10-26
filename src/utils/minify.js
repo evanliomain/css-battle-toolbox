@@ -19,6 +19,7 @@ export function minify(code) {
     .replaceAll(/\s+\-/g, " -")
     .replaceAll(/(\d) \-/g, "$1-")
     .replaceAll(/(\D)0+\./g, "$1.")
+    .replaceAll(/\.(\d)*([1-9])0+/g, ".$1$2")
     .replaceAll(/\+\s+(\S)/g, "+$1")
     .replaceAll(/(\S)\s+\+/g, "$1+")
     .replaceAll(/\>\s*\*/g, ">*")
@@ -28,8 +29,9 @@ export function minify(code) {
     .replaceAll(/;\s*\}/g, "}")
     .replace(/;?(\s*})*(<\/style>)?$/, "")
     .replaceAll(/\)*$/g, "")
-    .replaceAll(/\"$/g, "")
-    .replaceAll(/\'$/g, "")
+    .replaceAll(/\"\"$/g, '"')
+    .replaceAll(/\'\'$/g, "'")
     .replaceAll(/\s*\"$/g, '"')
-    .replaceAll(/\s*\'$/g, "'");
+    .replaceAll(/\s*\'$/g, "'")
+    .replaceAll(/\s*\.(\d)/g, ".$1");
 }

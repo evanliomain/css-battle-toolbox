@@ -1,4 +1,8 @@
 
+# 0.0.0.5
+
+- Add unit tests on minification and fix `font`and `.x .y` issues
+
 # 0.0.0.4
 
 - Extension is now configurable, go to options of the extension, and you can choose which part of the UI you want to hide
