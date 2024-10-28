@@ -1,4 +1,8 @@
 
+# 0.0.0.6
+
+- Add the html tag name near the html tag outline
+
 # 0.0.0.5
 
 - Add unit tests on minification and fix `font`and `.x .y` issues

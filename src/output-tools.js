@@ -14,6 +14,8 @@ doAsync(useX2Image)();
 doAsync(unCheckSlideNCompare)();
 doAsync(displayDiff)();
 
+flagOutput();
+
 function displayCompare(display) {
   document.body.classList.toggle("compare-tool", display);
 
@@ -35,7 +37,7 @@ function createOutline() {
   const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
   const observer = new MutationObserver(() => {
-    if (iframe.classList.contains("display-ouline")) {
+    if (iframe.classList.contains("display-outline")) {
       injectOutlineStyle();
     }
   });
@@ -62,11 +64,11 @@ function displayOutline() {
   const iframe = document.querySelector("iframe");
   const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
-  if (!iframe.classList.contains("display-ouline")) {
-    iframe.classList.add("display-ouline");
+  if (!iframe.classList.contains("display-outline")) {
+    iframe.classList.add("display-outline");
     injectOutlineStyle();
   } else {
-    iframe.classList.remove("display-ouline");
+    iframe.classList.remove("display-outline");
     iframeDoc.head.querySelector("[data-outline]")?.remove();
   }
 }
@@ -103,6 +105,14 @@ function injectOutlineStyle() {
       outline: 4px dotted var(--outline-color);
       outline-offset: -2px;
       z-index: 10;
+    }
+    &:after {
+      content: attr(data-tagname);
+      position: absolute;
+      inset: 5px;
+      color: var(--outline-color);
+      z-index: 10;
+      text-shadow: 1px 1px 1px black;
     }
     --outline-color: red;
     * {
@@ -384,6 +394,36 @@ function applyX2Settings(isApply) {
     img.src = img.srcset;
   } else {
     img.src = img.src.replace(/@2x\.png/, ".png").replace(/%202x$/, "");
+  }
+}
+
+function flagOutput() {
+  const iframe = document.querySelector("iframe");
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+  const observer = new MutationObserver(flagOutputDOM);
+  observer.observe(iframeDoc, { attributes: true, childList: true });
+  flagOutputDOM();
+
+  return true;
+}
+
+function flagOutputDOM() {
+  const iframe = document.querySelector("iframe");
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+  for (let i = 0; i < iframeDoc.children.length; i++) {
+    const child = iframeDoc.children.item(i);
+
+    flagOutputElement(child);
+  }
+}
+function flagOutputElement(element) {
+  element.dataset.tagname = element.localName;
+
+  for (let i = 0; i < element.children.length; i++) {
+    const child = element.children.item(i);
+
+    flagOutputElement(child);
   }
 }
 
