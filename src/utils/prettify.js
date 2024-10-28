@@ -1,80 +1,103 @@
 import * as prettier from "prettier";
 import * as prettierPluginCss from "prettier/plugins/postcss";
+import { chain } from "taninsam";
 
 export async function prettify(code) {
   return await formatHTMLWithCSS(code);
 }
 
 async function formatHTMLWithCSS(html) {
-  // Étape 1: Trouver et extraire le contenu de la balise <style>
-  let styleRegex = /<style[^>]*>(.*?)(<\/style>)?$/i;
-  let match = html.match(styleRegex);
+  // Step 1: Find and extract the contents of the tag <style>
+  const styleRegex = /<style[^>]*>(.*?)(<\/style>)?$/i;
+  const match = html.match(styleRegex);
 
   if (match) {
-    let cssContent = match[1];
+    // Step 2: Format the CSS content
+    const cssContent = await formatCSS(match[1]);
 
-    // Étape 2: Formatter le contenu CSS
-    cssContent = await formatCSS(cssContent);
-
-    // Étape 3: Remplacer l'ancien contenu CSS par le contenu formaté
+    // Step 3: Replace the old CSS content with the formatted content
     html = html.replace(styleRegex, `\n<style>\n${cssContent}</style>`);
   }
-  // Retourner le HTML formaté
-  return html.replace(/^\n/m, '');
+  // Return the formatted HTML
+  return html.replace(/^\n/m, "");
 }
 
 async function formatCSS(css) {
-  // Supprimer les espaces et les nouvelles lignes inutiles
-  css = css.replace(/\s+/g, " ").trim();
+  return (
+    chain(css)
+      // Remove spaces
+      .chain(replace(/\s+/g, " "))
+      // delete unnecessary new lines
+      .chain(trim())
+      // Close the hugs if they are open without closure
+      .chain(replaceAll(/([^\'])'$/g, "$1 ''"))
+      .chain(replaceAll(/([^\"])"$/g, '$1 ""'))
+      .chain(closeBrackets("(", ")"))
+      .chain(closeBrackets())
+      // Add missing semi-colon at the end of the properties
+      .chain(replace(/([^;\}])(\s*})/g, "$1;$2"))
+      .chain(replaceAll(/(\S)#/g, "$1 #"))
+      .chain(replaceAll(/(\d)\-/g, "$1 -"))
+      .chain(replaceAll(/%(\S)/g, "% $1"))
+      .chain(replaceAll(/\/(\S)/g, "/ $1"))
+      .chain(replaceAll(/(\S)\//g, "$1 /"))
+      // Prettify css with prettier
+      .chain(awaitFn(prettifyCss))
+      .chain(then(replaceAll(/\+(\s)+(\d)/g, "+$2")))
+      .chain(then(replaceAll(/#0000([^a-fA-F0-9])/g, "transparent$1")))
+      .value()
+  );
+}
 
-  // Fermer les accolades si elles sont ouvertes sans fermeture
-  let formattedCSS = css; //closeBrackets(css, "'", "'");
-  formattedCSS = formattedCSS.replaceAll(/([^\'])'$/g, "$1 ''");
-  formattedCSS = formattedCSS.replaceAll(/([^\"])"$/g, '$1 ""');
-  formattedCSS = closeBrackets(formattedCSS, "(", ")");
-  formattedCSS = closeBrackets(formattedCSS);
+function closeBrackets(open = "{", close = "}") {
+  return (css) => {
+    let openedBraces = 0;
+    let formattedCSS = "";
+    for (let i = 0; i < css.length; i++) {
+      if (css[i] === open) {
+        openedBraces++;
+        formattedCSS += open;
+      } else if (css[i] === close) {
+        if (openedBraces > 0) {
+          openedBraces--;
+          formattedCSS += close;
+        }
+      } else {
+        formattedCSS += css[i];
+      }
+    }
 
-  // Ajouter des points-virgules manquants à la fin des propriétés
-  formattedCSS = formattedCSS.replace(/([^;\}])(\s*})/g, "$1;$2");
+    // Fermer les accolades restantes
+    while (openedBraces > 0) {
+      formattedCSS += close;
+      openedBraces--;
+    }
+    return formattedCSS;
+  };
+}
 
-  formattedCSS = formattedCSS
-    .replaceAll(/(\S)#/g, "$1 #")
-    .replaceAll(/(\d)\-/g, "$1 -")
-    .replaceAll(/%(\S)/g, "% $1")
-    .replaceAll(/\/(\S)/g, "/ $1")
-    .replaceAll(/(\S)\//g, "$1 /");
-
-  formattedCSS = await prettier.format(formattedCSS, {
+async function prettifyCss(cssCode) {
+  return await prettier.format(cssCode, {
     parser: "css",
     plugins: [prettierPluginCss],
   });
-  formattedCSS = formattedCSS
-    .replaceAll(/\+(\s)+(\d)/g, "+$2")
-    .replaceAll(/#0000([^a-fA-F0-9])/g, "transparent$1");
-  return formattedCSS;
 }
 
-function closeBrackets(css, open = "{", close = "}") {
-  let openedBraces = 0;
-  let formattedCSS = "";
-  for (let i = 0; i < css.length; i++) {
-    if (css[i] === open) {
-      openedBraces++;
-      formattedCSS += open;
-    } else if (css[i] === close) {
-      if (openedBraces > 0) {
-        openedBraces--;
-        formattedCSS += close;
-      }
-    } else {
-      formattedCSS += css[i];
-    }
-  }
+function replace(regexp, replacement) {
+  return (str) => str.replace(regexp, replacement);
+}
+function replaceAll(regexp, replacement) {
+  return (str) => str.replaceAll(regexp, replacement);
+}
 
-  // Fermer les accolades restantes
-  while (openedBraces > 0) {
-    formattedCSS += close;
-    openedBraces--;
-  }
-  return formattedCSS;
+function trim() {
+  return (str) => str.trim();
+}
+
+function awaitFn(f) {
+  return async (input) => await f(input);
+}
+
+function then(f) {
+  return (promise) => promise.then(f);
 }
