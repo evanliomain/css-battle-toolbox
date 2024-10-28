@@ -13,7 +13,7 @@ async function formatHTMLWithCSS(html) {
 
   if (match) {
     // Step 2: Format the CSS content
-    const cssContent = await formatCSS(match[1]);
+    const cssContent = await formatCSS(await formatCSS(match[1]));
 
     // Step 3: Replace the old CSS content with the formatted content
     html = html.replace(styleRegex, `\n<style>\n${cssContent}</style>`);
