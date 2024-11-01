@@ -195,7 +195,6 @@ function unCheckSlideNCompare() {
   const label = document.querySelector(
     '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"])',
   );
-  label.childNodes[2].remove();
   label.insertAdjacentElement("beforeend", htmlToElement(slideNCompareIcon()));
   label.setAttribute("data-hint", "Slide and Compare");
   label.setAttribute("aria-label", "Slide and Compare");
@@ -213,7 +212,6 @@ function displayDiff() {
   if (null === label) {
     return false;
   }
-  label.childNodes[2].remove();
   label.insertAdjacentElement("beforeend", htmlToElement(diffIcon()));
   label.setAttribute("data-hint", "Show the difference");
   label.setAttribute("aria-label", "Show the difference");

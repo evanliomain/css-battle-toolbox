@@ -2,6 +2,7 @@
 # 0.0.0.8
 
 - Add tolerance input in unit golf tool
+- Fix hiding output tool label on Opera GX
 
 # 0.0.0.7
 

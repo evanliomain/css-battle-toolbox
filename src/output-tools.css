@@ -2,6 +2,10 @@
   color: var(--clr-brand);
 }
 
+.container__item--output .item__header .header__extra-info .hstack > label {
+  font-size: 0;
+}
+
 .display-outline * {
   outline: 3px dotted red;
 }
