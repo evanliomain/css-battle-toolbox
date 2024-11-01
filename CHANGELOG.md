@@ -1,4 +1,8 @@
 
+# 0.0.0.7
+
+- Fix the today compute
+
 # 0.0.0.6
 
 - Add the html tag name near the html tag outline
