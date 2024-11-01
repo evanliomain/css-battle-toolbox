@@ -55,7 +55,7 @@ function createComputeIFrame() {
 
 function template() {
   return `
-    <div id="unit-golf-tool" style="display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr;">
+    <div id="unit-golf-tool" style="display: grid; gap: 0.5rem; grid-template-columns: repeat(3, 1fr);">
       <div class="input-container" style="margin-bottom: 0;">
         <label for="unit-input-background">Unit</label>
         <input id="unit-input-background" type="text" class="js-unit-input-minify" placeholder="20px" />
@@ -64,7 +64,11 @@ function template() {
         <label for="font-input-background">Font</label>
         <input id="font-input-background" type="text" class="js-unit-input-minify" placeholder="16px/18px''" />
       </div>
-      <div id="unit-minify-result"></div>
+      <div class="input-container" style="margin-bottom: 0;">
+        <label for="tolerance-input-background">Tolerance</label>
+        <input id="tolerance-input-background" type="text" class="js-unit-input-minify" placeholder="0.2" />
+      </div>
+      <div id="unit-minify-result" style="grid-column: 1 / span 2;"></div>
     </div>
   `;
 }
@@ -76,13 +80,13 @@ function addListener() {
 }
 
 function computeUnit() {
-  const { unit, font } = getInputs();
+  const { unit, font, tolerance } = getInputs();
   const calcDiv = getCalcDiv();
 
   const { units, pxWidth } = measureUnits(calcDiv, unit, font, UNITS);
   let result = [];
   if (pxWidth > 0) {
-    result = convertAndSort(pxWidth, units, 0.2);
+    result = convertAndSort(pxWidth, units, tolerance);
   }
   displayResults(result);
 }
@@ -94,10 +98,14 @@ function getCalcDiv() {
 }
 
 function getInputs() {
-  var unit = document.getElementById("unit-input-background").value;
-  var font = document.getElementById("font-input-background").value;
+  let unit = document.getElementById("unit-input-background").value;
+  let font = document.getElementById("font-input-background").value;
+  let tolerance = document.getElementById("tolerance-input-background").value;
   if (!font) {
     font = "16px/18px''";
+  }
+  if (!tolerance) {
+    tolerance = 0.2;
   }
 
   // remove all whitespaces
@@ -107,7 +115,7 @@ function getInputs() {
   if (!hasValidUnits(unit)) {
     unit += "px";
   }
-  return { unit, font };
+  return { unit, font, tolerance };
 }
 
 function hasValidUnits(value) {
@@ -203,6 +211,15 @@ function resultTemplate(result) {
   <div
     style="display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr; font-family: monospace; text-align: end;">
     ${result
+      .map(({ pixelOffset, string }) => ({
+        string,
+        pixelOffset:
+          0 === pixelOffset
+            ? ""
+            : pixelOffset > 0
+              ? `+${pixelOffset}px`
+              : `${pixelOffset}px`,
+      }))
       .map(
         ({ pixelOffset, string }) => `
     <span

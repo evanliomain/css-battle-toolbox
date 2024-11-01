@@ -1,4 +1,8 @@
 
+# 0.0.0.8
+
+- Add tolerance input in unit golf tool
+
 # 0.0.0.7
 
 - Fix the today compute
