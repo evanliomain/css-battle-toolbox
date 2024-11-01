@@ -1,4 +1,4 @@
-:root{
+:root {
   /* Configure your color scheme */
   --dark-color: hsl(251deg 25% 25%);
   --light-color: hsl(0deg 0% 90%);
@@ -41,8 +41,6 @@
   }
 }
 
-
-
 #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -68,6 +66,6 @@ li img {
 a {
   text-decoration: none;
 }
-a:hover{
+a:hover {
   text-decoration: underline;
 }
