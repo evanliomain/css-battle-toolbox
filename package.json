@@ -6,7 +6,7 @@
   "description": "Some usefull tools for Css Battle",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && zip -r css-battle-toolbox.zip dist",
+    "build": "tsc && vite build && cp src/options.js dist/src && zip -r css-battle-toolbox.zip dist",
     "preview": "vite preview",
     "test": "vitest"
   },
