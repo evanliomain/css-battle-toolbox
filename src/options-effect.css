@@ -41,6 +41,24 @@ body {
       }
     }
   }
+  &.hideGlobalStats {
+    .container__item--output .item__content > :nth-child(2) {
+      display: none;
+    }
+  }
+
+  &.hideShareTwitter {
+    .container__item--output .item__content .score-container > div div:has(a) {
+      display: none !important;
+    }
+  }
+  &.hideSponsor {
+    .container__item--target .item__content > .inner-header,
+    .container__item--target .item__content .sponsor-containerr {
+      display: none !important;
+    }
+  }
+
   &.hideHeader {
     .v2-header {
       display: none;

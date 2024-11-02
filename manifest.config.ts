@@ -33,7 +33,6 @@ export default defineManifest(async (env) => ({
         "src/output-tools.js",
         "src/autoclose-tools.js",
         "src/character-tools.js",
-        "src/remove-ads.js",
         "src/options-effect.js",
       ],
       matches: ["https://cssbattle.dev/play/*"],

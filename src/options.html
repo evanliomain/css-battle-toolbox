@@ -118,6 +118,7 @@
       .actions {
         display: flex;
         flex-direction: row;
+        align-items: baseline;
         gap: 0.25rem;
         margin-top: 20px;
       }
@@ -193,6 +194,20 @@
             Hide background
           </label>
         </fieldset>
+
+        <fieldset>
+          <legend>Score</legend>
+
+          <label>
+            <input type="checkbox" id="hideGlobalStats" />
+            Hide Global Stats
+          </label>
+          <label>
+            <input type="checkbox" id="hideShareTwitter" />
+            Hide Twitter (X) button
+          </label>
+        </fieldset>
+
         <fieldset>
           <legend>Layout</legend>
           <label>
@@ -210,6 +225,10 @@
           <label>
             <input type="checkbox" id="hideTarget" />
             Hide target image
+          </label>
+          <label>
+            <input type="checkbox" id="hideSponsor" />
+            Hide sponsor
           </label>
         </fieldset>
         <fieldset>

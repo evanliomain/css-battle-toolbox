@@ -28,7 +28,7 @@ function addTool() {
     return false;
   }
   createComputeIFrame();
-  container.insertAdjacentElement("beforeend", htmlToElement(template()));
+  container.insertAdjacentElement("afterend", htmlToElement(template()));
   addListener();
   return true;
 }
@@ -55,7 +55,7 @@ function createComputeIFrame() {
 
 function template() {
   return `
-    <div id="unit-golf-tool" style="display: grid; gap: 0.5rem; grid-template-columns: repeat(3, 1fr);">
+    <div id="unit-golf-tool" style="display: grid; gap: 0.5rem; grid-template-columns: repeat(3, 1fr); padding-inline: 1.25rem;">
       <div class="input-container" style="margin-bottom: 0;">
         <label for="unit-input-background">Unit</label>
         <input id="unit-input-background" type="text" class="js-unit-input-minify" placeholder="20px" />

@@ -4,6 +4,7 @@
 - Add tolerance input in unit golf tool
 - Fix hiding output tool label on Opera GX
 - Fix options save
+- Hide Global stats, Twitter button and Sponsor is now in extension configuration
 
 # 0.0.0.7
 
