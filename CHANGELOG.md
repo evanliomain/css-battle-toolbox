@@ -1,4 +1,8 @@
 
+# 0.0.0.9
+
+- Fix wrong space remove for `x .y`.
+
 # 0.0.0.8
 
 - Add tolerance input in unit golf tool

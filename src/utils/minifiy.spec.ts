@@ -26,6 +26,24 @@ describe("minify", () => {
       `
 <style>
   & {
+    scale: 1 0.5;
+  }
+</style>`,
+      "<style>&{scale:1 .5",
+    ],
+    [
+      `
+<style>
+  & {
+    scale: 1 .5;
+  }
+</style>`,
+      "<style>&{scale:1 .5",
+    ],
+    [
+      `
+<style>
+  & {
     scale: 1.07 1.5;
   }
 </style>`,
