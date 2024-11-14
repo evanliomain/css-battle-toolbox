@@ -1,6 +1,7 @@
 # 1.0.0
 - Add increment mode on editor
 - Add a link to CSS Battle Toolbox settings
+- Fix wrong space remove for `xq .y` to `xq .y` where `q` is a css unit.
 
 # 0.0.0.9
 

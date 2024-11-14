@@ -52,6 +52,24 @@ describe("minify", () => {
     [
       `
 <style>
+& {
+  box-shadow: 83Q 0.5Q;
+}
+</style>`,
+      `<style>&{box-shadow:83Q.5Q`,
+    ],
+    [
+      `
+<style>
+& {
+  box-shadow: 83px 0.5px;
+}
+</style>`,
+      `<style>&{box-shadow:83px.5px`,
+    ],
+    [
+      `
+<style>
   & {
     font: 12px '';
   }
@@ -105,6 +123,7 @@ describe("minify", () => {
         "<style>*{zoom:2;margin:55 75;background:#62306d;border-radius:50%;box-shadow:-9vw 0#f7ec7d;*{margin:0-54 0 54",
         "<style>*{background:#62306d;*{margin:110 222 110 78;border-radius:50%;box-shadow:inset 76Q 0,9pc 0;color:#f7ec7d",
         "<style>*{background:#191210;color:84271C;border-radius:1in;margin:0 65%225-265;box-shadow:25vw 75vh,-31q 231q,-60q 2in,425px 0,590q 9q,615q 33q;*{margin:-125 165",
+        "<style>*{border-radius:99Q 99Q 85Q 85Q;margin:0 10-43;box-shadow:inset 0 83Q.5Q 59Q#fade8b}&{background:#61a74e;margin:81 130 124",
       ],
     ])("#%#", async (minified) => {
       expect(minify(await prettify(minified))).toEqual(minified);

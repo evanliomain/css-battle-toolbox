@@ -38,5 +38,7 @@ export function minify(code) {
       .replaceAll(/\s*\'$/g, "'")
       // Trim space between 2 number with dot: 1.1 .4 => 1.1.4
       .replaceAll(/\.(\d+)\s+\.(\d)/g, ".$1.$2")
+      // Trim space between 2 number with dot and unit: 83Q .5Q => 83Q.5Q
+      .replaceAll(/(\d+)([a-zA-Z]+)\s+\.(\d)/g, "$1$2.$3")
   );
 }
