@@ -25,6 +25,10 @@ const OPTIONS_KEYS = [
   "nbBrightnessDifference",
   "x2Difference",
   "strDefaultCode",
+  "strKbdIncrement",
+  "strKbdDecrement",
+  "strKbdIncreaseIncrement",
+  "strKbdDecreaseIncrement",
 ];
 
 const defaultCodeTemplate = `<style>
@@ -34,6 +38,11 @@ const defaultCodeTemplate = `<style>
   }
 }
 </style>`;
+
+const default_strKbdIncrement = "=";
+const default_strKbdDecrement = ":";
+const default_strKbdIncreaseIncrement = "<";
+const default_strKbdDecreaseIncrement = "w";
 
 // Saves options to chrome.storage
 const saveOptions = () => {
@@ -75,12 +84,38 @@ const restoreOptions = () => {
       document.getElementById("strDefaultCode").value = defaultCodeTemplate;
       chrome.storage.sync.set({ strDefaultCode: defaultCodeTemplate });
     }
+    if (undefined === items.strKbdIncrement) {
+      document.getElementById("strKbdIncrement").value =
+        default_strKbdIncrement;
+      chrome.storage.sync.set({ strKbdIncrement: default_strKbdIncrement });
+    }
+    if (undefined === items.strKbdDecrement) {
+      document.getElementById("strKbdDecrement").value =
+        default_strKbdDecrement;
+      chrome.storage.sync.set({ strKbdDecrement: default_strKbdDecrement });
+    }
+    if (undefined === items.strKbdIncreaseIncrement) {
+      document.getElementById("strKbdIncreaseIncrement").value =
+        default_strKbdIncreaseIncrement;
+      chrome.storage.sync.set({
+        strKbdIncreaseIncrement: default_strKbdIncreaseIncrement,
+      });
+    }
+    if (undefined === items.strKbdDecreaseIncrement) {
+      document.getElementById("strKbdDecreaseIncrement").value =
+        default_strKbdDecreaseIncrement;
+      chrome.storage.sync.set({
+        strKbdDecreaseIncrement: default_strKbdDecreaseIncrement,
+      });
+    }
   });
 };
 
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.getElementById("save").addEventListener("click", saveOptions);
-document.getElementById("resetTemplate").addEventListener("click", resetCodeTemplate);
+document
+  .getElementById("resetTemplate")
+  .addEventListener("click", resetCodeTemplate);
 
 function resetCodeTemplate() {
   document.getElementById("strDefaultCode").value = defaultCodeTemplate;

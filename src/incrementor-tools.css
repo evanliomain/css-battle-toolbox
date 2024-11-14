@@ -1,0 +1,52 @@
+.content-highlighted [data-type="number"] {
+  outline: 1px dotted var(--clr-brand);
+  cursor: pointer;
+}
+
+.content-highlighted .locked {
+  outline: 3px double var(--clr-red);
+  background-color: var(--clr-red);
+  color: var(--clr-text-light);
+}
+
+.content-highlighted .highlighted {
+  outline: 2px solid var(--clr-brand);
+}
+
+.cm-editor:has(.content-highlighted) {
+  position: relative;
+
+  &::before {
+    position: absolute;
+    content: "Increment mode";
+    top: 0;
+    right: 1rem;
+  }
+}
+
+.incrementor-panel {
+  background-color: var(--clr-inner-header-highlight);
+  color: var(--clr-text);
+  padding: 0.4rem 1.25rem;
+  font-family: ClashGrotesk;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: -1;
+}
+
+.container__item--editor:has(.content-highlighted) .incrementor-panel {
+  z-index: 0;
+}
+
+.button--incr {
+  min-width: 40px;
+}
+.button--command {
+  width: 20px;
+}

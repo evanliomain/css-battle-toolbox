@@ -25,6 +25,18 @@
         --clr-btn-text: #fff;
         --clr-btn-hover: #b6c0c9;
 
+        --pill-bg: #d7d7d7;
+        --pill-bg-key: rgb(0 0 0 / 10%);
+        --pill-bg-danger: #ff2c2c;
+        --pill-bg-warning: #faec86;
+        --pill-bg-success: #afc470;
+        --pill-text-key: var(--clr-text-lightest);
+        --pill-text-key-hover: var(--clr-text-light);
+        --pill-text-danger: #fff;
+        --pill-text-warning: #625601;
+        --pill-text-success: #202b00;
+        --pill-shadow-key: rgba(0 0 0 / 15%);
+
         /* css custom properties to use in your styles */
         /* Multiply all animation timing by --motion to turn animation off for prefer-reduced-motion users */
         --motion: 1;
@@ -58,6 +70,18 @@
           --accent-color: #ffdf00;
           --clr-border: #27313a;
           --clr-btn-hover: #43515e;
+
+          --pill-bg: #2d363f;
+          --pill-bg-key: hsla(0, 0%, 100%, 0.05);
+          --pill-bg-danger: #a3483d;
+          --pill-bg-warning: #ffdf0022;
+          --pill-bg-success: #4a6302;
+          --pill-text-key: hsla(0, 0%, 100%, 0.4);
+          --pill-text-key-hover: hsla(0, 0%, 100%, 0.5);
+          --pill-text-danger: #fff;
+          --pill-text-warning: #ffdf00;
+          --pill-text-success: #fff;
+          --pill-shadow-key: hsla(0, 0%, 100%, 0.1);
         }
       }
 
@@ -70,7 +94,7 @@
       }
 
       li {
-        font-size: 16px;
+        font-size: var(--font-size-0);
       }
       li img {
         width: 16px;
@@ -88,6 +112,7 @@
         display: flex;
         gap: 0.25rem;
         align-items: center;
+        font-size: var(--font-size-0);
 
         &:has(input[type="checkbox"]:checked) {
           color: var(--accent-color);
@@ -160,6 +185,22 @@
       .button--small {
         font-size: var(--font-size-0);
         padding: 0.25rem 0.5rem 0.2rem;
+      }
+
+      kbd {
+        background: var(--pill-bg-key);
+        box-shadow: 0 2px 0 0 var(--pill-shadow-key);
+        padding: 0.04rem 0.3rem 0;
+        color: var(--pill-text-key);
+        font-weight: 600;
+        line-height: 1rem;
+        transition: 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        font-size: var(--font-size-0);
+        border-radius: 4px;
+        white-space: nowrap;
+        text-transform: uppercase;
       }
     </style>
   </head>
@@ -279,7 +320,7 @@
       </div>
 
       <h2>Customize</h2>
-      <div class="sub-form">
+      <div class="sub-form" style="--min-column-size: 400px;">
         <fieldset>
           <legend>Difference tool</legend>
 
@@ -315,6 +356,67 @@
           <button id="resetTemplate" type="button" class="button button--small">
             Reset template
           </button>
+        </fieldset>
+
+        <fieldset>
+          <legend>Increment Mode</legend>
+          <ul>
+            <li>
+              To trigger the <strong>i</strong>ncrement mode press
+              <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>I</kbd>
+            </li>
+            <li>
+              To come back to the editor press
+              <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>I</kbd> or <kbd>Esc</kbd>
+            </li>
+            <li>Navigate throught numbers with arrows, or click on a number.</li>
+            <li>To <strong>a</strong>dd or remove the number to the selection press <kbd>a</kbd>, or <kbd>Shift</kbd> + click on a number</li>
+            <li>To <strong>d</strong>eselect all numbers in the selection press <kbd>d</kbd></li>
+            <li>
+              <label>
+                <span>To increment selection press</span>
+                <input
+                  id="strKbdIncrement"
+                  type="text"
+                  maxlength="1"
+                  size="1"
+                />
+              </label>
+            </li>
+            <li>
+              <label>
+                To decrement selection press
+                <input
+                  id="strKbdDecrement"
+                  type="text"
+                  maxlength="1"
+                  size="1"
+                />
+              </label>
+            </li>
+            <li>
+              <label>
+                To increase increment press
+                <input
+                  id="strKbdIncreaseIncrement"
+                  type="text"
+                  maxlength="1"
+                  size="1"
+                />
+              </label>
+            </li>
+            <li>
+              <label>
+                To decrease increment press
+                <input
+                  id="strKbdDecreaseIncrement"
+                  type="text"
+                  maxlength="1"
+                  size="1"
+                />
+              </label>
+            </li>
+          </ul>
         </fieldset>
       </div>
     </div>

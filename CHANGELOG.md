@@ -1,5 +1,6 @@
 # 1.0.0
-
+- Add increment mode on editor
+- Add a link to CSS Battle Toolbox settings
 
 # 0.0.0.9
 

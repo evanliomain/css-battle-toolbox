@@ -34,6 +34,8 @@ export default defineManifest(async (env) => ({
         "src/autoclose-tools.js",
         "src/character-tools.js",
         "src/options-effect.js",
+        "src/incrementor-tools.js",
+        "src/mode-menu.js",
       ],
       matches: ["https://cssbattle.dev/play/*"],
     },

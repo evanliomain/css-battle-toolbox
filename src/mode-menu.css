@@ -1,0 +1,47 @@
+.cbt-dropdown {
+  display: inline-block;
+  position: relative;
+}
+
+.cbt-dropdown-options {
+  display: none;
+  position: absolute;
+  translate: calc(-100% + 32px);
+  z-index: 1;
+  overflow: auto;
+}
+
+.cbt-dropdown-options nav {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  flex-direction: column;
+}
+
+.cbt-dropdown-options nav hr {
+  margin: 0 -20px;
+}
+
+.cbt-dropdown-options nav a {
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  font-size: var(--font-size-1);
+  font-family: ClashGrotesk;
+  font-weight: normal;
+  text-align: left;
+  line-height: 1.4;
+  font-style: normal;
+  text-transform: none;
+  color: var(--clr-text);
+
+  display: grid;
+  grid-template-columns: 20px auto 125px;
+  gap: 0.5rem;
+  align-items: center;
+}
+.cbt-dropdown input[type="checkbox"] {
+  display: none;
+}
+.cbt-dropdown:has(input[type="checkbox"]:checked) .cbt-dropdown-options {
+  display: block;
+}

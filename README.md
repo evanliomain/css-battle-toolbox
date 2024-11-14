@@ -8,6 +8,7 @@ Features :
 - Display your html tags outline/background on your code output
 - A tool to find shorter css unit (integration of https://u9kels.csb.app/)
 - A tool to find shorter css color in hexa (integration of https://48dvyq.csb.app/)
+- A tool to increase/decrease numbers in editor with keyboard shortcut, even with a multi-selection
 - Print, on the fly, the number of characters your code should be once minified
 - Replace default skeleton by a shorter and more helpfull one.
 - You can hide any almost any part of the interface, including tools bring with this extension.
