@@ -1,3 +1,7 @@
+# 1.0.1
+
+- Fix links to external tools
+
 # 1.0.0
 - Add increment mode on editor
 - Add a link to CSS Battle Toolbox settings

@@ -1,8 +1,36 @@
 :root {
+  --font-size-0: 0.875rem;
+  --font-size-1: 1rem;
+  --font-size-2: 1.125rem;
+  --font-size-3: 1.375rem;
+  --font-size-3-5: 1.5rem;
+  --font-size-3-75: 1.75rem;
+  --font-size-4: 2rem;
+  --font-size-5: 3rem;
+  --font-size-6: 4rem;
+
   /* Configure your color scheme */
-  --dark-color: hsl(251deg 25% 25%);
-  --light-color: hsl(0deg 0% 90%);
-  --accent-color: hsl(341deg 81% 62%);
+  --dark-color: #07080b;
+  --light-color: #edf2f7;
+  --accent-color: #976e06;
+
+  --clr-border: #cbd5e0;
+  --clr-btn-primary: #0060ca;
+  --clr-btn-primary-hover: #0050b0;
+  --clr-btn-text: #fff;
+  --clr-btn-hover: #b6c0c9;
+
+  --pill-bg: #d7d7d7;
+  --pill-bg-key: rgb(0 0 0 / 10%);
+  --pill-bg-danger: #ff2c2c;
+  --pill-bg-warning: #faec86;
+  --pill-bg-success: #afc470;
+  --pill-text-key: var(--clr-text-lightest);
+  --pill-text-key-hover: var(--clr-text-light);
+  --pill-text-danger: #fff;
+  --pill-text-warning: #625601;
+  --pill-text-success: #202b00;
+  --pill-shadow-key: rgba(0 0 0 / 15%);
 
   /* css custom properties to use in your styles */
   /* Multiply all animation timing by --motion to turn animation off for prefer-reduced-motion users */
@@ -13,9 +41,6 @@
 
   /* Main background color, support light and dark theme */
   --background-color: light-dark(var(--light-color), var(--dark-color));
-
-  /* Main accent color */
-  --accent-color: var(--accent-color);
 
   color: var(--text-color);
   font-weight: 400;
@@ -28,6 +53,31 @@
   -moz-osx-font-smoothing: grayscale;
   font-synthesis: none;
   text-rendering: optimizelegibility;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion: 0;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent-color: #ffdf00;
+    --clr-border: #27313a;
+    --clr-btn-hover: #43515e;
+
+    --pill-bg: #2d363f;
+    --pill-bg-key: hsla(0, 0%, 100%, 0.05);
+    --pill-bg-danger: #a3483d;
+    --pill-bg-warning: #ffdf0022;
+    --pill-bg-success: #4a6302;
+    --pill-text-key: hsla(0, 0%, 100%, 0.4);
+    --pill-text-key-hover: hsla(0, 0%, 100%, 0.5);
+    --pill-text-danger: #fff;
+    --pill-text-warning: #ffdf00;
+    --pill-text-success: #fff;
+    --pill-shadow-key: hsla(0, 0%, 100%, 0.1);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
