@@ -1,3 +1,7 @@
+# 1.0.2
+
+- Add unit tests on minification and fix `.x0y` issues
+
 # 1.0.1
 
 - Fix links to external tools

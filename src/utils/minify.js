@@ -2,8 +2,11 @@ export function minify(code) {
   return (
     code
       .trim()
+      // Remove comments
       .replaceAll(/<!--.*-->/g, "")
+      // transform transparent into #0000
       .replaceAll(/transparent/g, "#0000")
+      // Remove extra space
       .replaceAll(/\s+/g, " ")
       .replaceAll(/\s*\#/g, "#")
       .replaceAll(/:\s*/g, ":")
@@ -22,7 +25,7 @@ export function minify(code) {
       // Trim leading 0
       .replaceAll(/(\D)0+\./g, "$1.")
       // Trim trailing 0
-      .replaceAll(/\.(\d)*([1-9])0+/g, ".$1$2")
+      .replaceAll(/\.(\d*)([1-9])0+(\D)/g, ".$1$2$3")
       .replaceAll(/\+\s+(\S)/g, "+$1")
       .replaceAll(/(\S)\s+\+/g, "$1+")
       .replaceAll(/\>\s*\*/g, ">*")
