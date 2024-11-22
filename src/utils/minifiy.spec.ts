@@ -52,6 +52,24 @@ describe("minify", () => {
     [
       `
 <style>
+  & {
+    scale: 0.50500000 1.5;
+  }
+</style>`,
+      "<style>&{scale:.505 1.5",
+    ],
+    [
+      `
+<style>
+  & {
+    scale: 0.5000000005;
+  }
+</style>`,
+      "<style>&{scale:.5000000005",
+    ],
+    [
+      `
+<style>
 & {
   box-shadow: 83Q 0.5Q;
 }
