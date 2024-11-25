@@ -199,6 +199,7 @@ function unCheckSlideNCompare() {
   label.setAttribute("data-hint", "Slide and Compare");
   label.setAttribute("aria-label", "Slide and Compare");
   label.classList = "hint--bottom-right";
+  label.style.gap = '0';
 
   node.click();
 
@@ -216,6 +217,7 @@ function displayDiff() {
   label.setAttribute("data-hint", "Show the difference");
   label.setAttribute("aria-label", "Show the difference");
   label.classList = "hint--bottom-right";
+  label.style.gap = '0';
 
   label.addEventListener("change", (e) => {
     document.body.classList.toggle("diff-tool", e.target.checked);
@@ -230,7 +232,7 @@ function addCompareOption() {
     class="hint--bottom"
     aria-label="Show the target on output"
     data-hint="Show the target on output"
-    style="display: flex; gap: 0.25rem; align-items: center;"
+    style="display: flex; align-items: center;"
   >
     <input
       id="output-compare-input"
@@ -266,7 +268,7 @@ function addGridOption() {
     class="hint--bottom-left"
     aria-label="Show a 10x10 grid on output"
     data-hint="Show a 10x10 grid on output"
-    style="display: flex; gap: 0.25rem; align-items: center;"
+    style="display: flex; align-items: center;"
   >
     <input
       id="output-grid-input"
@@ -316,7 +318,7 @@ function addOutlineOption() {
     class="hint--bottom-left"
     aria-label="Show outline on every tags of the output"
     data-hint="Show outline on every tags of the output"
-    style="display: flex; gap: 0.25rem; align-items: center;"
+    style="display: flex; align-items: center;"
   >
     <input
       id="output-outline-input"
@@ -346,7 +348,7 @@ function addBackgroundOption() {
     class="hint--bottom-left"
     aria-label="Show background on every tags of the output"
     data-hint="Show background on every tags of the output"
-    style="display: flex; gap: 0.25rem; align-items: center;"
+    style="display: flex; align-items: center;"
   >
     <input
       id="output-background-input"

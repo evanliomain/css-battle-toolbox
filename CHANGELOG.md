@@ -1,6 +1,7 @@
 # 1.0.3
 
 - Fix missing whitespace when missing ;
+- Reduce gap between checkbox and icon output tool
 
 # 1.0.2
 
