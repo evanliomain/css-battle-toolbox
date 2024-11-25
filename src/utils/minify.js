@@ -22,6 +22,7 @@ export function minify(code) {
       .replaceAll(/\s+\*\s+/g, " * ")
       .replaceAll(/\s+\-/g, " -")
       .replaceAll(/(\d) \-/g, "$1-")
+      .replaceAll(/\s*([{}:;,])\s*/g, "$1")
       // Trim leading 0
       .replaceAll(/(\D)0+\./g, "$1.")
       // Trim trailing 0

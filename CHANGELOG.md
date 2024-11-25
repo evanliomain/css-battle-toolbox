@@ -1,3 +1,7 @@
+# 1.0.3
+
+- Fix missing whitespace when missing ;
+
 # 1.0.2
 
 - Add unit tests on minification and fix `.x0y` issues

@@ -130,6 +130,30 @@ describe("minify", () => {
 </style>`,
       "<style>&{color:#0000",
     ],
+    [
+      `
+<style>
+  & {
+    background: white
+  }
+  p {
+    background: red;
+  }
+</style>`,
+      "<style>&{background:white}p{background:red",
+    ],
+    [
+      `
+<style>
+  & {
+    margin: 10 20
+  }
+  p {
+    background: red;
+  }
+</style>`,
+      "<style>&{margin:10 20}p{background:red",
+    ],
   ])("#%#", (pretty, minified) => {
     expect(minify(pretty)).toEqual(minified);
     expect(minify(minified)).toEqual(minified);
