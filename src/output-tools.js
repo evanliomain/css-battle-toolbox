@@ -32,156 +32,12 @@ function displayGrid() {
   target.attributeStyleMap.set("opacity", 1 === opacity ? 0 : 1);
 }
 
-function createOutline() {
-  const iframe = document.querySelector("iframe");
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-  const observer = new MutationObserver(() => {
-    if (iframe.classList.contains("display-outline")) {
-      injectOutlineStyle();
-    }
-  });
-
-  // Commence à observer le noeud cible pour les mutations précédemment configurées
-  observer.observe(iframeDoc, { attributes: true, childList: true });
-}
-
-function createBackground() {
-  const iframe = document.querySelector("iframe");
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-  const observer = new MutationObserver(() => {
-    if (iframe.classList.contains("display-background")) {
-      injectBackgroundStyle();
-    }
-  });
-
-  // Commence à observer le noeud cible pour les mutations précédemment configurées
-  observer.observe(iframeDoc, { attributes: true, childList: true });
-}
-
 function displayOutline() {
-  const iframe = document.querySelector("iframe");
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-  if (!iframe.classList.contains("display-outline")) {
-    iframe.classList.add("display-outline");
-    injectOutlineStyle();
-  } else {
-    iframe.classList.remove("display-outline");
-    iframeDoc.head.querySelector("[data-outline]")?.remove();
-  }
+  targetContainer().classList.toggle("display-outline");
 }
 
 function displayBackground() {
-  const iframe = document.querySelector("iframe");
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-  if (!iframe.classList.contains("display-background")) {
-    iframe.classList.add("display-background");
-    injectBackgroundStyle();
-  } else {
-    iframe.classList.remove("display-background");
-    iframeDoc.head.querySelector("[data-background]")?.remove();
-  }
-}
-
-function injectOutlineStyle() {
-  const iframe = document.querySelector("iframe");
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-  // Injecter du CSS dans l'iframe
-  const style = iframeDoc.createElement("style");
-  style.type = "text/css";
-  style.setAttribute("data-outline", 0);
-  iframeDoc.head.appendChild(style);
-  style.setAttribute("data-style", "1");
-  style.innerHTML = `* {
-    position: relative;
-    &:before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      outline: 4px dotted var(--outline-color);
-      outline-offset: -2px;
-      z-index: 10;
-    }
-    &:after {
-      content: attr(data-tagname);
-      position: absolute;
-      inset: 5px;
-      color: var(--outline-color);
-      z-index: 10;
-      text-shadow: 1px 1px 1px black;
-    }
-    --outline-color: red;
-    * {
-      --outline-color: blue;
-      * {
-        --outline-color: green;
-        * {
-          --outline-color: yellow;
-          * {
-            --outline-color: pink;
-            * {
-              --outline-color: aqua;
-              * {
-                --outline-color: blueviolet;
-                * {
-                  --outline-color: brown;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }`;
-}
-
-function injectBackgroundStyle() {
-  const iframe = document.querySelector("iframe");
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-  // Injecter du CSS dans l'iframe
-  const style = iframeDoc.createElement("style");
-  style.type = "text/css";
-  style.setAttribute("data-background", 0);
-  iframeDoc.head.appendChild(style);
-  style.setAttribute("data-style", "1");
-  style.innerHTML = `* {
-    position: relative;
-    &:before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-color: var(--outline-color);
-      opacity: 0.4;
-      z-index: 10;
-    }
-    --outline-color: red;
-    * {
-      --outline-color: blue;
-      * {
-        --outline-color: green;
-        * {
-          --outline-color: yellow;
-          * {
-            --outline-color: pink;
-            * {
-              --outline-color: aqua;
-              * {
-                --outline-color: blueviolet;
-                * {
-                  --outline-color: brown;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }`;
+  targetContainer().classList.toggle("display-background");
 }
 
 function unCheckSlideNCompare() {
@@ -199,7 +55,7 @@ function unCheckSlideNCompare() {
   label.setAttribute("data-hint", "Slide and Compare");
   label.setAttribute("aria-label", "Slide and Compare");
   label.classList = "hint--bottom hint--left-if-slidencompare-alone";
-  label.style.gap = '0';
+  label.style.gap = "0";
 
   node.click();
 
@@ -217,7 +73,7 @@ function displayDiff() {
   label.setAttribute("data-hint", "Show the difference");
   label.setAttribute("aria-label", "Show the difference");
   label.classList = "hint--bottom-left";
-  label.style.gap = '0';
+  label.style.gap = "0";
 
   label.addEventListener("change", (e) => {
     document.body.classList.toggle("diff-tool", e.target.checked);
@@ -285,24 +141,10 @@ function addGridOption() {
     .appendChild(htmlToElement(template));
 
   // Add grid overlay
-  const overlayGrid = document.createElement("div");
-  overlayGrid.id = "overlay-grid";
-  overlayGrid.style.position = "absolute";
-  overlayGrid.style.inset = "0";
-  overlayGrid.style.zIndex = "2";
+  const overlayGrid = htmlToElement(`<div id="overlay-grid"></div>`);
   overlayGrid.style.opacity = "0";
-  overlayGrid.style.background = `
-      repeating-linear-gradient(90deg,  #0003 0 3px, #0000 0, #0000 100px),
-      repeating-linear-gradient(#0003 0 3px, #0000 0, #0000 100px),
-      repeating-linear-gradient(90deg, #0003 0 2px, #0000 0, #0000 50px),
-      repeating-linear-gradient(#0003 0 2px, #0000 0, #0000 50px),
-      repeating-linear-gradient(90deg, #0003 0 1px, #0000 0, #0000 10px),
-      repeating-linear-gradient(#0003 0 1px, #0000 0, #0000 10px)
-    `;
 
-  document
-    .querySelector(".target-container")
-    .insertAdjacentElement("afterbegin", overlayGrid);
+  targetContainer().insertAdjacentElement("afterbegin", overlayGrid);
   displayGrid();
 
   document
@@ -333,8 +175,6 @@ function addOutlineOption() {
     .querySelector(".container__item--output .header__extra-info .hstack")
     .appendChild(htmlToElement(template));
 
-  createOutline();
-
   document
     .getElementById("output-outline-input")
     .addEventListener("input", (e) => {
@@ -362,8 +202,6 @@ function addBackgroundOption() {
   document
     .querySelector(".container__item--output .header__extra-info .hstack")
     .appendChild(htmlToElement(template));
-
-  createBackground();
 
   document
     .getElementById("output-background-input")
@@ -425,6 +263,11 @@ function flagOutputElement(element) {
 
     flagOutputElement(child);
   }
+}
+
+// Selector
+function targetContainer() {
+  return document.querySelector(".target-container");
 }
 
 // Icons

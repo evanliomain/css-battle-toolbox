@@ -28,6 +28,10 @@ body {
     }
   }
   &.hideOutline {
+    #dom-outline {
+      display: none;
+    }
+
     .container__item--output .item__header .header__extra-info .hstack {
       > label:nth-child(5) {
         display: none !important;
@@ -48,7 +52,11 @@ body {
   }
 
   &.hideShareTwitter {
-    .container__item--output .item__content .score-container > div > div:nth-child(2) {
+    .container__item--output
+      .item__content
+      .score-container
+      > div
+      > div:nth-child(2) {
       display: none !important;
     }
   }
