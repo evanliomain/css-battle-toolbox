@@ -1,7 +1,8 @@
 # 1.0.3
 
-- Fix missing whitespace when missing ;
-- Reduce gap between checkbox and icon output tool
+- Fix missing whitespace when missing ; #5
+- Reduce gap between checkbox and icon output tool #2
+- Fix output tool tooltip alignment #2
 
 # 1.0.2
 

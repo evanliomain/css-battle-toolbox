@@ -198,7 +198,7 @@ function unCheckSlideNCompare() {
   label.insertAdjacentElement("beforeend", htmlToElement(slideNCompareIcon()));
   label.setAttribute("data-hint", "Slide and Compare");
   label.setAttribute("aria-label", "Slide and Compare");
-  label.classList = "hint--bottom-right";
+  label.classList = "hint--bottom hint--left-if-slidencompare-alone";
   label.style.gap = '0';
 
   node.click();
@@ -216,7 +216,7 @@ function displayDiff() {
   label.insertAdjacentElement("beforeend", htmlToElement(diffIcon()));
   label.setAttribute("data-hint", "Show the difference");
   label.setAttribute("aria-label", "Show the difference");
-  label.classList = "hint--bottom-right";
+  label.classList = "hint--bottom-left";
   label.style.gap = '0';
 
   label.addEventListener("change", (e) => {
@@ -229,7 +229,7 @@ function displayDiff() {
 function addCompareOption() {
   const template = `
   <label
-    class="hint--bottom"
+    class="hint--bottom hint--left-if-compare-alone"
     aria-label="Show the target on output"
     data-hint="Show the target on output"
     style="display: flex; align-items: center;"

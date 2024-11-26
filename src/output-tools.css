@@ -20,4 +20,15 @@ body {
       opacity: 1 !important;
     }
   }
+
+  &.hideDifference.hideTargetOnOutput.hideGrid.hideOutline.hideBackground {
+    .hint--left-if-slidencompare-alone:after {
+      transform: translateX(-100%) translateY(8px);
+    }
+  }
+  &.hideGrid.hideOutline.hideBackground {
+    .hint--left-if-compare-alone:after {
+      transform: translateX(-100%) translateY(8px);
+    }
+  }
 }
