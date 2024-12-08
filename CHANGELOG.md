@@ -1,3 +1,7 @@
+# 1.0.4
+
+- Add unit tests on minification and fix `word .x` issues
+
 # 1.0.3
 
 - Fix missing whitespace when missing ; #5

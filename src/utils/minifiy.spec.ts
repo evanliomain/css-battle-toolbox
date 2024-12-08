@@ -154,6 +154,26 @@ describe("minify", () => {
 </style>`,
       "<style>&{margin:10 20}p{background:red",
     ],
+    [
+      `
+<style>
+& {
+  background: conic-gradient(from 0.41turn, #4a7d7b 0 0);
+}
+</style>
+`,
+`<style>&{background:conic-gradient(from.41turn,#4a7d7b 0 0`
+],
+[
+  `
+  <style>
+& {
+  outline: solid 0.6lh #0b2429;
+}
+</style>
+      `,
+  `<style>&{outline:solid.6lh#0b2429`
+    ]
   ])("#%#", (pretty, minified) => {
     expect(minify(pretty)).toEqual(minified);
     expect(minify(minified)).toEqual(minified);
