@@ -1,3 +1,7 @@
+# 1.0.5
+
+- Fix the today compute
+
 # 1.0.4
 
 - Add unit tests on minification and fix `word .x` issues
