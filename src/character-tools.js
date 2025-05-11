@@ -1,13 +1,8 @@
+import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
 import { minify } from "./utils/minify";
 
-init();
-
-const observer = new MutationObserver(insert);
-
-observer.observe(document.querySelector('[contenteditable]'), { attributes: true, childList: true });
-
-insert();
+doAsync(init)();
 
 function getMinifiedNbCharacters() {
   return minify(document.querySelector("[contenteditable]")?.textContent ?? "")
@@ -15,15 +10,19 @@ function getMinifiedNbCharacters() {
 }
 
 function init() {
+  const container = document.querySelector(
+    '[class^="Editor_editor"] > .item__header > .header__extra-info > .hstack',
+  );
+
+  if (null === container) {
+    return false;
+  }
+
   const el = document.createElement("span");
   el.id = "nb-minified-characters";
-  document
-    .querySelector(
-      '[class^="Editor_editor"] > .item__header > .header__extra-info > .hstack',
-    )
-    .insertAdjacentElement(
-      "afterbegin",
-      htmlToElement(`
+  container.insertAdjacentElement(
+    "afterbegin",
+    htmlToElement(`
         <span
           id="nb-minified-characters"
           class="hint--bottom"
@@ -31,7 +30,18 @@ function init() {
           data-hint="Number of characters once your code is minified"
         ></span>
       `),
-    );
+  );
+
+  const observer = new MutationObserver(insert);
+
+  observer.observe(document.querySelector("[contenteditable]"), {
+    attributes: true,
+    childList: true,
+  });
+
+  insert();
+
+  return true;
 }
 function insert() {
   document.getElementById("nb-minified-characters").innerText =

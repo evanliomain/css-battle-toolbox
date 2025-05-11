@@ -5,9 +5,15 @@ import { htmlToElement } from "./utils/html-to-element";
 
 const INCREMENTS = [100, 10, 1, 0.1, 0.01];
 
-incrementorTool();
+doAsync(incrementorTool)();
 
 function incrementorTool() {
+  const container = document.querySelector('[class^="Editor_editor__"]');
+
+  if (null === container) {
+    return false;
+  }
+
   let upKey = "=";
   let downKey = ":";
   let leftKey = "<";
@@ -33,12 +39,10 @@ function incrementorTool() {
   const observer = new MutationObserver(onContentChange);
 
   // Add incrementor tool bar
-  document
-    .querySelector('[class^="Editor_editor__"]')
-    .insertAdjacentElement(
-      "afterend",
-      htmlToElement(template({ leftKey, rightKey, upKey, downKey })),
-    );
+  container.insertAdjacentElement(
+    "afterend",
+    htmlToElement(template({ leftKey, rightKey, upKey, downKey })),
+  );
 
   toggleIncrementSelection();
 
@@ -446,6 +450,8 @@ function incrementorTool() {
     leftKey = settings?.strKbdIncreaseIncrement ?? leftKey;
     rightKey = settings?.strKbdDecreaseIncrement ?? rightKey;
   }
+
+  return true;
 }
 
 function getActiveLine() {
