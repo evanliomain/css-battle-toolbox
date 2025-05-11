@@ -173,6 +173,15 @@ describe("minify", () => {
 </style>
       `,
   `<style>&{outline:solid.6lh#0b2429`
+    ],
+    [
+      ` <p> 
+      <style>
+        & {
+          background: red;
+        }
+      </style>`,
+      ` <p> <style>&{background:red`,
     ]
   ])("#%#", (pretty, minified) => {
     expect(minify(pretty)).toEqual(minified);
