@@ -1,0 +1,124 @@
+[data-dom-tool] {
+  padding-left: 1rem;
+}
+
+#dom-tool {
+  display: grid;
+  grid-template-columns: repeat(1fr, 2);
+  [data-dom-tool="main"] {
+    border: none;
+  }
+  ul {
+    list-style: none;
+  }
+
+  li {
+    .dom-title {
+      font-size: var(--font-size-1);
+      color: var(--dom-level-color);
+      display: inline;
+    }
+    .dom-title-name {
+      text-shadow: 1px 1px 1px black;
+    }
+    .dom-detail-size {
+      font-size: 0.7em;
+      color: var(--clr-text-light);
+      padding-inline-start: 1em;
+    }
+    .dom-title-attrs {
+      color: light-dark(hsl(from #2f5a76 h s 30%), hsl(from #2f5a76 h s 60%));
+      font-size: 0.8em;
+    }
+
+    .dom-element,
+    [data-dom-tool] {
+      padding-left: 1rem;
+      border-left: 1px dashed hsl(from var(--dom-level-color) h s l / 0.3);
+
+      &:hover,
+      &:has(+ *:hover) {
+        border-left-color: hsl(from var(--dom-level-color) h s l / 1);
+      }
+    }
+
+    .dom-element {
+      cursor: pointer;
+      &:hover {
+        background-color: var(--clr-border-1);
+      }
+    }
+  }
+}
+
+#dom-highlight,
+#dom-highlight-padding,
+#dom-highlight-margin {
+  position: absolute;
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  opacity: 0.5;
+}
+
+#dom-highlight {
+  background: #a1c5e8;
+  z-index: 11;
+}
+#dom-highlight-margin {
+  background: #f9cc9e;
+  z-index: 10;
+}
+#dom-highlight-padding {
+  background: #c4deb8;
+  z-index: 10;
+}
+
+.target-container {
+  &:not(.display-outline) {
+    #dom-outline {
+      * {
+        outline-color: transparent;
+        &:before {
+          color: transparent;
+          text-shadow: none;
+        }
+      }
+    }
+  }
+  &.display-background {
+    #dom-outline {
+      * {
+        background-color: var(--outline-color);
+        opacity: 0.4;
+      }
+    }
+  }
+
+  #dom-outline {
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    height: 300px;
+    width: 400px;
+
+    * {
+      position: absolute;
+      outline: 3px dotted var(--outline-color);
+
+      &:before {
+        content: attr(data-tagname);
+        position: absolute;
+        inset: 5px;
+        color: var(--outline-color);
+        z-index: 10;
+        text-shadow: 1px 1px 1px black;
+        font: 14px sans serif;
+      }
+    }
+  }
+}

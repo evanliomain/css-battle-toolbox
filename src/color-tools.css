@@ -42,3 +42,7 @@
   font-family: ClashGrotesk;
   font-weight: 600;
 }
+
+.inner-header {
+  margin-top: 0;
+}

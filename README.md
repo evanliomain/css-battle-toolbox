@@ -1,6 +1,7 @@
 A set of tools for Css Battle, directly in the battle interface.
 
 Features :
+
 - Minify your code
 - Prettify your code (with prettier)
 - Display a grid on your code output
@@ -9,12 +10,12 @@ Features :
 - A tool to find shorter css unit (integration of https://u9kels.csb.app/)
 - A tool to find shorter css color in hexa (integration of https://48dvyq.csb.app/)
 - A tool to increase/decrease numbers in editor with keyboard shortcut, even with a multi-selection
+- A tool to see DOM node just inside your code output
 - Print, on the fly, the number of characters your code should be once minified
 - Replace default skeleton by a shorter and more helpfull one.
 - You can hide any almost any part of the interface, including tools bring with this extension.
 - You can invert color of the difference tool
 - You can configure your default code template for new battle and daily target
-
 
 Minification and prettification work well with code style like :
 

@@ -1,7 +1,19 @@
 import { changeCode } from "./utils/change-code";
+import { doAsync } from "./utils/do-async";
 
-// Reset code with simpler version
-changeCode(reset);
+doAsync(init)();
+
+function init() {
+  const container = document.querySelector("[contenteditable]");
+
+  if (null === container) {
+    return false;
+  }
+  // Reset code with simpler version
+  changeCode(reset);
+
+  return true;
+}
 
 function reset(code) {
   return chrome.storage.sync.get("strDefaultCode").then((items) => {

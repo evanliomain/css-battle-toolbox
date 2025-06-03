@@ -6,10 +6,6 @@
   font-size: 0;
 }
 
-.display-outline * {
-  outline: 3px dotted red;
-}
-
 .container__item--scrollable .item__header {
   z-index: 3;
 }
@@ -31,4 +27,18 @@ body {
       transform: translateX(-100%) translateY(8px);
     }
   }
+}
+
+#overlay-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;
+  background:
+    repeating-linear-gradient( 90deg, #0003 0 3px, #0000 0, #0000 100px ),
+    repeating-linear-gradient(#0003 0 3px, #0000 0, #0000 100px),
+    repeating-linear-gradient(90deg, #0003 0 2px, #0000 0, #0000 50px),
+    repeating-linear-gradient(#0003 0 2px, #0000 0, #0000 50px),
+    repeating-linear-gradient(90deg, #0003 0 1px, #0000 0, #0000 10px),
+    repeating-linear-gradient(#0003 0 1px, #0000 0, #0000 10px);
 }

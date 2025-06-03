@@ -1,14 +1,19 @@
 import "./mode-menu.css";
+import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
 
-addModeMenu();
+doAsync(addModeMenu)();
 
 function addModeMenu() {
-  document
-    .querySelector(
-      '[class^="Editor_editor"] > .item__header > .header__extra-info > .hstack',
-    )
-    .insertAdjacentElement("beforeend", htmlToElement(menuTemplate()));
+  const container = document.querySelector(
+    '[class^="Editor_editor"] > .item__header > .header__extra-info > .hstack',
+  );
+
+  if (null === container) {
+    return false;
+  }
+
+  container.insertAdjacentElement("beforeend", htmlToElement(menuTemplate()));
 
   document
     .querySelector("#go-to-options")
@@ -30,6 +35,8 @@ function addModeMenu() {
     }
     return false;
   });
+
+  return true;
 }
 
 function isIncludeIn(id, element) {
