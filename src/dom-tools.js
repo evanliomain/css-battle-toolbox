@@ -108,8 +108,18 @@ function displayRec(node, containerName, depth = 0) {
     return;
   }
 
+  const transformProperties = getTransformProperties(node);
+  resetTransform(node);
   moveElement(elementOutline, node.getBoundingClientRect());
+  borderRadiusElement(elementOutline, node.computedStyleMap());
+  applyTransform(node, transformProperties);
+  applyTransform(elementOutline, transformProperties);
   domOutline().insertAdjacentElement("beforeend", elementOutline);
+  transformElement(
+    elementOutline,
+    node.computedStyleMap(),
+    node.getBoundingClientRect(),
+  );
 
   document
     .querySelector(`[data-dom-tool="${containerName}"]`)
@@ -296,6 +306,39 @@ function moveElement(element, { width, height, x, y, borderWidth, clipPath }) {
   element.style.top = y + "px";
   element.style.borderWidth = borderWidth ?? 0;
   element.style.clipPath = clipPath ?? "none";
+}
+
+function borderRadiusElement(element, styles) {
+  element.attributeStyleMap.set("border-radius", styles.get("border-radius"));
+}
+
+function getTransformProperties(element) {
+  return {
+    transform: element.computedStyleMap().get("transform"),
+    rotate: element.computedStyleMap().get("rotate"),
+    scale: element.computedStyleMap().get("scale"),
+    translate: element.computedStyleMap().get("translate"),
+  };
+}
+function resetTransform(element) {
+  element.attributeStyleMap.set("transform", "none");
+  element.attributeStyleMap.set("rotate", "none");
+  element.attributeStyleMap.set("scale", "none");
+  element.attributeStyleMap.set("translate", "none");
+}
+function applyTransform(element, style) {
+  element.attributeStyleMap.set("transform", style.transform ?? "none");
+  element.attributeStyleMap.set("rotate", style.rotate ?? "none");
+  element.attributeStyleMap.set("scale", style.scale ?? "none");
+  element.attributeStyleMap.set("translate", style.translate ?? "none");
+}
+function transformElement(element, styles, { width, height }) {
+  element.style.transformOrigin = styles.get("transform-origin").toString();
+  element.attributeStyleMap.set("transform-box", styles.get("transform-box"));
+  element.attributeStyleMap.set(
+    "transform-style",
+    styles.get("transform-style"),
+  );
 }
 
 function appendToTargetContainer(template) {
