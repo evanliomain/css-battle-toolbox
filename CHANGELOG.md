@@ -1,6 +1,7 @@
 # 1.1.1
 
 - DOM tool: Apply transform and border-radius to replicate dom element
+- DOM tool: Move dom tool just below the output target to made screenshot without score
 
 # 1.1.0
 

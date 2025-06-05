@@ -9,7 +9,7 @@ doAsync(addTool)();
 
 function addTool() {
   const container = document.querySelector(
-    ".container__item--output .item__content",
+    ".container__item--output .item__content :first-child",
   );
   if (null === container) {
     return false;
