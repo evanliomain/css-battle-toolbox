@@ -1,5 +1,5 @@
-[data-dom-tool] {
-  padding-left: 1rem;
+[data-dom-tool="main"] {
+  margin-block: 1rem;
 }
 
 #dom-tool {
