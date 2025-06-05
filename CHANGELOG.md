@@ -1,3 +1,7 @@
+# 1.1.1
+
+- DOM tool: Apply transform and border-radius to replicate dom element
+
 # 1.1.0
 
 - Add new DOM tool
