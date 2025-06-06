@@ -5,26 +5,40 @@ const OPTIONS_KEYS = [
   "hideGrid",
   "hideOutline",
   "hideBackground",
+
+  "defaultSlideAndCompare",
+  "defaultDifference",
+  "defaultTargetOnOutput",
+  "defaultGrid",
+  "defaultOutline",
+  "defaultBackground",
+
   "hideGlobalStats",
   "hideShareTwitter",
+
   "hideSponsor",
   "hideHeader",
   "hideFooter",
+  "hideOutputCode",
+  "hideTarget",
+
   "hidePrettify",
   "hideMinify",
   "hidePlugins",
   "hideMySolution",
   "hideTopSolution",
   "hideSubmit",
-  "hideOutputCode",
-  "hideTarget",
+
   "hideNbMinifiedCharacters",
   "hideColorMixer",
   "hideUnitGolf",
+
   "invertDifference",
   "nbBrightnessDifference",
   "x2Difference",
+
   "strDefaultCode",
+
   "strKbdIncrement",
   "strKbdDecrement",
   "strKbdIncreaseIncrement",

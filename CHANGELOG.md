@@ -1,6 +1,7 @@
 # 1.1.4
 
 - Score button: make them smaller and fix creation on side panel change
+- Output tool: default output tool activation is now configurable
 
 # 1.1.3
 

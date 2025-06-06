@@ -6,21 +6,23 @@ document
   .querySelector(".container__item--output .hstack .header__title")
   .remove();
 
-doAsync(() => {
+doAsync(async () => {
   const target = document.querySelector(
     ".target-container > div:not(#overlay-grid)",
   );
   if (null === target) {
     return false;
   }
-  addCompareOption();
-  addGridOption();
-  addOutlineOption();
-  addBackgroundOption();
+  const config = await chrome.storage.sync.get(null);
+
+  addCompareOption(config);
+  addGridOption(config);
+  addOutlineOption(config);
+  addBackgroundOption(config);
   doAsync(useX2Image)();
 
-  doAsync(unCheckSlideNCompare)();
-  doAsync(displayDiff)();
+  doAsync(unCheckSlideNCompare(config))();
+  doAsync(displayDiff(config))();
 
   flagOutput();
   return true;
@@ -51,62 +53,75 @@ function displayBackground() {
   targetContainer().classList.toggle("display-background");
 }
 
-function unCheckSlideNCompare() {
-  const node = document.querySelector(
-    '.container__item--output .header__extra-info .hstack input[type="checkbox"]',
-  );
-  const marker = document.querySelector('[class^="Preview_previewDistance"]');
+function unCheckSlideNCompare(config) {
+  return () => {
+    const node = document.querySelector(
+      '.container__item--output .header__extra-info .hstack input[type="checkbox"]',
+    );
+    const marker = document.querySelector('[class^="Preview_previewDistance"]');
 
-  if (null === node || null === marker) {
-    return false;
-  }
+    if (null === node || null === marker) {
+      return false;
+    }
 
-  const label = document.querySelector(
-    '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"])',
-  );
-  const input = document.querySelector(
-    '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"]) input',
-  );
-  label.insertAdjacentElement("beforeend", htmlToElement(slideNCompareIcon()));
-  label.setAttribute("data-hint", "Slide and Compare");
-  label.setAttribute("aria-label", "Slide and Compare");
-  label.classList = "hint--bottom hint--left-if-slidencompare-alone";
-  label.style.gap = "0";
+    const label = document.querySelector(
+      '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"])',
+    );
+    const input = document.querySelector(
+      '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"]) input',
+    );
+    label.insertAdjacentElement(
+      "beforeend",
+      htmlToElement(slideNCompareIcon()),
+    );
+    label.setAttribute("data-hint", "Slide and Compare");
+    label.setAttribute("aria-label", "Slide and Compare");
+    label.classList = "hint--bottom hint--left-if-slidencompare-alone";
+    label.style.gap = "0";
 
-  node.click();
+    if (!(config.defaultSlideAndCompare ?? false)) {
+      node.click();
+    }
+    marker.style.zIndex = 100;
 
-  marker.style.zIndex = 100;
+    input.addEventListener("change", (e) => {
+      document.getElementById("dom-outline").style.display = e.srcElement
+        .checked
+        ? "none"
+        : "block";
+    });
 
-  input.addEventListener("change", (e) => {
-    document.getElementById("dom-outline").style.display = e.srcElement.checked
-      ? "none"
-      : "block";
-  });
-
-  return true;
+    return true;
+  };
 }
 
-function displayDiff() {
-  const label = document.querySelector(
-    ".container__item--output .header__extra-info .hstack label:nth-child(2)",
-  );
-  if (null === label) {
-    return false;
-  }
-  label.insertAdjacentElement("beforeend", htmlToElement(diffIcon()));
-  label.setAttribute("data-hint", "Show the difference");
-  label.setAttribute("aria-label", "Show the difference");
-  label.classList = "hint--bottom-left";
-  label.style.gap = "0";
+function displayDiff(config) {
+  return () => {
+    const label = document.querySelector(
+      ".container__item--output .header__extra-info .hstack label:nth-child(2)",
+    );
+    if (null === label) {
+      return false;
+    }
+    label.insertAdjacentElement("beforeend", htmlToElement(diffIcon()));
+    label.setAttribute("data-hint", "Show the difference");
+    label.setAttribute("aria-label", "Show the difference");
+    label.classList = "hint--bottom-left";
+    label.style.gap = "0";
 
-  label.addEventListener("change", (e) => {
-    document.body.classList.toggle("diff-tool", e.target.checked);
-  });
+    label.addEventListener("change", (e) => {
+      document.body.classList.toggle("diff-tool", e.target.checked);
+    });
 
-  return true;
+    if (config.defaultDifference ?? false) {
+      label.querySelector("input").click();
+    }
+
+    return true;
+  };
 }
 
-function addCompareOption() {
+function addCompareOption(config) {
   const template = `
   <label
     class="hint--bottom hint--left-if-compare-alone"
@@ -118,7 +133,6 @@ function addCompareOption() {
       id="output-compare-input"
       type="checkbox"
       value="true"
-      checked
       />
     ${compareIcon()}
   </label>
@@ -133,16 +147,18 @@ function addCompareOption() {
   );
   target.id = "overlay-compare";
 
-  displayCompare(true);
-
   document
     .getElementById("output-compare-input")
     .addEventListener("input", (e) => {
       displayCompare(e.target.checked);
     });
+
+  if (config.defaultTargetOnOutput ?? false) {
+    document.getElementById("output-compare-input").click();
+  }
 }
 
-function addGridOption() {
+function addGridOption(config) {
   const template = `
   <label
     class="hint--bottom-left"
@@ -154,7 +170,6 @@ function addGridOption() {
       id="output-grid-input"
       type="checkbox"
       value="true"
-      checked
       />
     ${gridIcon()}
   </label>
@@ -169,16 +184,18 @@ function addGridOption() {
   overlayGrid.style.opacity = "0";
 
   targetContainer().insertAdjacentElement("afterbegin", overlayGrid);
-  displayGrid();
 
   document
     .getElementById("output-grid-input")
     .addEventListener("input", (e) => {
       displayGrid();
     });
+  if (config.defaultGrid ?? false) {
+    document.getElementById("output-grid-input").click();
+  }
 }
 
-function addOutlineOption() {
+function addOutlineOption(config) {
   const template = `
   <label
     class="hint--bottom-left"
@@ -204,9 +221,13 @@ function addOutlineOption() {
     .addEventListener("input", (e) => {
       displayOutline();
     });
+
+  if (config.defaultOutline ?? false) {
+    document.getElementById("output-outline-input").click();
+  }
 }
 
-function addBackgroundOption() {
+function addBackgroundOption(config) {
   const template = `
   <label
     class="hint--bottom-left"
@@ -232,6 +253,10 @@ function addBackgroundOption() {
     .addEventListener("input", (e) => {
       displayBackground();
     });
+
+  if (config.defaultBackground ?? false) {
+    document.getElementById("output-background-input").click();
+  }
 }
 
 function useX2Image() {
