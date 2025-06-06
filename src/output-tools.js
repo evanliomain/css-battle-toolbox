@@ -5,24 +5,35 @@ import { htmlToElement } from "./utils/html-to-element";
 document
   .querySelector(".container__item--output .hstack .header__title")
   .remove();
-addCompareOption();
-addGridOption();
-addOutlineOption();
-addBackgroundOption();
-doAsync(useX2Image)();
 
-doAsync(unCheckSlideNCompare)();
-doAsync(displayDiff)();
+doAsync(() => {
+  const target = document.querySelector(
+    ".target-container > div:not(#overlay-grid)",
+  );
+  if (null === target) {
+    return false;
+  }
+  addCompareOption();
+  addGridOption();
+  addOutlineOption();
+  addBackgroundOption();
+  doAsync(useX2Image)();
 
-flagOutput();
+  doAsync(unCheckSlideNCompare)();
+  doAsync(displayDiff)();
+
+  flagOutput();
+  return true;
+})();
 
 function displayCompare(display) {
   document.body.classList.toggle("compare-tool", display);
 
-  const target = document.querySelector(
-    ".target-container > div:not(#overlay-grid)",
-  );
-  const opacity = target.attributeStyleMap.get("opacity").value;
+  const target = document.getElementById("overlay-compare");
+  if (null === target) {
+    return;
+  }
+  const opacity = target.attributeStyleMap.get("opacity")?.value ?? 1;
   target.attributeStyleMap.set("opacity", 1 === opacity ? 0.7 : 1);
 }
 
@@ -44,12 +55,17 @@ function unCheckSlideNCompare() {
   const node = document.querySelector(
     '.container__item--output .header__extra-info .hstack input[type="checkbox"]',
   );
-  if (null === node) {
+  const marker = document.querySelector('[class^="Preview_previewDistance"]');
+
+  if (null === node || null === marker) {
     return false;
   }
 
   const label = document.querySelector(
     '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"])',
+  );
+  const input = document.querySelector(
+    '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"]) input',
   );
   label.insertAdjacentElement("beforeend", htmlToElement(slideNCompareIcon()));
   label.setAttribute("data-hint", "Slide and Compare");
@@ -58,6 +74,14 @@ function unCheckSlideNCompare() {
   label.style.gap = "0";
 
   node.click();
+
+  marker.style.zIndex = 100;
+
+  input.addEventListener("change", (e) => {
+    document.getElementById("dom-outline").style.display = e.srcElement.checked
+      ? "none"
+      : "block";
+  });
 
   return true;
 }

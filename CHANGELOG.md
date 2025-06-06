@@ -1,3 +1,7 @@
+# 1.1.3
+
+- Output tool: Hide outline when Slide & compare is active
+
 # 1.1.2
 
 - DOM tool: Fix flashing effect when highlight overlap dom-element
