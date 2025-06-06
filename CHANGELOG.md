@@ -1,3 +1,7 @@
+# 1.1.2
+
+- DOM tool: Fix flashing effect when highlight overlap dom-element
+
 # 1.1.1
 
 - DOM tool: Apply transform and border-radius to replicate dom element
