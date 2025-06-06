@@ -1,3 +1,7 @@
+# 1.1.4
+
+- Score button: make them smaller and fix creation on side panel change
+
 # 1.1.3
 
 - Output tool: Hide outline when Slide & compare is active

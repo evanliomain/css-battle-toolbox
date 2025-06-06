@@ -1,0 +1,9 @@
+.button--copy-score {
+  font-size: small;
+  border-radius: 8px;
+  padding: 0.5em;
+}
+
+.submissions-list__item .hstack {
+  flex: 1;
+}
