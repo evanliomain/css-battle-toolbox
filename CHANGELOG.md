@@ -1,3 +1,7 @@
+# 1.1.5
+
+- Increment tool: Toggle increment shortcut last letter is now configurable
+
 # 1.1.4
 
 - Score button: make them smaller and fix creation on side panel change

@@ -4,6 +4,8 @@ import { htmlToElement } from "./utils/html-to-element";
 
 doAsync(addModeMenu)();
 
+let toggleKey = "I";
+
 function addModeMenu() {
   const container = document.querySelector(
     '[class^="Editor_editor"] > .item__header > .header__extra-info > .hstack',
@@ -12,6 +14,18 @@ function addModeMenu() {
   if (null === container) {
     return false;
   }
+
+  // Init keyboard shortcut from settings
+  chrome.storage.sync.get(null).then(applyKeyboardSettings);
+
+  // Refresh keyboard shortcut on settings change
+  chrome.storage.onChanged.addListener((changes) => {
+    applyKeyboardSettings(
+      Object.fromEntries(
+        Object.entries(changes).map(([key, { newValue }]) => [key, newValue]),
+      ),
+    );
+  });
 
   container.insertAdjacentElement("beforeend", htmlToElement(menuTemplate()));
 
@@ -49,6 +63,12 @@ function isIncludeIn(id, element) {
   return isIncludeIn(id, element.parentElement);
 }
 
+function applyKeyboardSettings(settings) {
+  toggleKey = settings?.strKbdToggleIncrement ?? toggleKey;
+
+  document.getElementById("toggle-key-letter").textContent = toggleKey;
+}
+
 function menuTemplate() {
   return `<div class="cbt-dropdown">
     <label
@@ -71,7 +91,7 @@ function menuTemplate() {
           ${incrementorIconTemplate()}
           <span>Toggle increment mode</span>
           <span>
-            <kbd class="pill pill--key">Ctrl</kbd> <kbd class="pill pill--key">Shift</kbd> <kbd class="pill pill--key">I</kbd>
+            <kbd class="pill pill--key">Ctrl</kbd> <kbd class="pill pill--key">Shift</kbd> <kbd id="toggle-key-letter" class="pill pill--key">${toggleKey}</kbd>
           </span>
         </a>
         <hr />

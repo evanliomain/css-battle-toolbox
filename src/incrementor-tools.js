@@ -18,6 +18,7 @@ function incrementorTool() {
   let downKey = ":";
   let leftKey = "<";
   let rightKey = "w";
+  let toggleKey = "I";
 
   let incrementMode = false;
   let activeNumberIndex = 0;
@@ -82,7 +83,7 @@ function incrementorTool() {
   // Handle keyboard shortcuts
   document.addEventListener("keydown", (event) => {
     // Ctrl+Shift+I toggle increment mode
-    if (event.shiftKey && event.ctrlKey && event.key === "I") {
+    if (event.shiftKey && event.ctrlKey && event.key === toggleKey) {
       toggleIncrementMode();
     }
 
@@ -449,6 +450,7 @@ function incrementorTool() {
     downKey = settings?.strKbdDecrement ?? downKey;
     leftKey = settings?.strKbdIncreaseIncrement ?? leftKey;
     rightKey = settings?.strKbdDecreaseIncrement ?? rightKey;
+    toggleKey = settings?.strKbdToggleIncrement ?? toggleKey;
   }
 
   return true;

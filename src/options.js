@@ -43,6 +43,7 @@ const OPTIONS_KEYS = [
   "strKbdDecrement",
   "strKbdIncreaseIncrement",
   "strKbdDecreaseIncrement",
+  "strKbdToggleIncrement",
 ];
 
 const defaultCodeTemplate = `<style>
@@ -57,11 +58,15 @@ const default_strKbdIncrement = "=";
 const default_strKbdDecrement = ":";
 const default_strKbdIncreaseIncrement = "<";
 const default_strKbdDecreaseIncrement = "w";
+const default_strKbdToggleIncrement = "I";
 
 // Saves options to chrome.storage
 const saveOptions = () => {
   const optionValues = Object.fromEntries(
     OPTIONS_KEYS.map((key) => {
+      if ("strKbdToggleIncrement" === key) {
+        return [key, (document.getElementById(key).value ?? "").toUpperCase()];
+      }
       if (key.startsWith("nb") || key.startsWith("str")) {
         return [key, document.getElementById(key).value];
       }
@@ -122,6 +127,15 @@ const restoreOptions = () => {
         strKbdDecreaseIncrement: default_strKbdDecreaseIncrement,
       });
     }
+    if (undefined === items.strKbdToggleIncrement) {
+      document.getElementById("strKbdToggleIncrement").value =
+        default_strKbdToggleIncrement;
+      chrome.storage.sync.set({
+        strKbdToggleIncrement: default_strKbdToggleIncrement,
+      });
+    }
+
+    updateToggkeKeyLetter();
   });
 };
 
@@ -131,6 +145,16 @@ document
   .getElementById("resetTemplate")
   .addEventListener("click", resetCodeTemplate);
 
+document
+  .getElementById("strKbdToggleIncrement")
+  .addEventListener("input", updateToggkeKeyLetter);
+
 function resetCodeTemplate() {
   document.getElementById("strDefaultCode").value = defaultCodeTemplate;
+}
+
+function updateToggkeKeyLetter() {
+  document.getElementById("toggle-key-letter").innerText = document
+    .getElementById("strKbdToggleIncrement")
+    .value.toUpperCase();
 }

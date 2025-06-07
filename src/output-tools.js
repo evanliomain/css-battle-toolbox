@@ -269,7 +269,9 @@ function useX2Image() {
     .get("x2Difference")
     .then((items) => applyX2Settings(items.x2Difference));
   chrome.storage.onChanged.addListener((changes) => {
-    applyX2Settings(changes.x2Difference.newValue);
+    if (undefined !== changes.x2Difference) {
+      applyX2Settings(changes.x2Difference.newValue);
+    }
   });
 
   return true;

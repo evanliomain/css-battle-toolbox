@@ -390,11 +390,20 @@
           <ul>
             <li>
               To trigger the <strong>i</strong>ncrement mode press
-              <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>I</kbd>
+              <kbd>Ctrl</kbd> <kbd>Shift</kbd>
+              <input
+                id="strKbdToggleIncrement"
+                type="text"
+                maxlength="1"
+                size="1"
+                style="text-transform: uppercase"
+                onchange="updateToggleKeyLetter"
+              />
             </li>
             <li>
               To come back to the editor press
-              <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>I</kbd> or <kbd>Esc</kbd>
+              <kbd>Ctrl</kbd> <kbd>Shift</kbd>
+              <kbd id="toggle-key-letter">I</kbd> or <kbd>Esc</kbd>
             </li>
             <li>
               Navigate throught numbers with arrows, or click on a number.
