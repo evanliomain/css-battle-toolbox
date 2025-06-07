@@ -2,6 +2,7 @@ import "./dom-tools.css";
 import { doAsync } from "./utils/do-async";
 import { DOM_COLOR } from "./utils/dom-color";
 import { htmlToElement } from "./utils/html-to-element";
+import { round } from "./utils/round";
 
 let domId = 0;
 
@@ -167,7 +168,7 @@ function nodeToTemplate(node, depth) {
           <span class="dom-title-attrs dom-title-class">${[...node.classList].map((c) => `.${c}`).join("")}</span>
           <span class="dom-title-attrs dom-title-attributes">${attributes.map((a) => `[${a}]`).join(" ")}</span>
         </div>
-        <span class="dom-detail-size">W ${width} x H ${height}</span>
+        <span class="dom-detail-size">W ${round(width)} x H ${round(height)}</span>
       </div>
       <div data-dom-tool="${id}"></div>
     </li>

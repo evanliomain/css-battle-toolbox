@@ -1,6 +1,7 @@
 # 1.1.5
 
 - Increment tool: Toggle increment shortcut last letter is now configurable
+- DOM tool: Round the width and height
 
 # 1.1.4
 
