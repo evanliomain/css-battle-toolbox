@@ -1,3 +1,4 @@
+import { changeCode } from "./utils/change-code";
 import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
 
@@ -17,6 +18,15 @@ const UNITS = [
   "lh",
   "cap",
 ];
+
+const RE_UNITS = new RegExp(
+  "[0-9]+(" +
+    UNITS.filter((unit) => !unit.endsWith("px") && !unit.endsWith("in")).join(
+      "|",
+    ) +
+    ")",
+  "g",
+);
 
 doAsync(addTool)();
 
@@ -55,7 +65,7 @@ function createComputeIFrame() {
 
 function template() {
   return `
-    <div id="unit-golf-tool" style="display: grid; gap: 0.5rem; grid-template-columns: repeat(3, 1fr);">
+    <div id="unit-golf-tool" style="display: grid; gap: 0.5rem; grid-template-columns: repeat(3, 1fr) auto;">
       <div class="input-container" style="margin-bottom: 0;">
         <label for="unit-input-background">Unit</label>
         <input id="unit-input-background" type="text" class="js-unit-input-minify" placeholder="20px" />
@@ -68,6 +78,26 @@ function template() {
         <label for="tolerance-input-background">Tolerance</label>
         <input id="tolerance-input-background" type="text" class="js-unit-input-minify" placeholder="0.2" />
       </div>
+      <div class="input-container" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-evenly;">
+        <button
+          type="button"
+          id="minifyAllPx"
+          class="button button--small hint--top-left"
+          aria-label="Replace all px value by a the shortest value"
+          data-hint="Replace all px value by a the shortest value"
+        >
+          ⇾ px ⇽
+        </button>
+        <button
+          type="button"
+          id="maxifyAllPx"
+          class="button button--small hint--bottom-left"
+          aria-label="Replace all value by pixel"
+          data-hint="Replace all value by pixel"
+        >
+          ⇽ px ⇾
+        </button>
+      </div>
       <div id="unit-minify-result" style="grid-column: 1 / span 2;"></div>
     </div>
   `;
@@ -77,6 +107,9 @@ function addListener() {
   document
     .querySelectorAll(".js-unit-input-minify")
     .forEach((input) => input.addEventListener("input", computeUnit));
+
+  document.getElementById("minifyAllPx").addEventListener("click", minifyAllPx);
+  document.getElementById("maxifyAllPx").addEventListener("click", maxifyAllPx);
 }
 
 function computeUnit() {
@@ -97,7 +130,7 @@ function getCalcDiv() {
     .contentWindow.document.getElementById("calcDiv");
 }
 
-function getInputs() {
+function getInputs(defaultTolerance = 0.2) {
   let unit = document.getElementById("unit-input-background").value;
   let font = document.getElementById("font-input-background").value;
   let tolerance = document.getElementById("tolerance-input-background").value;
@@ -105,7 +138,7 @@ function getInputs() {
     font = "16px/18px''";
   }
   if (!tolerance) {
-    tolerance = 0.2;
+    tolerance = defaultTolerance;
   }
 
   // remove all whitespaces
@@ -237,4 +270,52 @@ function resultTemplate(result) {
       .join("")}
   </div>
   `;
+}
+
+function minifyAllPx() {
+  const code = document.querySelector("[contenteditable]").innerText;
+  changeCode(() =>
+    code.replace(/[0-9]+px/g, (unit) => {
+      const { font, tolerance } = getInputs(0);
+
+      const { units, pxWidth } = measureUnits(getCalcDiv(), unit, font, UNITS);
+      let result = [];
+
+      if (pxWidth > 0) {
+        result = convertAndSort(pxWidth, units, tolerance).filter(
+          ({ pixelOffset }) => pixelOffset <= tolerance,
+        );
+      }
+      if (result.length === 0) {
+        return unit;
+      }
+      return result[0]?.string;
+    }),
+  );
+}
+
+function maxifyAllPx() {
+  const code = document.querySelector("[contenteditable]").innerText;
+
+  changeCode(() =>
+    code.replace(RE_UNITS, (unit) => {
+      if (unit.endsWith("px") || unit.startsWith("#")) {
+        return unit;
+      }
+      const { font, tolerance } = getInputs(0);
+
+      const { units, pxWidth } = measureUnits(getCalcDiv(), unit, font, UNITS);
+      let result = [];
+
+      if (pxWidth > 0) {
+        result = convertAndSort(pxWidth, units, tolerance).filter(
+          ({ string }) => string.endsWith("px"),
+        );
+      }
+      if (result.length === 0) {
+        return unit;
+      }
+      return result[0]?.string;
+    }),
+  );
 }

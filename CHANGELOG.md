@@ -2,6 +2,7 @@
 
 - Increment tool: Toggle increment shortcut last letter is now configurable
 - DOM tool: Round the width and height
+- Unit tool: Add 2 buttons to convert all px to shortest unit, and vice versa
 
 # 1.1.4
 
