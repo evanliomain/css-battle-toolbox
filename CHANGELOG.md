@@ -1,3 +1,7 @@
+# 1.1.6
+
+- DOM tool: Remove trailling .00 in round DOM dimensions
+
 # 1.1.5
 
 - Increment tool: Toggle increment shortcut last letter is now configurable
