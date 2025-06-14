@@ -16,6 +16,7 @@ const OPTIONS_KEYS = [
   "hideGlobalStats",
   "hideShareTwitter",
 
+  "hideNumberOfCharacters",
   "hideSponsor",
   "hideHeader",
   "hideFooter",

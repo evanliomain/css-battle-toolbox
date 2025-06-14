@@ -1,6 +1,7 @@
 # 1.1.6
 
 - DOM tool: Remove trailling .00 in round DOM dimensions
+- Character tool: Add option to hide the number of characters
 
 # 1.1.5
 
