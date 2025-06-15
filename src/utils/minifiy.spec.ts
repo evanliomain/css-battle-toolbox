@@ -162,17 +162,17 @@ describe("minify", () => {
 }
 </style>
 `,
-`<style>&{background:conic-gradient(from.41turn,#4a7d7b 0 0`
-],
-[
-  `
+      `<style>&{background:conic-gradient(from.41turn,#4a7d7b 0 0`,
+    ],
+    [
+      `
   <style>
 & {
   outline: solid 0.6lh #0b2429;
 }
 </style>
       `,
-  `<style>&{outline:solid.6lh#0b2429`
+      `<style>&{outline:solid.6lh#0b2429`,
     ],
     [
       ` <p> 
@@ -182,7 +182,24 @@ describe("minify", () => {
         }
       </style>`,
       ` <p> <style>&{background:red`,
-    ]
+    ],
+    [
+      `<style>
+* {
+  height: min(100% - 5ch);
+}
+</style>`,
+      `<style>*{height:min(100% - 5ch`,
+    ],
+    [
+      `<style>
+* {
+  margin: 10% -10;
+  height: min(100% - 20ch);
+}
+</style>`,
+      `<style>*{margin:10%-10;height:min(100% - 20ch`,
+    ],
   ])("#%#", (pretty, minified) => {
     expect(minify(pretty)).toEqual(minified);
     expect(minify(minified)).toEqual(minified);

@@ -1,7 +1,7 @@
 export function minify(code) {
   return (
     code
-    .replaceAll(' ', '&nbsp;')
+      .replaceAll(" ", "&nbsp;")
       .trim()
       // Remove comments
       .replaceAll(/<!--.*-->/g, "")
@@ -13,7 +13,10 @@ export function minify(code) {
       .replaceAll(/:\s*/g, ":")
       .replaceAll(/,\s*/g, ",")
       .replaceAll(/\s*;\s*/g, ";")
+      // Remove all space after %
       .replaceAll(/%\s*/g, "%")
+      // Add a space between % and -, when - is followed by a space
+      .replaceAll(/%\-\s/g, "% - ")
       .replaceAll(/\(\s*/g, "(")
       .replaceAll(/\s*\)\s*/g, ")")
       .replaceAll(/>\s*/g, ">")
@@ -21,7 +24,9 @@ export function minify(code) {
       .replaceAll(/\s+(\d)/g, " $1")
       .replaceAll(/\s*\{\s*/g, "{")
       .replaceAll(/\s+\*\s+/g, " * ")
+      // Remove multiple space before - to keep 1 space
       .replaceAll(/\s+\-/g, " -")
+      // Remove space between a digit and -
       .replaceAll(/(\d) \-/g, "$1-")
       .replaceAll(/\s*([{}:;,])\s*/g, "$1")
       // Trim leading 0
@@ -46,6 +51,6 @@ export function minify(code) {
       // Trim space between 2 number with dot and unit: 83Q .5Q => 83Q.5Q
       .replaceAll(/(\d+)([a-zA-Z]+)\s+\.(\d)/g, "$1$2.$3")
       .replaceAll(/([a-z]) (\.\d)/g, "$1$2")
-      .replaceAll('&nbsp;', ' ')
+      .replaceAll("&nbsp;", " ")
   );
 }
