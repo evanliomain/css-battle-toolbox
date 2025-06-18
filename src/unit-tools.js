@@ -1,6 +1,7 @@
 import { changeCode } from "./utils/change-code";
 import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
+import { round } from "./utils/round";
 
 const UNITS = [
   "px",
@@ -19,6 +20,8 @@ const UNITS = [
   "cap",
 ];
 
+const ANGLE_UNITS = ["deg", "rad", "grad", "turn"];
+
 const RE_UNITS = new RegExp(
   "[0-9]+(" +
     UNITS.filter((unit) => !unit.endsWith("px") && !unit.endsWith("in")).join(
@@ -27,6 +30,8 @@ const RE_UNITS = new RegExp(
     ")",
   "g",
 );
+
+const RE_ANGLE_UNITS = new RegExp(ANGLE_UNITS.join("|"));
 
 doAsync(addTool)();
 
@@ -116,6 +121,11 @@ function computeUnit() {
   const { unit, font, tolerance } = getInputs();
   const calcDiv = getCalcDiv();
 
+  if (RE_ANGLE_UNITS.test(unit)) {
+    displayResults(formatAngleResult(convertAngleUnit(unit)));
+    return;
+  }
+
   const { units, pxWidth } = measureUnits(calcDiv, unit, font, UNITS);
   let result = [];
   if (pxWidth > 0) {
@@ -152,7 +162,7 @@ function getInputs(defaultTolerance = 0.2) {
 }
 
 function hasValidUnits(value) {
-  return UNITS.some((unit) => {
+  return [...UNITS, ...ANGLE_UNITS].some((unit) => {
     return value.toLowerCase().includes(unit);
   });
 }
@@ -318,4 +328,50 @@ function maxifyAllPx() {
       return result[0]?.string;
     }),
   );
+}
+
+function convertAngleUnit(unit) {
+  console.log("unit: ", unit + "<");
+  if (unit.endsWith("deg")) {
+    const value = parseFloat(unit.replace("deg", ""));
+    return [
+      unit,
+      round((Math.PI / 180) * value) + "rad",
+      (value * 10) / 9 + "grad",
+      value / 360 + "turn",
+    ];
+  }
+  if (unit.endsWith("grad")) {
+    const value = parseFloat(unit.replace("grad", ""));
+    console.log("value: ", value);
+    return [
+      round((value * 9) / 10) + "deg",
+      round((value * Math.PI) / 200) + "rad",
+      unit,
+      round((value * 1) / 400) + "turn",
+    ];
+  }
+  if (unit.endsWith("rad")) {
+    const value = parseFloat(unit.replace("rad", ""));
+    return [
+      round((value * 180) / Math.PI) + "deg",
+      unit,
+      round((value * 200) / Math.PI) + "grad",
+      round((value * 0.5) / Math.PI) + "turn",
+    ];
+  }
+  if (unit.endsWith("turn")) {
+    const value = parseFloat(unit.replace("turn", ""));
+    return [
+      round(value * 360) + "deg",
+      round(value * 2 * Math.PI) + "rad",
+      round(value * 400) + "grad",
+      unit,
+    ];
+  }
+  return [];
+}
+
+function formatAngleResult(result) {
+  return result.map((string) => ({ string, pixelOffset: 0 }));
 }

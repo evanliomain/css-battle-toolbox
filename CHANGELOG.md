@@ -3,6 +3,7 @@
 - DOM tool: Remove trailling .00 in round DOM dimensions
 - Character tool: Add option to hide the number of characters
 - Minify: Fix wrong space remove between % and -
+- Unit tool: Handle angle unit convertion
 
 # 1.1.5
 
