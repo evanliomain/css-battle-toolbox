@@ -7,6 +7,8 @@ export function minify(code) {
       .replaceAll(/<!--.*-->/g, "")
       // transform transparent into #0000
       .replaceAll(/transparent/g, "#0000")
+      // Replace border-*-width:0 or none with border-*:0;
+      .replaceAll(/border-(top|right|bottom|left)-width:\s*(0|none)/g, "border-$1:$2;")
       // Remove extra space
       .replaceAll(/\s+/g, " ")
       .replaceAll(/\s*\#/g, "#")
@@ -35,6 +37,7 @@ export function minify(code) {
       .replaceAll(/\&\s*\>/g, "&>")
       .replaceAll(/\}\s*/g, "}")
       .replaceAll(/;\s*\}/g, "}")
+      .replaceAll(/;;+/g, ";")
       .replace(/;?(\s*})*(<\/style>)?$/, "")
       .replaceAll(/\)*$/g, "")
       .replaceAll(/\"\"$/g, '"')

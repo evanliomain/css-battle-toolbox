@@ -182,7 +182,25 @@ describe("minify", () => {
         }
       </style>`,
       ` <p> <style>&{background:red`,
-    ]
+    ],
+    [
+    `<style>
+        & {
+          border-left-width: 0;
+          border-right-width: none;
+        }
+      </style>`,
+      `<style>&{border-left:0;border-right:none`
+    ],
+    [
+    `<style>
+        & {
+          border-top-width: none;
+          border-bottom-width: 0;
+        }
+      </style>`,
+      `<style>&{border-top:none;border-bottom:0`
+    ],
   ])("#%#", (pretty, minified) => {
     expect(minify(pretty)).toEqual(minified);
     expect(minify(minified)).toEqual(minified);
