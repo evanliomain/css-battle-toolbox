@@ -33,7 +33,7 @@ PR are well come ;).
 ## Install extension locally
 
 1. Install dependancies with `npm install`
-2. Run `npm run dev`
+2. Run `npm run build`
 3. Open your browser and navigate to chrome://extensions/
 4. Toggle development mode if needed
 5. Load unpacked extension as describe here: https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked
