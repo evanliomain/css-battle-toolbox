@@ -46,6 +46,10 @@ export function minify(code) {
       .replaceAll(/\'\'$/g, "'")
       .replaceAll(/\s*\"$/g, '"')
       .replaceAll(/\s*\'$/g, "'")
+      // Trim space between a letter and 2 quotes
+      .replaceAll(/([a-zA-Z])\s+\"\"/g, '$1""')
+      .replaceAll(/([a-zA-Z])\s+\'\'/g, "$1''")
+
       // Trim space between 2 number with dot: 1.1 .4 => 1.1.4
       .replaceAll(/\.(\d+)\s+\.(\d)/g, ".$1.$2")
       // Trim space between 2 number with dot and unit: 83Q .5Q => 83Q.5Q

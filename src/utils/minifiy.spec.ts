@@ -220,6 +220,19 @@ describe("minify", () => {
     [`solid #00f 0.63em;`, "solid#00f.63em"],
     [`solid #f00a 0.63em;`, "solid#f00a.63em"],
     [`solid transparent 0.63em;`, "solid#0000.63em"],
+    [
+      `<style>
+* {
+  font: 14Q "";
+  color: red;
+}
+</style>
+      `,
+      '<style>*{font:14Q"";color:red',
+    ],
+    ['font: 14Q "";color: red;', 'font:14Q"";color:red'],
+    ['font: 14px "";color: red;', 'font:14px"";color:red'],
+    ['font: 14rem "";color: red;', 'font:14rem"";color:red'],
   ])("#%#", (pretty, minified) => {
     expect(minify(pretty)).toEqual(minified);
     expect(minify(minified)).toEqual(minified);
