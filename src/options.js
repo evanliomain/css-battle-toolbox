@@ -33,6 +33,7 @@ const OPTIONS_KEYS = [
   "hideNbMinifiedCharacters",
   "hideColorMixer",
   "hideUnitGolf",
+  "hideLeaderboard",
 
   "invertDifference",
   "nbBrightnessDifference",

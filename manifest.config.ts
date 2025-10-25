@@ -22,6 +22,7 @@ export default defineManifest(async (env) => ({
     open_in_tab: true,
   },
   permissions: ["storage"],
+  host_permissions: ["https://cssbattle.dev/*"],
   content_scripts: [
     {
       js: [
@@ -35,10 +36,12 @@ export default defineManifest(async (env) => ({
         "src/character-tools.js",
         "src/options-effect.js",
         "src/incrementor-tools.js",
+        "src/leaderboard-tools.js",
         "src/dom-tools.js",
         "src/mode-menu.js",
       ],
       matches: ["https://cssbattle.dev/play/*"],
+      run_at: "document_idle",
     },
     {
       js: ["src/dowload-tools.js"],

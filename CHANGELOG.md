@@ -1,3 +1,7 @@
+# 1.2.0
+
+- Leaderboard tool: Add the top 10 leaderboard and your rank
+
 # 1.1.6
 
 - DOM tool: Remove trailling .00 in round DOM dimensions
