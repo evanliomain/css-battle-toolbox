@@ -44,6 +44,10 @@ async function formatCSS(css) {
       .chain(replaceAll(/(\d+)([a-zA-Z]+)\.(\d)/g, "$1$2 .$3"))
       // Prettify css with prettier
       .chain(awaitFn(prettifyCss))
+      // Add space between hexa color and .
+      .chain(then(replaceAll(/(#[0-9a-fA-F]{6})\./g, "$1 .")))
+      .chain(then(replaceAll(/(#[0-9a-fA-F]{4})\./g, "$1 .")))
+      .chain(then(replaceAll(/(#[0-9a-fA-F]{3})\./g, "$1 .")))
       .chain(then(replaceAll(/\+(\s)+(\d)/g, "+$2")))
       .chain(then(replaceAll(/#0000([^a-fA-F0-9])/g, "transparent$1")))
       .value()

@@ -200,6 +200,26 @@ describe("minify", () => {
 </style>`,
       `<style>*{margin:10%-10;height:min(100% - 20ch`,
     ],
+    [
+      `<style>
+* {
+  border: solid #394257 0.63em;
+}
+</style>`,
+      "<style>*{border:solid#394257.63em",
+    ],
+    [`solid #fafaf0 0.63em;`, "solid#fafaf0.63em"],
+    [`solid #fafa00 0.63em;`, "solid#fafa00.63em"],
+    [`solid #faf000 0.63em;`, "solid#faf000.63em"],
+    [`solid #fa0000 0.63em;`, "solid#fa0000.63em"],
+    [`solid #f00000 0.63em;`, "solid#f00000.63em"],
+    [`solid #000 0.63em;`, "solid#000.63em"],
+    [`solid #0000 0.63em;`, "solid#0000.63em"],
+    [`solid #000000 0.63em;`, "solid#000000.63em"],
+    [`solid #f00 0.63em;`, "solid#f00.63em"],
+    [`solid #00f 0.63em;`, "solid#00f.63em"],
+    [`solid #f00a 0.63em;`, "solid#f00a.63em"],
+    [`solid transparent 0.63em;`, "solid#0000.63em"],
   ])("#%#", (pretty, minified) => {
     expect(minify(pretty)).toEqual(minified);
     expect(minify(minified)).toEqual(minified);
