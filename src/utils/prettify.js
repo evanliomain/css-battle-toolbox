@@ -41,6 +41,7 @@ async function formatCSS(css) {
       .chain(replaceAll(/%(\S)/g, "% $1"))
       .chain(replaceAll(/\/(\S)/g, "/ $1"))
       .chain(replaceAll(/(\S)\//g, "$1 /"))
+      .chain(replaceAll(/(\.\d+)(\.\d+)/g, "$1 $2"))
       .chain(replaceAll(/(\d+)([a-zA-Z]+)\.(\d)/g, "$1$2 .$3"))
       // Prettify css with prettier
       .chain(awaitFn(prettifyCss))

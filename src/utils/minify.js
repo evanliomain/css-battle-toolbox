@@ -9,6 +9,8 @@ export function minify(code) {
       .replaceAll(/transparent/g, "#0000")
       // Remove extra space
       .replaceAll(/\s+/g, " ")
+      // Replace 0 alone by .0
+      .replaceAll(/\s0\s+0\./g, " .0.")
       // Trim leading 0 before space remove
       .replaceAll(/(\s)0+\./g, "$1.")
       .replaceAll(/\s*\#/g, "#")

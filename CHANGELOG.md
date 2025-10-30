@@ -3,6 +3,7 @@
 - Leaderboard tool: Add the top 10 leaderboard and your rank
 - Minify: Remove space between an hexa color and a number starting by 0.xx
 - Minify: Remove space between quote and unit in font
+- Minify: Optimize 0 0.x case into .0.x
 
 # 1.1.6
 
