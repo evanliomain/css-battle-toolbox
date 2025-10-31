@@ -1,3 +1,7 @@
+# 1.2.1
+
+- Prettify: Add a space between ) and -
+
 # 1.2.0
 
 - Leaderboard tool: Add the top 10 leaderboard and your rank

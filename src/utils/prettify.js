@@ -38,6 +38,7 @@ async function formatCSS(css) {
       .chain(replace(/([^;\}])(\s*})/g, "$1;$2"))
       .chain(replaceAll(/(\S)#/g, "$1 #"))
       .chain(replaceAll(/(\d)\-/g, "$1 -"))
+      .chain(replaceAll(/\)\-/g, ") -"))
       .chain(replaceAll(/%(\S)/g, "% $1"))
       .chain(replaceAll(/\/(\S)/g, "/ $1"))
       .chain(replaceAll(/(\S)\//g, "$1 /"))
