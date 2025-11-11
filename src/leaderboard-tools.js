@@ -112,8 +112,7 @@ function initIntegrateLeaderboard() {
           ),
         );
     })
-    .then(console.log)
-    .catch(console.error);
+    .catch(() => {});
 }
 
 /**
@@ -232,7 +231,6 @@ async function scrapeSpaViaIframe(
       result[sel.key] = null;
     }
   }
-
   cleanup();
   return result;
 }
