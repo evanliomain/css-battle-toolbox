@@ -1,6 +1,7 @@
 # 1.2.1
 
 - Prettify: Add a space between ) and -
+- Target tool: Add a copy image url button
 
 # 1.2.0
 
