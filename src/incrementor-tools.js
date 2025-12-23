@@ -188,7 +188,7 @@ function incrementorTool() {
     </div>
     <div class="hstack" style="display: flex; gap: 0.25rem; align-items: center; justify-content: flex-start; flex-direction: row;">
       <button
-        type="button" class="button button--mini button--command hint--bottom"
+        type="button" class="button button--mini button--command hint--top"
         data-increment-move="-1"
         data-hint="Increase increment, click here or press '${leftKey}'"
       >
@@ -197,7 +197,7 @@ function incrementorTool() {
     ${INCREMENTS.map(
       (increment) => `
         <button
-          type="button" class="button button--mini button--incr hint--bottom"
+          type="button" class="button button--mini button--incr hint--top"
           data-increment="${increment}"
           data-hint="Choose to increment/decrement by ${increment}"
         >
@@ -206,7 +206,7 @@ function incrementorTool() {
     ).join(" ")}
       <div class="hstack" style="display: flex; gap: 0.25rem; align-items: center; justify-content: flex-start; flex-direction: row;">
       <button
-        type="button" class="button button--mini button--command hint--bottom-left"
+        type="button" class="button button--mini button--command hint--top-left"
         data-increment-move="1"
         data-hint="Decrease increment, click here or press '${rightKey}'"
       >
@@ -217,7 +217,7 @@ function incrementorTool() {
       <button
         type="button"
         id="increment-minus"
-        class="button button--mini button--command hint--bottom-left"
+        class="button button--mini button--command hint--top-left"
         data-hint="Decrement, click here or press '${downKey}'"
         >
         -
@@ -225,7 +225,7 @@ function incrementorTool() {
         <button
         type="button"
         id="increment-plus"
-        class="button button--mini button--command hint--bottom-left"
+        class="button button--mini button--command hint--top-left"
         data-hint="Increment, click here or press '${upKey}'"
       >
       +
@@ -234,7 +234,7 @@ function incrementorTool() {
     <div class="hstack" style="display: flex; gap: 0.25rem; align-items: center; justify-content: flex-start; flex-direction: row;">
       <button
         id="increment-exit"
-        class="button pill pill--key hint--bottom-left"
+        class="button pill pill--key hint--top-left"
         data-hint="Exit increment mode"
         style="text-transform: none;"
       >
