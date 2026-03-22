@@ -1,3 +1,7 @@
+# 1.2.2
+
+- Fix character tool, incrementor tool and option menu due to a css class change in CssBattle DOM.
+
 # 1.2.1
 
 - Prettify: Add a space between ) and -

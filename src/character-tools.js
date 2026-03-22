@@ -11,7 +11,7 @@ function getMinifiedNbCharacters() {
 
 function init() {
   const container = document.querySelector(
-    '[class^="Editor_editor"] > .item__header > .header__extra-info > .hstack',
+    '[class^="Editor-module"] > .item__header > .header__extra-info > .hstack',
   );
 
   if (null === container) {

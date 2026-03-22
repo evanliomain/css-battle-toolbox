@@ -8,7 +8,7 @@ const INCREMENTS = [100, 10, 1, 0.1, 0.01];
 doAsync(incrementorTool)();
 
 function incrementorTool() {
-  const container = document.querySelector('[class^="Editor_editor__"]');
+  const container = document.querySelector('[class^="Editor-module__"]');
 
   if (null === container) {
     return false;
