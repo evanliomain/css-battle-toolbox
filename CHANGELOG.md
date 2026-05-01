@@ -1,3 +1,7 @@
+# 1.2.3
+
+- Fix output tool, slide'n compare can be now disabled by default again
+
 # 1.2.2
 
 - Fix character tool, incrementor tool and option menu due to a css class change in CssBattle DOM.

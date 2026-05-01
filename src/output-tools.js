@@ -58,9 +58,7 @@ function unCheckSlideNCompare(config) {
     const node = document.querySelector(
       '.container__item--output .header__extra-info .hstack input[type="checkbox"]',
     );
-    const marker = document.querySelector('[class^="Preview_previewDistance"]');
-
-    if (null === node || null === marker) {
+    if (null === node) {
       return false;
     }
 
@@ -82,8 +80,12 @@ function unCheckSlideNCompare(config) {
     if (!(config.defaultSlideAndCompare ?? false)) {
       node.click();
     }
-    marker.style.zIndex = 100;
 
+    const marker = document.querySelector('[class^="Preview_previewDistance"]');
+
+    if (null !== marker) {
+      marker.style.zIndex = 100;
+    }
     input.addEventListener("change", (e) => {
       document.getElementById("dom-outline").style.display = e.srcElement
         .checked
