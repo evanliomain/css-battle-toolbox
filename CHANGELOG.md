@@ -1,3 +1,7 @@
+# 1.2.4
+
+- Target tool: Add a link to CssBattle Previewer
+
 # 1.2.3
 
 - Fix output tool, slide'n compare can be now disabled by default again
