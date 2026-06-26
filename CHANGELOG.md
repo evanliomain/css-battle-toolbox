@@ -1,6 +1,10 @@
-# 1.2.4
+# 1.2.5
 
 - DOM tool: Fix z-index stacking issue
+- Layout: Add option to hide the battle mode pill
+
+# 1.2.4
+
 - Target tool: Add a link to CssBattle Previewer
 
 # 1.2.3

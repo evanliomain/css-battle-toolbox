@@ -134,6 +134,11 @@ body {
       display: none;
     }
   }
+  &.hideBattleModePill {
+    [class^="BattleModeInfoPill-module"] {
+      display: none !important;
+    }
+  }
   &.hideNbMinifiedCharacters {
     #nb-minified-characters {
       display: none;

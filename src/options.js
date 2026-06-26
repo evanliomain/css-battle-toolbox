@@ -22,6 +22,7 @@ const OPTIONS_KEYS = [
   "hideFooter",
   "hideOutputCode",
   "hideTarget",
+  "hideBattleModePill",
 
   "hidePrettify",
   "hideMinify",
