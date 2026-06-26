@@ -1,5 +1,6 @@
 # 1.2.4
 
+- Layout: Add option to hide the battle mode pill
 - Target tool: Add a link to CssBattle Previewer
 
 # 1.2.3
