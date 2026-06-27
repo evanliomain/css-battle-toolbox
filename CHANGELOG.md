@@ -1,5 +1,6 @@
 # 1.2.4
 
+- DOM tool: Fix z-index stacking issue
 - Target tool: Add a link to CssBattle Previewer
 
 # 1.2.3

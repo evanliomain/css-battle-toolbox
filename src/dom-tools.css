@@ -3,6 +3,8 @@
 }
 
 #dom-tool {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(1fr, 2);
   [data-dom-tool="main"] {
