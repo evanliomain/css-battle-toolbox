@@ -1,6 +1,8 @@
 import "./options-effect.css";
-import { doAsync } from "./utils/do-async";
+import { mount } from "./utils/mount";
 
+// The option classes live on <body>, which always exists, and they matter on
+// every cssbattle page — so this part stays outside `mount`.
 chrome.storage.sync.get(null).then(applySettings);
 
 chrome.storage.onChanged.addListener((changes) => {
@@ -20,16 +22,18 @@ function applySettings(settings) {
   }
 }
 
-doAsync(() => {
-  const battleDate = document.querySelector('[class^="Header_breadcrumbs"] h2');
-  if (null === battleDate) {
-    return false;
-  }
-  if (battleDate.innerText === today()) {
+mount("options-effect:today", {
+  selectors: {
+    battleDate: '[class^="Header_breadcrumbs"] h2',
+  },
+  init({ battleDate }, onCleanup) {
+    if (battleDate.innerText !== today()) {
+      return;
+    }
     document.body.classList.add("today");
-  }
-  return true;
-})();
+    onCleanup(() => document.body.classList.remove("today"));
+  },
+});
 
 function today() {
   const today = new Date();

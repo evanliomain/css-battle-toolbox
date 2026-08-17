@@ -1,6 +1,6 @@
 import { changeCode } from "./utils/change-code";
-import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
+import { mount } from "./utils/mount";
 import { round } from "./utils/round";
 
 const UNITS = [
@@ -33,20 +33,21 @@ const RE_UNITS = new RegExp(
 
 const RE_ANGLE_UNITS = new RegExp(ANGLE_UNITS.join("|"));
 
-doAsync(addTool)();
+mount("unit-tools", {
+  selectors: {
+    container: ".container__item--target .item__content > div",
+  },
+  init({ container }, onCleanup) {
+    const calcFrame = createComputeIFrame();
+    onCleanup(() => calcFrame.remove());
 
-function addTool() {
-  const container = document.querySelector(
-    ".container__item--target .item__content > div",
-  );
-  if (null === container) {
-    return false;
-  }
-  createComputeIFrame();
-  container.insertAdjacentElement("afterend", htmlToElement(template()));
-  addListener();
-  return true;
-}
+    const tool = htmlToElement(template());
+    container.insertAdjacentElement("afterend", tool);
+    onCleanup(() => tool.remove());
+
+    addListener(tool);
+  },
+});
 
 function createComputeIFrame() {
   const iframe = document.createElement("iframe");
@@ -66,6 +67,8 @@ function createComputeIFrame() {
   div.id = "calcDiv";
   iframeDoc.body.appendChild(div);
   iframeDoc.body.style.setProperty("margin", "0");
+
+  return iframe;
 }
 
 function template() {
@@ -108,13 +111,14 @@ function template() {
   `;
 }
 
-function addListener() {
-  document
+// Scoped to the injected panel, so the listeners go away when it is removed.
+function addListener(tool) {
+  tool
     .querySelectorAll(".js-unit-input-minify")
     .forEach((input) => input.addEventListener("input", computeUnit));
 
-  document.getElementById("minifyAllPx").addEventListener("click", minifyAllPx);
-  document.getElementById("maxifyAllPx").addEventListener("click", maxifyAllPx);
+  tool.querySelector("#minifyAllPx").addEventListener("click", minifyAllPx);
+  tool.querySelector("#maxifyAllPx").addEventListener("click", maxifyAllPx);
 }
 
 function computeUnit() {

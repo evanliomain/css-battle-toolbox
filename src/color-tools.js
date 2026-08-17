@@ -1,24 +1,24 @@
 import "./color-tools.css";
-import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
+import { mount } from "./utils/mount";
 
-doAsync(addTool)();
+mount("color-tools", {
+  selectors: {
+    container: ".container__item--target .item__content > div",
+    // Without this the mount could succeed before the palette rendered and
+    // build an empty swatch list, with no retry to fix it.
+    colors: { all: ".colors-list__color" },
+  },
+  init({ container, colors }, onCleanup) {
+    const tool = htmlToElement(template(getAllColors(colors)));
+    container.insertAdjacentElement("beforeend", tool);
+    onCleanup(() => tool.remove());
 
-function addTool() {
-  const container = document.querySelector(
-    ".container__item--target .item__content > div",
-  );
+    addListener(tool);
+  },
+});
 
-  if (null === container) {
-    return false;
-  }
-  container.insertAdjacentElement("beforeend", htmlToElement(template()));
-  addListener();
-  return true;
-}
-
-function template() {
-  const colors = getAllColors();
+function template(colors) {
   return `
   <div id="color-mixer-tool" style="display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr;">
     <div class="input-container">
@@ -86,21 +86,18 @@ function template() {
   </div>`;
 }
 
-function addListener() {
-  document
+// Scoped to the injected panel, so the listeners go away when it is removed.
+function addListener(tool) {
+  tool
     .querySelectorAll(".js-color-input-minify")
     .forEach((input) => input.addEventListener("input", computeColor));
-  document
+  tool
     .querySelectorAll(".js-trigger-color")
     .forEach((button) => button.addEventListener("click", computeColor));
 }
 
-function getAllColors() {
-  const allColors = [];
-  document.querySelectorAll(".colors-list__color").forEach((node) => {
-    allColors.push(node.innerText);
-  });
-  return allColors;
+function getAllColors(colors) {
+  return Array.from(colors, (node) => node.innerText);
 }
 
 function computeColor() {

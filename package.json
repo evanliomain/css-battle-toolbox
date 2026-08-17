@@ -6,12 +6,15 @@
   "description": "Some usefull tools for Css Battle",
   "scripts": {
     "start": "vite",
-    "build": "tsc && vite build && cp src/options.js dist/src && cp -R images dist && zip -r css-battle-toolbox.zip dist",
+    "copy-assets": "cp src/options.js dist/src && cp -R images dist",
+    "build": "tsc && vite build && npm run copy-assets && zip -r css-battle-toolbox.zip dist",
+    "watch": "tsc && vite build && npm run copy-assets && vite build --watch --emptyOutDir false",
     "preview": "vite preview",
     "test": "vitest"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.2.1",
+    "jsdom": "^29.1.1",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
     "vite": "^5.4.10",

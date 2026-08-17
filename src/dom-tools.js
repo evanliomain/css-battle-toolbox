@@ -1,39 +1,93 @@
 import "./dom-tools.css";
-import { doAsync } from "./utils/do-async";
 import { DOM_COLOR } from "./utils/dom-color";
 import { htmlToElement } from "./utils/html-to-element";
+import { mount } from "./utils/mount";
+import { removeStale } from "./utils/remove-stale";
 import { round } from "./utils/round";
 
 let domId = 0;
 
-doAsync(addTool)();
+const OBSERVE = { attributes: true, childList: true };
 
-function addTool() {
-  const container = document.querySelector(
-    ".container__item--output .item__content :first-child",
-  );
-  if (null === container) {
-    return false;
-  }
-  container.insertAdjacentElement("afterend", htmlToElement(template()));
+const INJECTED_IDS = [
+  "dom-tool",
+  "dom-highlight",
+  "dom-highlight-margin",
+  "dom-highlight-padding",
+  "dom-outline",
+];
 
-  appendToTargetContainer(`<div id="dom-highlight"></div>`);
-  appendToTargetContainer(`<div id="dom-highlight-margin"></div>`);
-  appendToTargetContainer(`<div id="dom-highlight-padding"></div>`);
+mount("dom-tools", {
+  selectors: {
+    container: ".container__item--output .item__content :first-child",
+    targetContainer: ".target-container",
+    // Excludes the extension's own hidden iframes (unit-tools' calculator
+    // and leaderboard-tools' scraper), which a bare "iframe" could match.
+    iframe: "iframe:not(#calcFrame):not(.cbt-scraper)",
+    iframeDoc: (refs) =>
+      refs.iframe.contentDocument ?? refs.iframe.contentWindow?.document,
+  },
+  init(refs, onCleanup) {
+    const { container, targetContainer } = refs;
 
-  const observer = new MutationObserver(() => {
-    displayDom();
-  });
-  const iframe = document.querySelector("iframe");
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    // Clear anything a previous mount left on the page before injecting, so the
+    // panel and its overlays can never end up duplicated.
+    removeStale(...INJECTED_IDS);
 
-  // Commence à observer le noeud cible pour les mutations précédemment configurées
-  observer.observe(iframeDoc, { attributes: true, childList: true });
+    const tool = htmlToElement(template());
+    container.insertAdjacentElement("afterend", tool);
+    onCleanup(() => tool.remove());
 
-  displayDom();
+    const overlays = [
+      appendToTargetContainer(
+        targetContainer,
+        `<div id="dom-highlight"></div>`,
+      ),
+      appendToTargetContainer(
+        targetContainer,
+        `<div id="dom-highlight-margin"></div>`,
+      ),
+      appendToTargetContainer(
+        targetContainer,
+        `<div id="dom-highlight-padding"></div>`,
+      ),
+      // Created once, then emptied on each rebuild. Re-creating it per rebuild
+      // leaked copies, because domOutline() only ever removed the first one.
+      appendToTargetContainer(targetContainer, `<div id="dom-outline"></div>`),
+    ];
+    onCleanup(() => overlays.forEach((overlay) => overlay.remove()));
 
-  return true;
-}
+    let rebuilding = false;
+    const observer = new MutationObserver(rebuild);
+
+    // displayRec writes dataset ids and inline transforms onto the iframe's own
+    // nodes — the very nodes this observer watches. Rebuilding while connected
+    // fed the observer its own mutations, so the tree duplicated without end.
+    function rebuild() {
+      if (rebuilding) {
+        return;
+      }
+      rebuilding = true;
+      observer.disconnect();
+      try {
+        displayDom(refs);
+      } finally {
+        observer.observe(refs.iframeDoc, OBSERVE);
+        rebuilding = false;
+      }
+    }
+
+    // Start watching the target node for the mutations configured above
+    observer.observe(refs.iframeDoc, OBSERVE);
+    onCleanup(() => observer.disconnect());
+
+    rebuild();
+
+    onCleanup(() => {
+      domId = 0;
+    });
+  },
+});
 
 function template() {
   return `
@@ -44,39 +98,46 @@ function template() {
   `;
 }
 
-function displayDom() {
-  const iframe = document.querySelector("iframe");
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+function displayDom({ iframeDoc, targetContainer }) {
+  const main = document.querySelector(`[data-dom-tool="main"]`);
+  if (null === main) {
+    return;
+  }
 
-  // Reset elements
-  document
-    .querySelector(`[data-dom-tool="main"]`)
-    .childNodes.forEach((node) => node.remove());
+  // Reset elements. `replaceChildren` rather than iterating `childNodes`, which
+  // is a live list: removing while walking it skipped every other node, so each
+  // rebuild left residue behind and the tree grew without bound.
+  main.replaceChildren();
+  domOutline()?.replaceChildren();
 
-  domOutline()?.remove();
-  appendToTargetContainer(`<div id="dom-outline"></div>`);
+  // Ids are handed out fresh per rebuild, and they pair the panel's [data-id]
+  // with the iframe node it describes, so the counter restarts with the tree.
+  domId = 0;
 
-  iframeDoc.childNodes.forEach((child) => {
+  Array.from(iframeDoc.childNodes).forEach((child) => {
     displayRec(child, "main");
   });
 
+  // The .dom-element nodes are rebuilt on every call, so these listeners go away
+  // with them — no need to unregister them.
   document.querySelectorAll(`.dom-element`).forEach((el) => {
     el.addEventListener("mouseleave", (event) => {
-      // Supposons que chaque élément de l'arborescence DOM contienne une référence au vrai élément DOM
+      // Each DOM tree entry carries a reference to the real DOM element
       const targetElement = getDataIdRec(event.target);
       if (targetElement) {
-        // Surligne l'élément correspondant
+        // Highlight the matching element
         hideElement();
       }
     });
     el.addEventListener("mouseenter", (event) => {
-      // Supposons que chaque élément de l'arborescence DOM contienne une référence au vrai élément DOM
+      // Each DOM tree entry carries a reference to the real DOM element
       const targetElement = getDataIdRec(event.target);
       if (targetElement) {
-        // Surligne l'élément correspondant
-        highlightElement(
-          iframeDoc.querySelector(`[data-id="${targetElement}"]`),
-        );
+        const match = iframeDoc.querySelector(`[data-id="${targetElement}"]`);
+        if (null !== match) {
+          // Highlight the matching element
+          highlightElement(match);
+        }
       }
     });
   });
@@ -149,7 +210,7 @@ function nodeToTemplate(node, depth) {
     const attribute = node.attributes.item(i);
     if (
       attribute.name.startsWith("data-") ||
-      ["class", "id"].includes(attribute.name)
+      ["style", "class", "id"].includes(attribute.name)
     ) {
       continue;
     }
@@ -177,17 +238,17 @@ function nodeToTemplate(node, depth) {
   };
 }
 
-// Fonction pour obtenir les styles spécifiés par la page
+// Returns the styles the page actually specifies for an element
 function getSpecifiedStyles(element) {
-  // Cloner l'élément
+  // Clone the element
   const clone = document.createElement(element.tagName);
-  document.body.appendChild(clone); // Ajouter temporairement au DOM
+  document.body.appendChild(clone); // Temporarily attach it to the DOM
 
-  // Récupérer les styles calculés
+  // Read the computed styles
   const elementStyles = window.getComputedStyle(element);
   const defaultStyles = window.getComputedStyle(clone);
 
-  // Trouver les propriétés qui diffèrent
+  // Keep only the properties that differ
   const specifiedStyles = {};
   for (let property of elementStyles) {
     if (
@@ -198,7 +259,7 @@ function getSpecifiedStyles(element) {
     }
   }
 
-  // Retirer l'élément temporaire
+  // Drop the temporary element
   document.body.removeChild(clone);
 
   return specifiedStyles;
@@ -226,7 +287,7 @@ function highlightElement(element) {
   const rect = element.getBoundingClientRect();
   const styles = getComputedStyle(element);
 
-  // Dimensions des différentes parties
+  // Sizes of each box-model part
   const margin = {
     top: parseFloat(styles.marginTop),
     right: parseFloat(styles.marginRight),
@@ -269,7 +330,7 @@ function highlightElement(element) {
     y: rect.top - margin.top,
   };
 
-  // Update calques
+  // Update the layers
   moveElement(document.getElementById("dom-highlight"), contentBox);
   moveElement(document.getElementById("dom-highlight-margin"), {
     ...marginBox,
@@ -301,6 +362,10 @@ function moveHighlightElement(dimensions) {
   moveElement(document.getElementById("dom-highlight"), dimensions);
 }
 function moveElement(element, { width, height, x, y, borderWidth, clipPath }) {
+  // The overlays are removed on teardown, but hover handlers can still fire.
+  if (null === element) {
+    return;
+  }
   element.style.width = width + "px";
   element.style.height = height + "px";
   element.style.left = x + "px";
@@ -342,14 +407,13 @@ function transformElement(element, styles, { width, height }) {
   );
 }
 
-function appendToTargetContainer(template) {
-  targetContainer().insertAdjacentElement("beforeend", htmlToElement(template));
+function appendToTargetContainer(targetContainer, template) {
+  const element = htmlToElement(template);
+  targetContainer.insertAdjacentElement("beforeend", element);
+  return element;
 }
 
 // Selector
-function targetContainer() {
-  return document.querySelector(".target-container");
-}
 function domOutline() {
   return document.getElementById("dom-outline");
 }

@@ -1,4 +1,3 @@
-
 export async function download(url) {
   const response = await fetch(url);
   const file = await response.blob();

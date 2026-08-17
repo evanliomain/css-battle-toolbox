@@ -1,49 +1,39 @@
-import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
 import { minify } from "./utils/minify";
+import { mount } from "./utils/mount";
 
-doAsync(init)();
-
-function getMinifiedNbCharacters() {
-  return minify(document.querySelector("[contenteditable]")?.textContent ?? "")
-    .length;
-}
-
-function init() {
-  const container = document.querySelector(
-    '[class^="Editor-module"] > .item__header > .header__extra-info > .hstack',
-  );
-
-  if (null === container) {
-    return false;
-  }
-
-  const el = document.createElement("span");
-  el.id = "nb-minified-characters";
-  container.insertAdjacentElement(
-    "afterbegin",
-    htmlToElement(`
+mount("character-tools", {
+  selectors: {
+    container:
+      '[class^="Editor-module"] > .item__header > .header__extra-info > .hstack',
+    // Declared here because the observer below needs it: guarding on `container`
+    // alone and then observing a null editor used to kill the retry loop.
+    editor: "[contenteditable]",
+  },
+  init({ container, editor }, onCleanup) {
+    const counter = htmlToElement(`
         <span
           id="nb-minified-characters"
           class="hint--bottom"
           aria-label="Number of characters once your code is minified"
           data-hint="Number of characters once your code is minified"
         ></span>
-      `),
-  );
+      `);
+    container.insertAdjacentElement("afterbegin", counter);
+    onCleanup(() => counter.remove());
 
-  const observer = new MutationObserver(insert);
+    function insert() {
+      counter.innerText = `{${getMinifiedNbCharacters(editor)}}`;
+    }
 
-  observer.observe(document.querySelector("[contenteditable]"), {
-    attributes: true,
-    childList: true,
-  });
+    const observer = new MutationObserver(insert);
+    observer.observe(editor, { attributes: true, childList: true });
+    onCleanup(() => observer.disconnect());
 
-  insert();
+    insert();
+  },
+});
 
-  return true;
-}
-function insert() {
-  document.getElementById("nb-minified-characters").innerText =
-    `{${getMinifiedNbCharacters()}}`;
+function getMinifiedNbCharacters(editor) {
+  return minify(editor.textContent ?? "").length;
 }

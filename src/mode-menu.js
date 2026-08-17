@@ -1,37 +1,35 @@
 import "./mode-menu.css";
-import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
-
-doAsync(addModeMenu)();
+import { mount } from "./utils/mount";
 
 let toggleKey = "I";
 
-function addModeMenu() {
-  const container = document.querySelector(
-    '[class^="Editor-module"] > .item__header > .header__extra-info > .hstack',
-  );
+mount("mode-menu", {
+  selectors: {
+    container:
+      '[class^="Editor-module"] > .item__header > .header__extra-info > .hstack',
+  },
+  init({ container }, onCleanup) {
+    const menu = htmlToElement(menuTemplate());
+    container.insertAdjacentElement("beforeend", menu);
+    onCleanup(() => menu.remove());
 
-  if (null === container) {
-    return false;
-  }
+    // Init keyboard shortcut from settings. Inserting the menu first means the
+    // key letter is already in the DOM when the storage read resolves.
+    chrome.storage.sync.get(null).then(applyKeyboardSettings);
 
-  // Init keyboard shortcut from settings
-  chrome.storage.sync.get(null).then(applyKeyboardSettings);
+    // Refresh keyboard shortcut on settings change
+    function onStorageChange(changes) {
+      applyKeyboardSettings(
+        Object.fromEntries(
+          Object.entries(changes).map(([key, { newValue }]) => [key, newValue]),
+        ),
+      );
+    }
+    chrome.storage.onChanged.addListener(onStorageChange);
+    onCleanup(() => chrome.storage.onChanged.removeListener(onStorageChange));
 
-  // Refresh keyboard shortcut on settings change
-  chrome.storage.onChanged.addListener((changes) => {
-    applyKeyboardSettings(
-      Object.fromEntries(
-        Object.entries(changes).map(([key, { newValue }]) => [key, newValue]),
-      ),
-    );
-  });
-
-  container.insertAdjacentElement("beforeend", htmlToElement(menuTemplate()));
-
-  document
-    .querySelector("#go-to-options")
-    .addEventListener("click", function () {
+    menu.querySelector("#go-to-options").addEventListener("click", function () {
       if (chrome.runtime.openOptionsPage) {
         chrome.runtime.openOptionsPage();
       } else {
@@ -39,19 +37,24 @@ function addModeMenu() {
       }
     });
 
-  document.addEventListener("click", (event) => {
-    if ("mode-menu-editor-checkbox" === event.target.id) {
-      event.stopImmediatePropagation();
-      return false;
+    // Closes the menu on an outside click. Lives on `document`, so it has to be
+    // unregistered explicitly on teardown.
+    function onDocumentClick(event) {
+      if ("mode-menu-editor-checkbox" === event.target.id) {
+        event.stopImmediatePropagation();
+        return;
+      }
+      if (!isIncludeIn("mode-menu-editor", event.target)) {
+        const checkbox = document.getElementById("mode-menu-editor-checkbox");
+        if (null !== checkbox) {
+          checkbox.checked = false;
+        }
+      }
     }
-    if (!isIncludeIn("mode-menu-editor", event.target)) {
-      document.getElementById("mode-menu-editor-checkbox").checked = false;
-    }
-    return false;
-  });
-
-  return true;
-}
+    document.addEventListener("click", onDocumentClick);
+    onCleanup(() => document.removeEventListener("click", onDocumentClick));
+  },
+});
 
 function isIncludeIn(id, element) {
   if (null === element) {
@@ -66,7 +69,11 @@ function isIncludeIn(id, element) {
 function applyKeyboardSettings(settings) {
   toggleKey = settings?.strKbdToggleIncrement ?? toggleKey;
 
-  document.getElementById("toggle-key-letter").textContent = toggleKey;
+  // Absent once the menu has been torn down by a navigation.
+  const letter = document.getElementById("toggle-key-letter");
+  if (null !== letter) {
+    letter.textContent = toggleKey;
+  }
 }
 
 function menuTemplate() {
