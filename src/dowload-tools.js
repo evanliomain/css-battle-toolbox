@@ -1,20 +1,21 @@
-import { doAsync } from "./utils/do-async";
 import { download } from "./utils/download";
+import { mount } from "./utils/mount";
+import { isDailyPage } from "./utils/spa-router";
 
-doAsync(() => {
-  const pillToday = document.querySelector(
-    ".home-daily-target-panel .hstack > div:has(.target-today) .pill",
-  );
+const TODAY = ".home-daily-target-panel .hstack > div:has(.target-today)";
 
-  if (null === pillToday) {
-    return false;
-  }
-  pillToday.style.cursor = "pointer";
-  pillToday.addEventListener("click", (e) => {
-    const imgUrl = document.querySelector(
-      ".home-daily-target-panel .hstack > div:has(.target-today) img",
-    ).src;
-    download(imgUrl);
-  });
-  return true;
-})();
+mount("dowload-tools", {
+  when: isDailyPage,
+  selectors: {
+    pillToday: `${TODAY} .pill`,
+    img: `${TODAY} img`,
+  },
+  init({ pillToday, img }, onCleanup) {
+    pillToday.style.cursor = "pointer";
+    onCleanup(() => pillToday.style.removeProperty("cursor"));
+
+    const onClick = () => download(img.src);
+    pillToday.addEventListener("click", onClick);
+    onCleanup(() => pillToday.removeEventListener("click", onClick));
+  },
+});

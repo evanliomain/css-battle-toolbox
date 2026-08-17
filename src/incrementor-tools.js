@@ -2,18 +2,21 @@ import "./incrementor-tools.css";
 import { addModulo, subModulo } from "./utils/add-modulo";
 import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
+import { mount } from "./utils/mount";
 
 const INCREMENTS = [100, 10, 1, 0.1, 0.01];
 
-doAsync(incrementorTool)();
+mount("incrementor-tools", {
+  selectors: {
+    container: '[class^="Editor-module__"]',
+    // enterIncrementMode observes this; guarding on `container` alone and then
+    // observing a null editor used to kill the retry loop for good.
+    editor: "[contenteditable]",
+  },
+  init: incrementorTool,
+});
 
-function incrementorTool() {
-  const container = document.querySelector('[class^="Editor-module__"]');
-
-  if (null === container) {
-    return false;
-  }
-
+function incrementorTool({ container, editor }, onCleanup, signal) {
   let upKey = "=";
   let downKey = ":";
   let leftKey = "<";
@@ -29,35 +32,37 @@ function incrementorTool() {
   chrome.storage.sync.get(null).then(applyKeyboardSettings);
 
   // Refresh keyboard shortcut on settings change
-  chrome.storage.onChanged.addListener((changes) => {
+  function onStorageChange(changes) {
     applyKeyboardSettings(
       Object.fromEntries(
         Object.entries(changes).map(([key, { newValue }]) => [key, newValue]),
       ),
     );
-  });
+  }
+  chrome.storage.onChanged.addListener(onStorageChange);
+  onCleanup(() => chrome.storage.onChanged.removeListener(onStorageChange));
 
   const observer = new MutationObserver(onContentChange);
+  onCleanup(() => observer.disconnect());
 
   // Add incrementor tool bar
-  container.insertAdjacentElement(
-    "afterend",
-    htmlToElement(template({ leftKey, rightKey, upKey, downKey })),
-  );
+  const panel = htmlToElement(template({ leftKey, rightKey, upKey, downKey }));
+  container.insertAdjacentElement("afterend", panel);
+  onCleanup(() => panel.remove());
 
   toggleIncrementSelection();
 
-  // Handle clicks
-  document.getElementById("increment-minus").addEventListener("click", () => {
+  // Handle clicks. Scoped to the panel, so these listeners go away with it.
+  panel.querySelector("#increment-minus").addEventListener("click", () => {
     modifyNumber(-1);
   });
-  document.getElementById("increment-plus").addEventListener("click", () => {
+  panel.querySelector("#increment-plus").addEventListener("click", () => {
     modifyNumber(1);
   });
-  document.getElementById("increment-exit").addEventListener("click", () => {
+  panel.querySelector("#increment-exit").addEventListener("click", () => {
     toggleIncrementMode();
   });
-  document.querySelectorAll("[data-increment-move]").forEach((element) => {
+  panel.querySelectorAll("[data-increment-move]").forEach((element) => {
     element.addEventListener("click", () => {
       if ("-1" === element.dataset.incrementMove) {
         setIncrementIndex(subModulo(currentIncrementIndex, INCREMENTS.length));
@@ -68,20 +73,22 @@ function incrementorTool() {
     });
   });
 
-  document
-    .querySelectorAll(`.incrementor-panel [data-increment]`)
-    .forEach((element) =>
-      element.addEventListener("click", (event) => {
-        setIncrementIndex(
-          INCREMENTS.findIndex(
-            (increment) => increment === Number(event.target.dataset.increment),
-          ),
-        );
-      }),
-    );
+  panel.querySelectorAll(`[data-increment]`).forEach((element) =>
+    element.addEventListener("click", (event) => {
+      setIncrementIndex(
+        INCREMENTS.findIndex(
+          (increment) => increment === Number(event.target.dataset.increment),
+        ),
+      );
+    }),
+  );
 
-  // Handle keyboard shortcuts
-  document.addEventListener("keydown", (event) => {
+  // Handle keyboard shortcuts. Lives on `document`, so it has to be
+  // unregistered explicitly on teardown.
+  document.addEventListener("keydown", onKeyDown);
+  onCleanup(() => document.removeEventListener("keydown", onKeyDown));
+
+  function onKeyDown(event) {
     // Ctrl+Shift+I toggle increment mode
     if (event.shiftKey && event.ctrlKey && event.key === toggleKey) {
       toggleIncrementMode();
@@ -165,19 +172,23 @@ function incrementorTool() {
         break;
     }
     setTimeout(() => highlightNumberSpan(numberSpans, activeNumberIndex), 0);
-  });
+  }
 
-  // Handle increment mode enter on menu item click
-  doAsync(() => {
-    const menuItem = document.getElementById("increment-mode-toggle");
-    if (null === menuItem) {
-      return false;
-    }
-    menuItem.addEventListener("click", () => {
-      toggleIncrementMode();
-    });
-    return true;
-  })();
+  // Handle increment mode enter on menu item click. #increment-mode-toggle
+  // belongs to mode-menu.js, which mounts independently, so keep polling for it.
+  doAsync(
+    () => {
+      const menuItem = document.getElementById("increment-mode-toggle");
+      if (null === menuItem) {
+        return false;
+      }
+      const onClick = () => toggleIncrementMode();
+      menuItem.addEventListener("click", onClick);
+      onCleanup(() => menuItem.removeEventListener("click", onClick));
+      return true;
+    },
+    { name: "incrementor-tools:menu-item", signal },
+  )();
 
   // Increment tool bar template
   function template({ leftKey, rightKey, upKey, downKey }) {
@@ -262,7 +273,7 @@ function incrementorTool() {
       highlightNumberSpan(numberSpans, activeNumberIndex);
     }
 
-    observer.observe(document.querySelector("[contenteditable]"), {
+    observer.observe(editor, {
       attributes: true,
       childList: true,
     });
@@ -422,15 +433,13 @@ function incrementorTool() {
   }
 
   function toggleIncrementSelection() {
-    document
-      .querySelectorAll(`.incrementor-panel [data-increment]`)
+    panel
+      .querySelectorAll(`[data-increment]`)
       .forEach((element) => element.classList.remove("button--primary"));
 
-    document
-      .querySelector(
-        `.incrementor-panel [data-increment="${currentIncrement()}"]`,
-      )
-      .classList.add("button--primary");
+    panel
+      .querySelector(`[data-increment="${currentIncrement()}"]`)
+      ?.classList.add("button--primary");
   }
 
   function toggleSpanToSelection(numberSpan) {
@@ -453,7 +462,13 @@ function incrementorTool() {
     toggleKey = settings?.strKbdToggleIncrement ?? toggleKey;
   }
 
-  return true;
+  // Leaves the editor without our highlight classes when a navigation tears the
+  // tool down mid-session.
+  onCleanup(() => {
+    if (incrementMode) {
+      exitIncrementMode();
+    }
+  });
 }
 
 function getActiveLine() {

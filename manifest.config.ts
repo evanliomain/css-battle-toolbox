@@ -24,6 +24,11 @@ export default defineManifest(async (env) => ({
   permissions: ["storage"],
   host_permissions: ["https://cssbattle.dev/*"],
   content_scripts: [
+    // A single block matching the whole site, because Chrome only injects
+    // content scripts on a real document load. Scoping this to /play/* meant a
+    // client-side navigation into a battle injected nothing at all, and the
+    // tools only showed up after a refresh. Each tool now gates itself on the
+    // current URL through the `when` predicate of `src/utils/mount.js`.
     {
       js: [
         "src/unit-tools.js",
@@ -40,13 +45,10 @@ export default defineManifest(async (env) => ({
         "src/leaderboard-tools.js",
         "src/dom-tools.js",
         "src/mode-menu.js",
+        "src/dowload-tools.js",
       ],
-      matches: ["https://cssbattle.dev/play/*"],
+      matches: ["https://cssbattle.dev/*"],
       run_at: "document_idle",
-    },
-    {
-      js: ["src/dowload-tools.js"],
-      matches: ["https://cssbattle.dev/daily"],
     },
   ],
 }));

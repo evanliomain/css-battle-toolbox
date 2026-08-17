@@ -1,58 +1,47 @@
 import "./target-tools.css";
-import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
+import { mount } from "./utils/mount";
 
-doAsync(async () => {
-  const target = document.querySelector(".container__item--target");
-  const img = document.querySelector(".container__item--target img");
-  if (null === target || null === img) {
-    return false;
-  }
+mount("target-tools", {
+  selectors: {
+    img: ".container__item--target img",
+    // Both buttons go here. It used to be looked up per button with a bare
+    // `return`, so a missing header silently skipped them instead of retrying.
+    container: ".container__item--target .item__header :first-child",
+  },
+  init({ container, img }, onCleanup) {
+    const buttons = [
+      addCopyImageUrl(container, img),
+      addLinkToPreviewer(container, img),
+    ];
+    onCleanup(() => buttons.forEach((button) => button.remove()));
+  },
+});
 
-  init();
-
-  return true;
-})();
-
-function init() {
-  addCopyImageUrl();
-  addLinkToPreviewer();
-}
-
-function addCopyImageUrl() {
-  const container = document.querySelector(
-    ".container__item--target .item__header :first-child",
-  );
-  if (null === container) {
-    return;
-  }
-
+function addCopyImageUrl(container, img) {
   const btn = htmlToElement(template());
   container.insertAdjacentElement("beforeend", btn);
   btn.addEventListener("click", () => {
-    // Copy de l'url de l'image dans le clipboard
-    navigator.clipboard.writeText(
-      document
-        .querySelector(".container__item--target img")
-        .getAttribute("src"),
-    );
+    // Copy the image url to the clipboard
+    navigator.clipboard.writeText(img.getAttribute("src"));
   });
+  return btn;
 }
 
-function addLinkToPreviewer() {
-  const container = document.querySelector(
-    ".container__item--target .item__header :first-child",
-  );
-  if (null === container) {
-    return;
-  }
-
-  const imageUrl = document
-    .querySelector(".container__item--target img")
-    .getAttribute("src");
-  const url = `https://cssutils.com/cssbattle-previewer/?mode=custom&image=${encodeURIComponent(imageUrl)}`;
-  const btn = htmlToElement(templateLink(url));
+function addLinkToPreviewer(container, img) {
+  const btn = htmlToElement(templateLink(previewerUrl(img)));
   container.insertAdjacentElement("beforeend", btn);
+  // Refresh the href from the live img just before navigating, so the link never
+  // points at the previous battle's target after a client-side navigation.
+  btn.addEventListener("click", () => {
+    btn.href = previewerUrl(img);
+  });
+  return btn;
+}
+
+function previewerUrl(img) {
+  const imageUrl = img.getAttribute("src");
+  return `https://cssutils.com/cssbattle-previewer/?mode=custom&image=${encodeURIComponent(imageUrl)}`;
 }
 
 function template() {

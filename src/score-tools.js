@@ -1,80 +1,93 @@
 import "./score-tools.css";
-import { doAsync } from "./utils/do-async";
+import { mount } from "./utils/mount";
 import { prettify } from "./utils/prettify";
 
-doAsync(addCopyTopScore)();
-doAsync(addCopyScore)();
+// Marks the rows we already decorated. Both observers below can report the same
+// node more than once — the top-score one watches the whole body subtree — and
+// without this the Copy buttons pile up.
+const DONE = "cbtCopyScore";
 
-function addCopyScore() {
-  const nodes = document.querySelectorAll(
-    ".submissions-list__item:not(:has(.top-submission-container))",
-  );
-  if (0 === nodes.length) {
-    return false;
-  }
+// The submissions list only exists once the player has submitted, which can be
+// minutes into a battle — so these two poll for as long as the page lives
+// instead of giving up on the default timeout.
+mount("score-tools:scores", {
+  timeout: Infinity,
+  selectors: {
+    items: {
+      all: ".submissions-list__item:not(:has(.top-submission-container))",
+    },
+    // The list is a different selector from the items, so it gets its own entry
+    // rather than an unguarded lookup inside the observer setup.
+    list: ".submissions-list:not(:has(.top-submission-container))",
+  },
+  init({ items, list }, onCleanup) {
+    const buttons = [];
+    onCleanup(() => removeButtons(buttons));
 
-  const observer = new MutationObserver((mutationsList) => {
-    for (const mutation of mutationsList) {
-      // On ne s’intéresse ici qu’aux changements de type "childList" (ajout/retrait de nœuds)
-      if (mutation.type === "childList" && 0 < mutation.addedNodes.length) {
-        addCopyScoreButtons(mutation.addedNodes);
+    const observer = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        // Only "childList" changes matter here (nodes added or removed)
+        if (mutation.type === "childList" && 0 < mutation.addedNodes.length) {
+          addCopyScoreButtons(mutation.addedNodes, buttons);
+        }
       }
-    }
-  });
-  observer.observe(
-    document.querySelector(
-      ".submissions-list:not(:has(.top-submission-container))",
-    ),
-    { childList: true },
-  );
-  addCopyScoreButtons(nodes);
-  return true;
-}
+    });
+    observer.observe(list, { childList: true });
+    onCleanup(() => observer.disconnect());
 
-async function addCopyTopScore() {
-  const nodes = document.querySelectorAll(
-    ".top-submission-container:has(.top-submission__author)",
-  );
-  if (0 === nodes.length) {
-    return false;
-  }
+    addCopyScoreButtons(items, buttons);
+  },
+});
 
-  const observer = new MutationObserver((mutationsList) => {
-    for (const mutation of mutationsList) {
-      if (mutation.type === "childList" && 0 < mutation.addedNodes.length) {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            addCopyTopScoreButtons(
-              node.querySelectorAll(
-                ".top-submission-container:has(.top-submission__author)",
-              ),
-            );
-          }
-        });
+mount("score-tools:top-score", {
+  timeout: Infinity,
+  selectors: {
+    items: { all: ".top-submission-container:has(.top-submission__author)" },
+  },
+  init({ items }, onCleanup, signal) {
+    const buttons = [];
+    onCleanup(() => removeButtons(buttons));
+
+    const observer = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (mutation.type === "childList" && 0 < mutation.addedNodes.length) {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              addCopyTopScoreButtons(
+                node.querySelectorAll(
+                  ".top-submission-container:has(.top-submission__author)",
+                ),
+                buttons,
+                signal,
+              );
+            }
+          });
+        }
       }
-    }
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    onCleanup(() => observer.disconnect());
 
-  addCopyTopScoreButtons(nodes);
+    addCopyTopScoreButtons(items, buttons, signal);
+  },
+});
 
-  return true;
-}
-
-function addCopyScoreButtons(items) {
+function addCopyScoreButtons(items, buttons) {
   items.forEach((node) => {
-    const score = node.querySelector("p").innerText;
-    const message = "*" + score + "*";
-
-    const copyFn = () => navigator.clipboard.writeText(message);
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.innerText = "Copy";
-    button.classList = "button button--copy-score";
-    button.addEventListener("click", copyFn);
-    node.insertAdjacentElement("beforeend", button);
+    if (!claim(node)) {
+      return;
+    }
+    const score = node.querySelector("p");
     const otherButton = node.querySelector(".dropdown-container");
+    if (null === score || null === otherButton) {
+      release(node);
+      return;
+    }
+
+    const button = copyButton("*" + score.innerText + "*");
+    node.insertAdjacentElement("beforeend", button);
+    buttons.push([node, button]);
+
     otherButton.classList.remove("dropdown-container--full-width");
     otherButton.style.flex = "1";
 
@@ -84,24 +97,67 @@ function addCopyScoreButtons(items) {
   });
 }
 
-function addCopyTopScoreButtons(items) {
+function addCopyTopScoreButtons(items, buttons, signal) {
   items.forEach(async (node) => {
-    const author = node.querySelector("a").ariaLabel;
-    const score = node.querySelector(
-      "p.top-submission__author__score",
-    ).innerText;
-    const code = node.querySelector("p.submissions-list__code").innerText;
-    const prettyCode = await prettify(code);
-    const message = `*Top solution by ${author}: ${score}*
-\`\`\`${prettyCode}\`\`\``;
+    if (!claim(node)) {
+      return;
+    }
+    const author = node.querySelector("a");
+    const score = node.querySelector("p.top-submission__author__score");
+    const code = node.querySelector("p.submissions-list__code");
+    const host = node.querySelector(".top-submission__author");
+    if (null === author || null === score || null === code || null === host) {
+      release(node);
+      return;
+    }
 
-    const copyFn = () => navigator.clipboard.writeText(message);
+    const prettyCode = await prettify(code.innerText);
+    // prettify is async, so a navigation may have torn this mount down by now.
+    if (signal.aborted) {
+      release(node);
+      return;
+    }
 
-    const button = document.createElement("button");
-    button.type = "button";
-    button.innerText = "Copy";
-    button.classList = "button button--copy-score";
-    button.addEventListener("click", copyFn);
-    node.querySelector(".top-submission__author").append(button);
+    const button = copyButton(
+      `*Top solution by ${author.ariaLabel}: ${score.innerText}*
+\`\`\`${prettyCode}\`\`\``,
+    );
+    host.append(button);
+    buttons.push([node, button]);
   });
+}
+
+function copyButton(message) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.innerText = "Copy";
+  button.className = "button button--copy-score";
+  button.addEventListener("click", () =>
+    navigator.clipboard.writeText(message),
+  );
+  return button;
+}
+
+/**
+ * @returns {boolean} false when the node is not an element, or was already
+ * decorated. Observer callbacks hand us text nodes too.
+ */
+function claim(node) {
+  if (undefined === node.dataset || undefined !== node.dataset[DONE]) {
+    return false;
+  }
+  node.dataset[DONE] = "";
+  return true;
+}
+
+function release(node) {
+  delete node.dataset[DONE];
+}
+
+function removeButtons(buttons) {
+  buttons.forEach(([node, button]) => {
+    button.remove();
+    release(node);
+  });
+  buttons.length = 0;
 }

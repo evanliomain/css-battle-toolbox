@@ -1,32 +1,76 @@
 import "./output-tools.css";
 import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
+import { mount } from "./utils/mount";
+import { removeStale } from "./utils/remove-stale";
 
-document
-  .querySelector(".container__item--output .hstack .header__title")
-  .remove();
+const INJECTED_IDS = [
+  "overlay-grid",
+  "output-compare-input",
+  "output-grid-input",
+  "output-outline-input",
+  "output-background-input",
+];
 
-doAsync(async () => {
-  const target = document.querySelector(
-    ".target-container > div:not(#overlay-grid)",
-  );
-  if (null === target) {
-    return false;
-  }
-  const config = await chrome.storage.sync.get(null);
+mount("output-tools", {
+  selectors: {
+    // Optional: once we remove it, a re-mount must not wait for it to come back.
+    headerTitle: {
+      optional: ".container__item--output .hstack .header__title",
+    },
+    hstack: ".container__item--output .header__extra-info .hstack",
+    target: ".target-container > div:not(#overlay-grid)",
+    targetContainer: ".target-container",
+    // Excludes the extension's own hidden iframes (unit-tools' calculator
+    // and leaderboard-tools' scraper), which a bare "iframe" could match.
+    iframe: "iframe:not(#calcFrame):not(.cbt-scraper)",
+    iframeDoc: (refs) =>
+      refs.iframe.contentDocument ?? refs.iframe.contentWindow?.document,
+  },
+  async init(refs, onCleanup, signal) {
+    // The option checkboxes live inside a wrapping <label>, so drop the label
+    // rather than leaving an empty one behind.
+    INJECTED_IDS.forEach((id) =>
+      document.getElementById(id)?.closest("label")?.remove(),
+    );
+    removeStale(...INJECTED_IDS);
 
-  addCompareOption(config);
-  addGridOption(config);
-  addOutlineOption(config);
-  addBackgroundOption(config);
-  doAsync(useX2Image)();
+    refs.headerTitle?.remove();
 
-  doAsync(unCheckSlideNCompare(config))();
-  doAsync(displayDiff(config))();
+    const config = await chrome.storage.sync.get(null);
 
-  flagOutput();
-  return true;
-})();
+    addCompareOption(config, refs, onCleanup);
+    addGridOption(config, refs, onCleanup);
+    addOutlineOption(config, refs, onCleanup);
+    addBackgroundOption(config, refs, onCleanup);
+
+    // These three wait on nodes owned by cssbattle that show up later, and they
+    // read `label:nth-child(2)` of the hstack we just appended to, so they stay
+    // sequenced after the options above.
+    doAsync(useX2Image(onCleanup), {
+      signal,
+      name: "output-tools:x2-image",
+    })();
+    doAsync(unCheckSlideNCompare(config, onCleanup), {
+      signal,
+      name: "output-tools:slide-n-compare",
+    })();
+    doAsync(displayDiff(config, onCleanup), {
+      signal,
+      name: "output-tools:diff",
+    })();
+
+    flagOutput(refs, onCleanup);
+
+    onCleanup(() => {
+      document.body.classList.remove("compare-tool", "diff-tool");
+      refs.targetContainer.classList.remove(
+        "display-outline",
+        "display-background",
+      );
+    });
+  },
+});
 
 function displayCompare(display) {
   document.body.classList.toggle("compare-tool", display);
@@ -41,63 +85,72 @@ function displayCompare(display) {
 
 function displayGrid() {
   const target = document.getElementById("overlay-grid");
+  if (null === target) {
+    return;
+  }
   const opacity = target.attributeStyleMap.get("opacity").value;
   target.attributeStyleMap.set("opacity", 1 === opacity ? 0 : 1);
 }
 
-function displayOutline() {
-  targetContainer().classList.toggle("display-outline");
+function displayOutline(targetContainer) {
+  targetContainer.classList.toggle("display-outline");
 }
 
-function displayBackground() {
-  targetContainer().classList.toggle("display-background");
+function displayBackground(targetContainer) {
+  targetContainer.classList.toggle("display-background");
 }
 
-function unCheckSlideNCompare(config) {
+function unCheckSlideNCompare(config, onCleanup) {
   return () => {
     const node = document.querySelector(
       '.container__item--output .header__extra-info .hstack input[type="checkbox"]',
     );
-    if (null === node) {
-      return false;
-    }
-
     const label = document.querySelector(
       '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"])',
     );
     const input = document.querySelector(
       '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"]) input',
     );
-    label.insertAdjacentElement(
-      "beforeend",
-      htmlToElement(slideNCompareIcon()),
-    );
+    if (null === node || null === label || null === input) {
+      return false;
+    }
+
+    const icon = htmlToElement(slideNCompareIcon());
+    label.insertAdjacentElement("beforeend", icon);
+    onCleanup(() => icon.remove());
+
     label.setAttribute("data-hint", "Slide and Compare");
     label.setAttribute("aria-label", "Slide and Compare");
     label.classList = "hint--bottom hint--left-if-slidencompare-alone";
     label.style.gap = "0";
 
-    if (!(config.defaultSlideAndCompare ?? false)) {
-      node.click();
-    }
+    // Compare against the current state rather than clicking blindly: this is
+    // cssbattle's own checkbox, so a re-mount that clicks again would flip the
+    // setting to the opposite of what the user asked for.
+    setChecked(node, config.defaultSlideAndCompare ?? false);
 
     const marker = document.querySelector('[class^="Preview_previewDistance"]');
 
     if (null !== marker) {
       marker.style.zIndex = 100;
     }
-    input.addEventListener("change", (e) => {
-      document.getElementById("dom-outline").style.display = e.srcElement
-        .checked
-        ? "none"
-        : "block";
-    });
+
+    // #dom-outline belongs to dom-tools, which mounts independently.
+    function onChange(e) {
+      const outline = document.getElementById("dom-outline");
+      if (null === outline) {
+        return;
+      }
+      outline.style.display = e.srcElement.checked ? "none" : "block";
+    }
+    input.addEventListener("change", onChange);
+    onCleanup(() => input.removeEventListener("change", onChange));
 
     return true;
   };
 }
 
-function displayDiff(config) {
+function displayDiff(config, onCleanup) {
   return () => {
     const label = document.querySelector(
       ".container__item--output .header__extra-info .hstack label:nth-child(2)",
@@ -105,26 +158,80 @@ function displayDiff(config) {
     if (null === label) {
       return false;
     }
-    label.insertAdjacentElement("beforeend", htmlToElement(diffIcon()));
+    const icon = htmlToElement(diffIcon());
+    label.insertAdjacentElement("beforeend", icon);
+    onCleanup(() => icon.remove());
+
     label.setAttribute("data-hint", "Show the difference");
     label.setAttribute("aria-label", "Show the difference");
     label.classList = "hint--bottom-left";
     label.style.gap = "0";
 
-    label.addEventListener("change", (e) => {
+    function onChange(e) {
       document.body.classList.toggle("diff-tool", e.target.checked);
-    });
+    }
+    label.addEventListener("change", onChange);
+    onCleanup(() => label.removeEventListener("change", onChange));
 
-    if (config.defaultDifference ?? false) {
-      label.querySelector("input").click();
+    const input = label.querySelector("input");
+    if (null !== input) {
+      setChecked(input, config.defaultDifference ?? false);
     }
 
     return true;
   };
 }
 
-function addCompareOption(config) {
-  const template = `
+/** Clicks a checkbox only when it is not already in the wanted state. */
+function setChecked(input, checked) {
+  if (input.checked !== checked) {
+    input.click();
+  }
+}
+
+/**
+ * Appends a checkbox option to the output header and wires it up.
+ *
+ * @returns {HTMLInputElement} The checkbox.
+ */
+function addOption({ hstack, onCleanup, template, id, onInput, checked }) {
+  const label = htmlToElement(template);
+  hstack.appendChild(label);
+  onCleanup(() => label.remove());
+
+  const input = label.querySelector(`#${id}`);
+  input.addEventListener("input", onInput);
+
+  if (checked) {
+    input.click();
+  }
+
+  return input;
+}
+
+function addCompareOption(config, refs, onCleanup) {
+  // This id is stamped onto a node cssbattle owns, so a leftover copy must be
+  // cleared rather than removed — deleting it would tear out the target itself.
+  document.getElementById("overlay-compare")?.removeAttribute("id");
+
+  // Tag the overlay *before* addOption may click the checkbox: displayCompare
+  // looks the element up by this id and silently no-ops without it.
+  refs.target.id = "overlay-compare";
+
+  // displayCompare toggles an inline opacity on this node, which belongs to
+  // cssbattle. Restore whatever was there, or the leftover 0.7 makes the next
+  // mount's toggle read as "already ghosted" and flip the wrong way.
+  const opacity = refs.target.style.opacity;
+  onCleanup(() => {
+    refs.target.removeAttribute("id");
+    refs.target.style.opacity = opacity;
+  });
+
+  addOption({
+    hstack: refs.hstack,
+    onCleanup,
+    id: "output-compare-input",
+    template: `
   <label
     class="hint--bottom hint--left-if-compare-alone"
     aria-label="Show the target on output"
@@ -138,30 +245,24 @@ function addCompareOption(config) {
       />
     ${compareIcon()}
   </label>
-  `;
-
-  document
-    .querySelector(".container__item--output .header__extra-info .hstack")
-    .appendChild(htmlToElement(template));
-
-  const target = document.querySelector(
-    ".target-container > div:not(#overlay-grid)",
-  );
-  target.id = "overlay-compare";
-
-  document
-    .getElementById("output-compare-input")
-    .addEventListener("input", (e) => {
-      displayCompare(e.target.checked);
-    });
-
-  if (config.defaultTargetOnOutput ?? false) {
-    document.getElementById("output-compare-input").click();
-  }
+  `,
+    onInput: (e) => displayCompare(e.target.checked),
+    checked: config.defaultTargetOnOutput ?? false,
+  });
 }
 
-function addGridOption(config) {
-  const template = `
+function addGridOption(config, refs, onCleanup) {
+  // Add grid overlay
+  const overlayGrid = htmlToElement(`<div id="overlay-grid"></div>`);
+  overlayGrid.style.opacity = "0";
+  refs.targetContainer.insertAdjacentElement("afterbegin", overlayGrid);
+  onCleanup(() => overlayGrid.remove());
+
+  addOption({
+    hstack: refs.hstack,
+    onCleanup,
+    id: "output-grid-input",
+    template: `
   <label
     class="hint--bottom-left"
     aria-label="Show a 10x10 grid on output"
@@ -175,30 +276,18 @@ function addGridOption(config) {
       />
     ${gridIcon()}
   </label>
-  `;
-
-  document
-    .querySelector(".container__item--output .header__extra-info .hstack")
-    .appendChild(htmlToElement(template));
-
-  // Add grid overlay
-  const overlayGrid = htmlToElement(`<div id="overlay-grid"></div>`);
-  overlayGrid.style.opacity = "0";
-
-  targetContainer().insertAdjacentElement("afterbegin", overlayGrid);
-
-  document
-    .getElementById("output-grid-input")
-    .addEventListener("input", (e) => {
-      displayGrid();
-    });
-  if (config.defaultGrid ?? false) {
-    document.getElementById("output-grid-input").click();
-  }
+  `,
+    onInput: () => displayGrid(),
+    checked: config.defaultGrid ?? false,
+  });
 }
 
-function addOutlineOption(config) {
-  const template = `
+function addOutlineOption(config, refs, onCleanup) {
+  addOption({
+    hstack: refs.hstack,
+    onCleanup,
+    id: "output-outline-input",
+    template: `
   <label
     class="hint--bottom-left"
     aria-label="Show outline on every tags of the output"
@@ -212,25 +301,18 @@ function addOutlineOption(config) {
       />
     ${outlineIcon()}
   </label>
-  `;
-
-  document
-    .querySelector(".container__item--output .header__extra-info .hstack")
-    .appendChild(htmlToElement(template));
-
-  document
-    .getElementById("output-outline-input")
-    .addEventListener("input", (e) => {
-      displayOutline();
-    });
-
-  if (config.defaultOutline ?? false) {
-    document.getElementById("output-outline-input").click();
-  }
+  `,
+    onInput: () => displayOutline(refs.targetContainer),
+    checked: config.defaultOutline ?? false,
+  });
 }
 
-function addBackgroundOption(config) {
-  const template = `
+function addBackgroundOption(config, refs, onCleanup) {
+  addOption({
+    hstack: refs.hstack,
+    onCleanup,
+    id: "output-background-input",
+    template: `
   <label
     class="hint--bottom-left"
     aria-label="Show background on every tags of the output"
@@ -244,43 +326,38 @@ function addBackgroundOption(config) {
       />
     ${backgroundIcon()}
   </label>
-  `;
-
-  document
-    .querySelector(".container__item--output .header__extra-info .hstack")
-    .appendChild(htmlToElement(template));
-
-  document
-    .getElementById("output-background-input")
-    .addEventListener("input", (e) => {
-      displayBackground();
-    });
-
-  if (config.defaultBackground ?? false) {
-    document.getElementById("output-background-input").click();
-  }
-}
-
-function useX2Image() {
-  const img = document.querySelector('[class^="Preview_previewTargetImage__"]');
-  if (null === img) {
-    return false;
-  }
-
-  chrome.storage.sync
-    .get("x2Difference")
-    .then((items) => applyX2Settings(items.x2Difference));
-  chrome.storage.onChanged.addListener((changes) => {
-    if (undefined !== changes.x2Difference) {
-      applyX2Settings(changes.x2Difference.newValue);
-    }
+  `,
+    onInput: () => displayBackground(refs.targetContainer),
+    checked: config.defaultBackground ?? false,
   });
-
-  return true;
 }
-function applyX2Settings(isApply) {
-  const img = document.querySelector('[class^="Preview_previewTargetImage__"]');
 
+function useX2Image(onCleanup) {
+  return () => {
+    const img = document.querySelector(
+      '[class^="Preview_previewTargetImage__"]',
+    );
+    if (null === img) {
+      return false;
+    }
+
+    chrome.storage.sync
+      .get("x2Difference")
+      .then((items) => applyX2Settings(img, items.x2Difference));
+
+    function onStorageChange(changes) {
+      if (undefined !== changes.x2Difference) {
+        applyX2Settings(img, changes.x2Difference.newValue);
+      }
+    }
+    chrome.storage.onChanged.addListener(onStorageChange);
+    onCleanup(() => chrome.storage.onChanged.removeListener(onStorageChange));
+
+    return true;
+  };
+}
+
+function applyX2Settings(img, isApply) {
   if (isApply) {
     img.src = img.srcset;
   } else {
@@ -288,20 +365,35 @@ function applyX2Settings(isApply) {
   }
 }
 
-function flagOutput() {
-  const iframe = document.querySelector("iframe");
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-  const observer = new MutationObserver(flagOutputDOM);
-  observer.observe(iframeDoc, { attributes: true, childList: true });
-  flagOutputDOM();
+function flagOutput(refs, onCleanup) {
+  const observe = { attributes: true, childList: true };
+  let flagging = false;
+  const observer = new MutationObserver(flag);
 
-  return true;
+  // flagOutputDOM stamps data-tagname onto the iframe's own nodes, which this
+  // observer watches. Staying connected while stamping feeds it its own
+  // mutations and spins.
+  function flag() {
+    if (flagging) {
+      return;
+    }
+    flagging = true;
+    observer.disconnect();
+    try {
+      flagOutputDOM(refs.iframeDoc);
+    } finally {
+      observer.observe(refs.iframeDoc, observe);
+      flagging = false;
+    }
+  }
+
+  observer.observe(refs.iframeDoc, observe);
+  onCleanup(() => observer.disconnect());
+
+  flag();
 }
 
-function flagOutputDOM() {
-  const iframe = document.querySelector("iframe");
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
+function flagOutputDOM(iframeDoc) {
   for (let i = 0; i < iframeDoc.children.length; i++) {
     const child = iframeDoc.children.item(i);
 
@@ -316,11 +408,6 @@ function flagOutputElement(element) {
 
     flagOutputElement(child);
   }
-}
-
-// Selector
-function targetContainer() {
-  return document.querySelector(".target-container");
 }
 
 // Icons
