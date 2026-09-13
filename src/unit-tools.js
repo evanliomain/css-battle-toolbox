@@ -335,7 +335,6 @@ function maxifyAllPx() {
 }
 
 function convertAngleUnit(unit) {
-  console.log("unit: ", unit + "<");
   if (unit.endsWith("deg")) {
     const value = parseFloat(unit.replace("deg", ""));
     return [
@@ -347,7 +346,6 @@ function convertAngleUnit(unit) {
   }
   if (unit.endsWith("grad")) {
     const value = parseFloat(unit.replace("grad", ""));
-    console.log("value: ", value);
     return [
       round((value * 9) / 10) + "deg",
       round((value * Math.PI) / 200) + "rad",
