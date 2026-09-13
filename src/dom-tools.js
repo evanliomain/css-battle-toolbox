@@ -376,6 +376,8 @@ function moveElement(element, { width, height, x, y, borderWidth, clipPath }) {
 
 function borderRadiusElement(element, styles) {
   element.attributeStyleMap.set("border-radius", styles.get("border-radius"));
+  element.attributeStyleMap.set("corner-shape", styles.get("corner-shape"));
+  element.attributeStyleMap.set("border-shape", styles.get("border-shape"));
 }
 
 function getTransformProperties(element) {
