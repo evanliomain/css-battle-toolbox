@@ -1,3 +1,7 @@
+# 1.2.6
+
+- Options: redesign the option page
+
 # 1.2.5
 
 - DOM tool: Add corner-shape and border-shape to fake DOM.
