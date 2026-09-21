@@ -1,5 +1,6 @@
 # 1.2.5
 
+- DOM tool: Add corner-shape and border-shape to fake DOM.
 - DOM tool: Fix z-index stacking issue
 - Layout: Add option to hide the battle mode pill
 - Core: Fix the need to reload page to see tools
