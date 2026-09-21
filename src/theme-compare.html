@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CSS Battle Toolbox — options page, both themes</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --font-base:
+          system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 20px;
+        background: #07080b;
+        color: #cbd1e1;
+        font: 1rem/1.5 var(--font-base);
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 1.375rem;
+        font-weight: 650;
+        color: #eff5fb;
+      }
+      p.note {
+        margin: 0 0 18px;
+        font-size: 0.875rem;
+        color: #91a7be;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+      figure {
+        margin: 0;
+        display: grid;
+        gap: 8px;
+      }
+      figcaption {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      figcaption .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .light figcaption {
+        color: #edf2f7;
+      }
+      .light .dot {
+        background: #edf2f7;
+      }
+      .dark figcaption {
+        color: #ffdf00;
+      }
+      .dark .dot {
+        background: #ffdf00;
+      }
+      iframe {
+        width: 100%;
+        height: 1500px;
+        border: 1px solid #27313a;
+        border-radius: 12px;
+        background: #07080b;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Options page — light and dark, same token list</h1>
+    <p class="note">
+      Preview only (not shipped with the extension). Each frame is
+      <code>options.html?theme=…</code>; the extension page itself ships with
+      the Auto&nbsp;/&nbsp;Light&nbsp;/&nbsp;Dark selector in its header.
+    </p>
+    <div class="pair">
+      <figure class="light">
+        <figcaption>
+          <span class="dot"></span>Light — light-theme.css values
+        </figcaption>
+        <iframe
+          src="options.html?theme=light"
+          title="Options page in the light theme"
+        ></iframe>
+      </figure>
+      <figure class="dark">
+        <figcaption><span class="dot"></span>Dark — default (:root)</figcaption>
+        <iframe
+          src="options.html?theme=dark"
+          title="Options page in the dark theme"
+        ></iframe>
+      </figure>
+    </div>
+  </body>
+</html>

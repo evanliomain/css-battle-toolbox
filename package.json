@@ -1,14 +1,15 @@
 {
   "name": "css-battle-toolbox",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "author": "Evan Liomain",
   "license": "MIT",
   "description": "Some usefull tools for Css Battle",
   "scripts": {
     "start": "vite",
-    "copy-assets": "cp src/options.js dist/src && cp -R images dist",
+    "copy-assets": "cp src/options.js src/options-ui.js dist/src && cp -R images dist",
+    "copy-preview": "cp src/theme-compare.html dist/src",
     "build": "tsc && vite build && npm run copy-assets && zip -r css-battle-toolbox.zip dist",
-    "watch": "tsc && vite build && npm run copy-assets && vite build --watch --emptyOutDir false",
+    "watch": "tsc && vite build && npm run copy-assets && npm run copy-preview && vite build --watch --emptyOutDir false",
     "preview": "vite preview",
     "test": "vitest"
   },

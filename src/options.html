@@ -1,491 +1,1476 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <title>CSS Battle Toolbox Extension Options</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CSS Battle Toolbox — Options</title>
+    <script src="options-ui.js"></script>
     <style>
       :root {
+        color-scheme: light dark;
+
+        /* Surfaces */
+        --clr-bg: light-dark(#edf2f7, #07080b);
+        --clr-centered-box-bg: light-dark(#f6f9fb, #0f1117);
+        --clr-box-bg: light-dark(#e2e8f0, #13181c);
+        --clr-box-bg-darker: light-dark(#ebeff3, #121518);
+        --clr-editor-bg: light-dark(#f6f9fb, #07080b);
+        --clr-inner-header: light-dark(#e2e8f0, #21272d);
+        --clr-inner-header-highlight: light-dark(#cbd5e0, #2a313a);
+        --clr-tile-header: light-dark(#e2e8f0, #212a32);
+        --clr-target-tile-bg: light-dark(#fff, #27313a);
+        --clr-input: light-dark(#e2e8f0, #0f1117);
+        --clr-highlight: light-dark(rgb(0 0 0 / 10%), rgb(255 255 255 / 10%));
+
+        /* Borders */
+        --clr-border: light-dark(#cbd5e0, #27313a);
+        --clr-border-brighter: light-dark(#cbd5e0, #323f4a);
+        --clr-border-1: light-dark(#e0e4e8, #20262e);
+
+        /* Text */
+        --clr-heading: light-dark(#050505, #eff5fb);
+        --clr-link: light-dark(#050505, #fff);
+        --clr-text: light-dark(#1a202c, #cbd1e1);
+        --clr-text-light: light-dark(#2d3748, #a0b3c6);
+        --clr-text-lightest: light-dark(#4a5568, #91a7be);
+        --clr-text-lightest-final: #6b7b8e;
+
+        /* Brand */
+        --clr-brand: light-dark(#b9880e, #ffdf00);
+        --rgb-brand: 255, 223, 0;
+        /* decorative brand fails on text in light theme (2.8:1) — text uses this instead */
+        --clr-brand-text: light-dark(#7d5b00, #ffdf00);
+
+        /* Buttons */
+        --clr-btn: light-dark(#cbd1d8, #323f4a);
+        --clr-btn-hover: light-dark(#b6c0c9, #43515e);
+        --clr-btn-secondary-text: light-dark(#545657, #fff);
+        --clr-btn-primary: #0060ca;
+        --clr-btn-primary-hover: #0050b0;
+        --clr-btn-fg-primary: #fff;
+        --clr-btn-text: #fff;
+        --clr-btn-danger: #923c3c;
+        --clr-btn-danger-hover: #7f2f2f;
+        --clr-btn-success: #1e5222;
+        --clr-btn-success-hover: #16421a;
+        --clr-dropdown-bg: light-dark(#f5f7f7, #27313a);
+        --clr-dropdown-btn: light-dark(#e0e6ed, #43515e);
+        --clr-tab-bg-selected: light-dark(#c3d1e8, #323f4a);
+        --btn-border: 0;
+        --btn-border-radius: 40px;
+        --pill-border-radius: 4px;
+
+        /* Pills / keys */
+        --pill-bg: light-dark(#d7d7d7, #2d363f);
+        --pill-bg-key: light-dark(rgb(0 0 0 / 22%), rgb(255 255 255 / 5%));
+        --pill-shadow-key: light-dark(rgb(0 0 0 / 15%), rgb(255 255 255 / 10%));
+        --pill-text-key: light-dark(
+          var(--clr-text-light),
+          rgb(255 255 255 / 40%)
+        );
+        --pill-text-key-hover: light-dark(
+          var(--clr-text),
+          rgb(255 255 255 / 50%)
+        );
+        --pill-bg-danger: light-dark(#ff2c2c, #a3483d);
+        --pill-text-danger: #fff;
+        --pill-bg-warning: light-dark(#faec86, rgb(255 223 0 / 13%));
+        --pill-text-warning: light-dark(#625601, #ffdf00);
+        --pill-bg-success: light-dark(#afc470, #4a6302);
+        --pill-text-success: light-dark(#202b00, #fff);
+
+        /* Semantic */
+        --clr-red: #f83c3b;
+        --clr-green-bright: light-dark(#5f8521, #a1e435);
+
+        /* Type */
         --font-size-0: 0.875rem;
         --font-size-1: 1rem;
         --font-size-2: 1.125rem;
         --font-size-3: 1.375rem;
         --font-size-3-5: 1.5rem;
-        --font-size-3-75: 1.75rem;
         --font-size-4: 2rem;
-        --font-size-5: 3rem;
-        --font-size-6: 4rem;
+        --font-base:
+          system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+          "Liberation Mono", monospace;
 
-        /* Configure your color scheme */
-        --dark-color: #07080b;
-        --light-color: #edf2f7;
-        --accent-color: #976e06;
+        /* Derived, non-color: box radius + motion */
+        --radius-box: 12px;
+        --motion: 160ms;
 
-        --clr-border: #cbd5e0;
-        --clr-btn-primary: #0060ca;
-        --clr-btn-primary-hover: #0050b0;
-        --clr-btn-text: #fff;
-        --clr-btn-hover: #b6c0c9;
+        /* Sticky offsets. The page header is sticky, so each heading below it
+           parks under the header's live height; panel heads stack above the
+           column/section heads. options-ui.js keeps both measured — these are
+           only the fallbacks for when it has not run yet. */
+        --header-h: 149px;
+        --panel-head-h: 52px;
 
-        --pill-bg: #d7d7d7;
-        --pill-bg-key: rgb(0 0 0 / 10%);
-        --pill-bg-danger: #ff2c2c;
-        --pill-bg-warning: #faec86;
-        --pill-bg-success: #afc470;
-        --pill-text-key: var(--clr-text-lightest);
-        --pill-text-key-hover: var(--clr-text-light);
-        --pill-text-danger: #fff;
-        --pill-text-warning: #625601;
-        --pill-text-success: #202b00;
-        --pill-shadow-key: rgba(0 0 0 / 15%);
+        /* Keys read at 14px, so their text comes from a legible token pair
+     (--pill-text-key measures 3.1:1 on --pill-bg in dark) */
+        --clr-key-text: light-dark(var(--clr-text-light), var(--clr-heading));
+        /* State indicators need 3:1 against the panel — light brand is 2.8:1 */
+        --clr-focus: light-dark(var(--clr-brand-text), var(--clr-brand));
+        --clr-toggle-on: light-dark(var(--clr-brand-text), var(--clr-brand));
+        --clr-toggle-knob-on: light-dark(
+          var(--clr-centered-box-bg),
+          var(--clr-bg)
+        );
 
-        /* css custom properties to use in your styles */
-        /* Multiply all animation timing by --motion to turn animation off for prefer-reduced-motion users */
-        --motion: 1;
+        /* composite tokens — dark by default */
+        --panel-bg: linear-gradient(94.5deg, #1d232bbf 0.19%, #181d238f 100%);
+        --panel-shadow:
+          0 0 30px rgb(255 223 0 / 0), 0 20px 50px #0003,
+          inset 1px 1px 3px #ffffff1a;
+        --glow-shadow:
+          0 0 30px rgb(255 223 0 / 0.3), 0 0 0 2px var(--clr-brand),
+          0 10px 50px #00000080;
+        --hard-shadow:
+          0 8px 20px #0000001a, 0 24px 50px #00000026,
+          inset 1px 1px 3px #ffffff1a;
+      }
 
-        /* Main text color, support light and dark theme */
-        --text-color: light-dark(var(--dark-color), var(--light-color));
+      /* theme mechanics: only color-scheme changes — light-dark() does the rest */
+      :root[data-theme="light"] {
+        color-scheme: light;
+      }
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+      }
 
-        /* Main background color, support light and dark theme */
-        --background-color: light-dark(var(--light-color), var(--dark-color));
-
-        color: var(--text-color);
-        font-weight: 400;
-        font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-        line-height: 1.5;
-
-        background-color: var(--background-color);
-        color-scheme: light dark;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        font-synthesis: none;
-        text-rendering: optimizelegibility;
+      @media (prefers-color-scheme: light) {
+        :root:not([data-theme="dark"]) {
+          --panel-bg: linear-gradient(
+            94.5deg,
+            rgb(255 255 255 / 0.75) 0.19%,
+            rgb(245 245 245 / 0.5625) 100%
+          );
+          --panel-shadow: 0 20px 50px rgb(0 0 0 / 0.07);
+          --glow-shadow:
+            0 0 30px rgb(255 223 0 / 0.15), 0 0 0 2px var(--clr-brand),
+            0 10px 50px rgb(0 0 0 / 0.15);
+          --hard-shadow:
+            0 8px 20px rgb(0 0 0 / 0.1),
+            inset 1px 1px 3px rgb(255 255 255 / 0.1);
+        }
+      }
+      :root[data-theme="light"] {
+        --panel-bg: linear-gradient(
+          94.5deg,
+          rgb(255 255 255 / 0.75) 0.19%,
+          rgb(245 245 245 / 0.5625) 100%
+        );
+        --panel-shadow: 0 20px 50px rgb(0 0 0 / 0.07);
+        --glow-shadow:
+          0 0 30px rgb(255 223 0 / 0.15), 0 0 0 2px var(--clr-brand),
+          0 10px 50px rgb(0 0 0 / 0.15);
+        --hard-shadow:
+          0 8px 20px rgb(0 0 0 / 0.1), inset 1px 1px 3px rgb(255 255 255 / 0.1);
       }
 
       @media (prefers-reduced-motion: reduce) {
         :root {
-          --motion: 0;
-        }
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --accent-color: #ffdf00;
-          --clr-border: #27313a;
-          --clr-btn-hover: #43515e;
-
-          --pill-bg: #2d363f;
-          --pill-bg-key: hsla(0, 0%, 100%, 0.05);
-          --pill-bg-danger: #a3483d;
-          --pill-bg-warning: #ffdf0022;
-          --pill-bg-success: #4a6302;
-          --pill-text-key: hsla(0, 0%, 100%, 0.4);
-          --pill-text-key-hover: hsla(0, 0%, 100%, 0.5);
-          --pill-text-danger: #fff;
-          --pill-text-warning: #ffdf00;
-          --pill-text-success: #fff;
-          --pill-shadow-key: hsla(0, 0%, 100%, 0.1);
+          --motion: 0ms;
         }
       }
 
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--clr-bg);
+      }
+
+      body {
+        margin: 0;
+        padding: 0 24px 96px;
+        background: var(--clr-bg);
+        color: var(--clr-text);
+        font: var(--font-size-1) / 1.5 var(--font-base);
+        -webkit-font-smoothing: antialiased;
+        text-wrap: pretty;
+      }
+
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+      }
+
+      /* ---------- header ---------- */
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        padding: 28px 0 16px;
+        background: linear-gradient(var(--clr-bg) 78%, transparent);
+      }
+      .header-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+      }
       h1 {
         margin: 0;
+        color: var(--clr-heading);
+        font-size: var(--font-size-3-5);
+        font-weight: 650;
+        letter-spacing: -0.015em;
       }
-
-      ul {
-        padding-inline-start: 20px;
+      h1 .mark {
+        color: var(--clr-brand-text);
       }
-
-      li {
+      .tagline {
+        margin: 4px 0 16px;
+        color: var(--clr-text-lightest);
         font-size: var(--font-size-0);
       }
-      li img {
-        width: 16px;
-        aspect-ratio: 1;
-      }
 
-      a {
-        text-decoration: none;
-      }
-      a:hover {
-        text-decoration: underline;
-      }
-
-      label {
+      /* theme segmented control */
+      .seg {
         display: flex;
-        gap: 0.25rem;
-        align-items: center;
-        font-size: var(--font-size-0);
-
-        &:has(input[type="checkbox"]:checked) {
-          color: var(--accent-color);
-        }
-      }
-      fieldset {
-        border: 2px solid var(--clr-border);
-        border-radius: 16px;
-      }
-
-      .form {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      .sub-form {
-        --min-column-size: 300px;
-        display: grid;
-        grid-template-columns: repeat(
-          auto-fill,
-          minmax(min(var(--min-column-size), 100%), 1fr)
-        );
-        grid-template-rows: 1fr;
-        gap: 20px;
-      }
-
-      .actions {
-        display: flex;
-        flex-direction: row;
-        align-items: baseline;
-        gap: 0.25rem;
-        margin-top: 20px;
-      }
-
-      .button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.6rem 0.9rem;
+        gap: 2px;
+        flex: none;
+        margin: 0;
+        padding: 3px;
         border: 0;
-        border-radius: 40px;
-        box-shadow: inset 1px 1px 2px hsla(0, 0%, 100%, 0.1);
-        background-color: var(--clr-btn);
-        color: var(--clr-btn-secondary-text);
-        text-decoration: none;
-        font-weight: 700;
+        background: var(--clr-dropdown-bg);
+        border-radius: var(--btn-border-radius);
+        box-shadow: inset 0 0 0 1px var(--clr-border-1);
+      }
+      .seg legend {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      .seg input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
+      /* No color transitions on light-dark() values: Chrome keeps the previous theme's
+   color in a running transition, so a theme switch would lag one theme behind.
+   Motion lives on the knob's transform instead. */
+      .seg label {
+        padding: 6px 14px;
+        border-radius: var(--btn-border-radius);
+        color: var(--clr-text-lightest);
+        font-size: var(--font-size-0);
+        font-weight: 600;
         cursor: pointer;
-        transition: 0.2s ease;
-        line-height: 1.2;
-        transition-property: transform, background-color;
-        font-family: ClashGrotesk;
-        font-weight: 600;
-        letter-spacing: 0.2px;
-        text-align: left;
-
-        &:hover {
-          transform: translateY(-3px);
-          background-color: var(--clr-btn-hover);
-        }
+      }
+      .seg label:hover {
+        color: var(--clr-text);
+        background: var(--clr-highlight);
+      }
+      .seg input:checked + label {
+        background: var(--clr-tab-bg-selected);
+        color: var(--clr-heading);
+      }
+      .seg input:focus-visible + label {
+        outline: 2px solid var(--clr-focus);
+        outline-offset: 2px;
       }
 
-      .button--primary {
-        background-color: var(--clr-btn-primary);
-        color: var(--clr-btn-text);
-        &:hover {
-          background: var(--clr-btn-primary-hover);
-        }
-      }
-      .button--small {
-        font-size: var(--font-size-0);
-        padding: 0.25rem 0.5rem 0.2rem;
-      }
-
-      kbd {
-        background: var(--pill-bg-key);
-        box-shadow: 0 2px 0 0 var(--pill-shadow-key);
-        padding: 0.04rem 0.3rem 0;
-        color: var(--pill-text-key);
-        font-weight: 600;
-        line-height: 1rem;
-        transition: 0.2s ease;
-        display: inline-flex;
+      .filter {
+        display: flex;
         align-items: center;
+        gap: 8px;
+        padding: 0 14px;
+        background: var(--clr-input);
+        border: 1px solid var(--clr-border-brighter);
+        border-radius: var(--btn-border-radius);
+      }
+      .filter svg {
+        flex: none;
+        color: var(--clr-text-lightest);
+      }
+      .filter input {
+        flex: 1;
+        min-width: 0;
+        padding: 9px 0;
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
+      }
+      .filter input::placeholder {
+        color: var(--clr-text-lightest);
+      }
+      .filter input:focus {
+        outline: none;
+      }
+      .filter:focus-within {
+        border-color: var(--clr-focus);
+        outline: 2px solid var(--clr-focus);
+        outline-offset: 1px;
+      }
+
+      /* ---------- panels ---------- */
+
+      form {
+        display: grid;
+        gap: 18px;
+      }
+
+      fieldset {
+        margin: 0;
+        padding: 4px 20px 18px;
+        background: var(--panel-bg), var(--clr-centered-box-bg);
+        border: 1px solid var(--clr-border-1);
+        border-radius: var(--radius-box);
+        box-shadow: var(--panel-shadow);
+      }
+      /* A <legend> cannot do this: the rendered legend is laid out inside the
+         fieldset's border box, outside normal flow, so position: sticky has no
+         box to stick to. The visible heading is therefore an ordinary <h2> and
+         the fieldset takes its accessible name from aria-labelledby. */
+      .panel-head {
+        position: sticky;
+        top: var(--header-h);
+        z-index: 2;
+        margin: -4px -20px 12px;
+        padding: 12px 20px;
+        background: var(--panel-bg), var(--clr-centered-box-bg);
+        border-bottom: 1px solid var(--clr-border-1);
+        border-radius: var(--radius-box) var(--radius-box) 0 0;
+        color: var(--clr-heading);
+        font-size: var(--font-size-2);
+        font-weight: 650;
+        letter-spacing: -0.01em;
+      }
+      .legend-help {
+        margin: 0 0 12px;
+        color: var(--clr-text-lightest);
         font-size: var(--font-size-0);
-        border-radius: 4px;
-        white-space: nowrap;
+      }
+      .subhead {
+        position: sticky;
+        top: calc(var(--header-h) + var(--panel-head-h));
+        z-index: 2;
+        margin: 20px -20px 6px;
+        padding: 14px 20px 6px;
+        background: var(--panel-bg), var(--clr-centered-box-bg);
+        border-top: 1px solid var(--clr-border-1);
+        color: var(--clr-text-lightest);
+        font-size: var(--font-size-0);
+        font-weight: 650;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
+      }
+
+      /* ---------- option rows ---------- */
+
+      .rows {
+        display: grid;
+      }
+
+      .opt {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 16px;
+        padding: 10px 8px;
+        margin: 0 -8px;
+        border-radius: var(--pill-border-radius);
+      }
+      .opt:hover {
+        background: var(--clr-highlight);
+      }
+      .opt-text {
+        display: grid;
+        gap: 2px;
+      }
+      .opt-label {
+        font-weight: 500;
+        color: var(--clr-text);
+      }
+      .opt-help {
+        color: var(--clr-text-lightest);
+        font-size: var(--font-size-0);
+      }
+
+      /* ---------- switches ---------- */
+
+      .switch {
+        position: relative;
+        display: inline-flex;
+        flex: none;
+        width: 40px;
+        height: 24px;
+      }
+      .switch input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+      .track {
+        position: absolute;
+        inset: 0;
+        border-radius: var(--btn-border-radius);
+        background: var(--clr-btn);
+        border: 1px solid var(--clr-border-brighter);
+      }
+      .track::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--clr-text-lightest-final);
+        transition: transform var(--motion);
+      }
+      .switch input:checked ~ .track {
+        background: var(--clr-toggle-on);
+        border-color: var(--clr-toggle-on);
+      }
+      .switch input:checked ~ .track::after {
+        transform: translateX(16px);
+        background: var(--clr-toggle-knob-on);
+      }
+
+      /* "Visible" reads the inverse of hide*: the stored value is untouched, only the
+   painting is flipped — unchecked (hide = false) shows as ON. */
+      .switch input.inv:not(:checked) ~ .track {
+        background: var(--clr-toggle-on);
+        border-color: var(--clr-toggle-on);
+      }
+      .switch input.inv:not(:checked) ~ .track::after {
+        transform: translateX(16px);
+        background: var(--clr-toggle-knob-on);
+      }
+      .switch input.inv:checked ~ .track {
+        background: var(--clr-btn);
+        border-color: var(--clr-border-brighter);
+      }
+      .switch input.inv:checked ~ .track::after {
+        transform: none;
+        background: var(--clr-text-lightest-final);
+      }
+
+      .switch input:focus-visible ~ .track {
+        outline: 2px solid var(--clr-focus);
+        outline-offset: 3px;
+      }
+
+      /* ---------- merged matrix ---------- */
+
+      .matrix {
+        display: grid;
+      }
+      .mx-head,
+      .mx-row {
+        display: grid;
+        grid-template-columns: 1fr 76px 116px;
+        align-items: center;
+        gap: 12px;
+      }
+      .mx-head {
+        position: sticky;
+        top: calc(var(--header-h) + var(--panel-head-h));
+        z-index: 1;
+        padding: 8px 20px;
+        margin: 0 -20px;
+        background: var(--panel-bg), var(--clr-centered-box-bg);
+        border-bottom: 1px solid var(--clr-border);
+        color: var(--clr-text-lightest);
+        font-size: var(--font-size-0);
+        font-weight: 650;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .mx-head span:not(:first-child),
+      .mx-row .cell {
+        justify-self: center;
+        text-align: center;
+      }
+      .mx-row + .mx-row {
+        border-top: 1px solid var(--clr-border-1);
+      }
+      .cell {
+        display: inline-flex;
+      }
+      .dep {
+        transition: opacity var(--motion);
+      }
+      /* hidden tool ⇒ its default is moot */
+      .mx-row:has(input.inv:checked) .dep {
+        opacity: 0.35;
+      }
+
+      /* ---------- fields ---------- */
+
+      .field {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 16px;
+        padding: 10px 8px;
+        margin: 0 -8px;
+        border-radius: var(--pill-border-radius);
+      }
+      .field label,
+      .key-row label {
+        display: grid;
+        gap: 2px;
+      }
+      input[type="number"],
+      input[type="text"]:not(.keyinput),
+      textarea {
+        background: var(--clr-input);
+        color: var(--clr-text);
+        border: 1px solid var(--clr-border-brighter);
+        border-radius: var(--pill-border-radius);
+        font: inherit;
+        padding: 7px 10px;
+      }
+      input[type="number"] {
+        width: 7ch;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      :is(input, textarea, button, select):focus-visible {
+        outline: 2px solid var(--clr-focus);
+        outline-offset: 2px;
+        border-color: var(--clr-focus);
+      }
+      ::selection {
+        background: var(--clr-brand);
+        color: light-dark(#050505, #07080b);
+      }
+
+      /* ---------- keys ---------- */
+
+      kbd,
+      input.keyinput {
+        display: inline-grid;
+        place-items: center;
+        min-width: 26px;
+        height: 26px;
+        padding: 0 7px;
+        background: var(--pill-bg);
+        color: var(--clr-key-text);
+        border: 1px solid var(--clr-border-brighter);
+        border-radius: var(--pill-border-radius);
+        box-shadow: 0 1.5px 0 var(--pill-shadow-key);
+        font-family: var(--font-mono);
+        font-size: var(--font-size-0);
+        line-height: 1;
+      }
+      input.keyinput {
+        width: 3ch;
+        padding: 0;
+        text-align: center;
+        font-weight: 600;
+      }
+      /* Only the toggle chord is stored uppercased (options.js), because it is pressed
+   with Shift and so arrives as an uppercase event.key. The other four match
+   event.key exactly as typed, so painting them uppercase would misrepresent the
+   binding: "W" on screen but a lowercase `w` in storage. */
+      #strKbdToggleIncrement {
+        text-transform: uppercase;
+      }
+      .keyinput::selection {
+        background: var(--clr-brand);
+        color: light-dark(#050505, #07080b);
+      }
+
+      .keys {
+        display: grid;
+      }
+      .key-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 16px;
+        padding: 8px;
+        margin: 0 -8px;
+        border-radius: var(--pill-border-radius);
+      }
+      .key-row:hover {
+        background: var(--clr-highlight);
+      }
+      .chord {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .docs {
+        margin-top: 8px;
+        padding: 14px 16px;
+        background: var(--clr-box-bg);
+        border: 1px dashed var(--clr-border-brighter);
+        border-radius: var(--radius-box);
+      }
+      .docs-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin: 0 0 10px;
+        color: var(--clr-text-lightest);
+        font-size: var(--font-size-0);
+        font-weight: 650;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .docs dl {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 8px 16px;
+        margin: 0;
+      }
+      .docs dt {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .docs dd {
+        margin: 0;
+        color: var(--clr-text-light);
+        font-size: var(--font-size-0);
+      }
+
+      /* ---------- template ---------- */
+
+      .template {
+        display: grid;
+        gap: 10px;
+      }
+      #strDefaultCode {
+        width: 100%;
+        min-height: 220px;
+        resize: vertical;
+        background: var(--clr-editor-bg);
+        font-family: var(--font-mono);
+        font-size: var(--font-size-0);
+        line-height: 1.6;
+        tab-size: 2;
+      }
+      .template-actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      /* ---------- buttons ---------- */
+
+      button {
+        font: inherit;
+        font-size: var(--font-size-0);
+        font-weight: 600;
+        border: var(--btn-border);
+        border-radius: var(--btn-border-radius);
+        padding: 10px 20px;
+        cursor: pointer;
+      }
+      .button-primary {
+        background: var(--clr-btn-primary);
+        color: var(--clr-btn-fg-primary);
+      }
+      .button-primary:hover {
+        background: var(--clr-btn-primary-hover);
+      }
+      .button-secondary {
+        background: var(--clr-btn);
+        color: var(--clr-btn-secondary-text);
+      }
+      .button-secondary:hover {
+        background: var(--clr-btn-hover);
+      }
+
+      /* ---------- sticky save bar ---------- */
+
+      .actionbar {
+        position: sticky;
+        bottom: 0;
+        z-index: 4;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        margin: 4px -24px 0;
+        padding: 14px 24px;
+        background: var(--clr-inner-header);
+        border-top: 1px solid var(--clr-border);
+        box-shadow: var(--hard-shadow);
+      }
+      .actionbar .inner {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        width: 100%;
+        max-width: 860px;
+        margin: 0 auto;
+      }
+      #status {
+        min-width: 13ch;
+        padding: 5px 12px;
+        border-radius: var(--btn-border-radius);
+        background: var(--pill-bg-success);
+        color: var(--pill-text-success);
+        font-size: var(--font-size-0);
+        font-weight: 600;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(3px);
+        transition:
+          opacity var(--motion),
+          transform var(--motion);
+      }
+      #status:not(:empty) {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* ---------- filter state (set by options-ui.js, values never touched) ---------- */
+
+      [hidden] {
+        display: none !important;
+      }
+      .empty {
+        padding: 28px 8px;
+        color: var(--clr-text-lightest);
+        font-size: var(--font-size-0);
+        text-align: center;
       }
     </style>
   </head>
   <body>
-    <div class="form">
-      <h2>Hide what you want</h2>
-      <div class="sub-form">
-        <fieldset>
-          <legend>Output code tool</legend>
-          <label>
-            <input type="checkbox" id="hideSlideAndCompare" />
-            Hide slide and compare
-          </label>
-          <label>
-            <input type="checkbox" id="hideDifference" />
-            Hide difference
-          </label>
-          <label>
-            <input type="checkbox" id="hideTargetOnOutput" />
-            Hide target on output
-          </label>
-          <label>
-            <input type="checkbox" id="hideGrid" />
-            Hide grid
-          </label>
-          <label>
-            <input type="checkbox" id="hideOutline" />
-            Hide outline
-          </label>
-          <label>
-            <input type="checkbox" id="hideBackground" />
-            Hide background
-          </label>
-        </fieldset>
-        <fieldset>
-          <legend>Output code tool default</legend>
-          <label>
-            <input type="checkbox" id="defaultSlideAndCompare" />
-            Default check slide and compare
-          </label>
-          <label>
-            <input type="checkbox" id="defaultDifference" />
-            Default check difference
-          </label>
-          <label>
-            <input type="checkbox" id="defaultTargetOnOutput" />
-            Default check target on output
-          </label>
-          <label>
-            <input type="checkbox" id="defaultGrid" />
-            Default check grid
-          </label>
-          <label>
-            <input type="checkbox" id="defaultOutline" />
-            Default check outline
-          </label>
-          <label>
-            <input type="checkbox" id="defaultBackground" />
-            Default check background
-          </label>
-        </fieldset>
-
-        <fieldset>
-          <legend>Score</legend>
-
-          <label>
-            <input type="checkbox" id="hideNumberOfCharacters" />
-            Hide Number of characters
-          </label>
-
-          <label>
-            <input type="checkbox" id="hideGlobalStats" />
-            Hide Global Stats
-          </label>
-          <label>
-            <input type="checkbox" id="hideShareTwitter" />
-            Hide Twitter (X) button
-          </label>
-        </fieldset>
-
-        <fieldset>
-          <legend>Layout</legend>
-          <label>
-            <input type="checkbox" id="hideHeader" />
-            Hide header
-          </label>
-          <label>
-            <input type="checkbox" id="hideFooter" />
-            Hide footer
-          </label>
-          <label>
-            <input type="checkbox" id="hideOutputCode" />
-            Hide output code (code in the dark)
-          </label>
-          <label>
-            <input type="checkbox" id="hideTarget" />
-            Hide target image
-          </label>
-          <label>
-            <input type="checkbox" id="hideSponsor" />
-            Hide sponsor
-          </label>
-          <label>
-            <input type="checkbox" id="hideBattleModePill" />
-            Hide battle mode pill
-          </label>
-        </fieldset>
-        <fieldset>
-          <legend>Editor button</legend>
-          <label>
-            <input type="checkbox" id="hidePrettify" />
-            Hide prettify button
-          </label>
-          <label>
-            <input type="checkbox" id="hideMinify" />
-            Hide minify button
-          </label>
-          <label>
-            <input type="checkbox" id="hidePlugins" />
-            Hide plugins button
-          </label>
-          <label>
-            <input type="checkbox" id="hideMySolution" />
-            Hide my solution button
-          </label>
-          <label>
-            <input type="checkbox" id="hideTopSolution" />
-            Hide top solutions button for today daily targets
-          </label>
-          <label>
-            <input type="checkbox" id="hideSubmit" />
-            Hide submit button for past daily targets
-          </label>
-        </fieldset>
-
-        <fieldset>
-          <legend>Tools</legend>
-          <label>
-            <input type="checkbox" id="hideNbMinifiedCharacters" />
-            Hide the number of minified characters
-          </label>
-
-          <label>
-            <input type="checkbox" id="hideColorMixer" />
-            Hide the color mixer tool
-          </label>
-
-          <label>
-            <input type="checkbox" id="hideUnitGolf" />
-            Hide the unit golf tool
-          </label>
-
-          <label>
-            <input type="checkbox" id="hideLeaderboard" />
-            Hide the integrate leaderboard
-          </label>
-        </fieldset>
-      </div>
-
-      <h2>Customize</h2>
-      <div class="sub-form" style="--min-column-size: 400px">
-        <fieldset>
-          <legend>Difference tool</legend>
-
-          <label>
-            <input type="checkbox" id="invertDifference" />
-            should invert color for the difference output tool ?
-          </label>
-          <label>
+    <div class="wrap">
+      <header>
+        <div class="header-top">
+          <div>
+            <h1><span class="mark">CSS Battle</span> Toolbox</h1>
+            <p class="tagline">
+              Choose what the extension shows on cssbattle.dev, and how the
+              editor behaves.
+            </p>
+          </div>
+          <fieldset class="seg" aria-label="Page theme">
+            <legend>Page theme</legend>
             <input
-              type="number"
-              id="nbBrightnessDifference"
-              value="1"
-              min="1"
-              max="10"
-              step="1"
-              width="10"
-            />
-            brightness for the difference output tool
-          </label>
+              type="radio"
+              name="uiTheme"
+              id="theme-auto"
+              value="auto"
+              checked
+            /><label for="theme-auto">Auto</label>
+            <input
+              type="radio"
+              name="uiTheme"
+              id="theme-light"
+              value="light"
+            /><label for="theme-light">Light</label>
+            <input
+              type="radio"
+              name="uiTheme"
+              id="theme-dark"
+              value="dark"
+            /><label for="theme-dark">Dark</label>
+          </fieldset>
+        </div>
+        <div class="filter">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.5-3.5"></path>
+          </svg>
+          <input
+            type="search"
+            id="optionFilter"
+            placeholder="Filter options…"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Filter options"
+          />
+        </div>
+      </header>
 
-          <label>
-            <input type="checkbox" id="x2Difference" />
-            use x2 image to compute difference
-          </label>
-        </fieldset>
+      <form id="optionsForm">
+        <fieldset aria-labelledby="ph-output">
+          <h2 class="panel-head" id="ph-output">Output code tools</h2>
+          <p class="legend-help">
+            One row per tool: whether its button is available in the toolbar,
+            and whether it starts turned on.
+          </p>
+          <div class="matrix">
+            <div class="mx-head">
+              <span>Tool</span><span id="col-visible">Visible</span
+              ><span id="col-default">On by default</span>
+            </div>
 
-        <fieldset>
-          <legend>Editor tool</legend>
-          <label>
-            <textarea id="strDefaultCode" cols="30" rows="8"></textarea>
-            default initial code template for new battle and daily target
-          </label>
-          <button id="resetTemplate" type="button" class="button button--small">
-            Reset template
-          </button>
-        </fieldset>
+            <div class="mx-row opt-item" data-search="slide and compare tool">
+              <span class="opt-text"
+                ><span class="opt-label" id="lbl-slide"
+                  >Slide &amp; compare</span
+                ><span class="opt-help"
+                  >Drag a divider across the output to compare it with the
+                  target.</span
+                ></span
+              >
+              <span class="cell"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="hideSlideAndCompare"
+                    class="inv"
+                    aria-labelledby="lbl-slide col-visible" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+              <span class="cell dep"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="defaultSlideAndCompare"
+                    aria-labelledby="lbl-slide col-default" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+            </div>
 
-        <fieldset>
-          <legend>Increment Mode</legend>
-          <ul>
-            <li>
-              To trigger the <strong>i</strong>ncrement mode press
-              <kbd>Ctrl</kbd> <kbd>Shift</kbd>
+            <div class="mx-row opt-item" data-search="difference tool diff">
+              <span class="opt-text"
+                ><span class="opt-label" id="lbl-diff">Difference</span
+                ><span class="opt-help"
+                  >Highlights the pixels that differ from the target.</span
+                ></span
+              >
+              <span class="cell"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="hideDifference"
+                    class="inv"
+                    aria-labelledby="lbl-diff col-visible" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+              <span class="cell dep"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="defaultDifference"
+                    aria-labelledby="lbl-diff col-default" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+            </div>
+
+            <div class="mx-row opt-item" data-search="target on output overlay">
+              <span class="opt-text"
+                ><span class="opt-label" id="lbl-ton">Target on output</span
+                ><span class="opt-help"
+                  >Overlays the target image on top of your output.</span
+                ></span
+              >
+              <span class="cell"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="hideTargetOnOutput"
+                    class="inv"
+                    aria-labelledby="lbl-ton col-visible" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+              <span class="cell dep"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="defaultTargetOnOutput"
+                    aria-labelledby="lbl-ton col-default" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+            </div>
+
+            <div class="mx-row opt-item" data-search="grid">
+              <span class="opt-text"
+                ><span class="opt-label" id="lbl-grid">Grid</span
+                ><span class="opt-help"
+                  >Draws a measurement grid over the output.</span
+                ></span
+              >
+              <span class="cell"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="hideGrid"
+                    class="inv"
+                    aria-labelledby="lbl-grid col-visible" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+              <span class="cell dep"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="defaultGrid"
+                    aria-labelledby="lbl-grid col-default" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+            </div>
+
+            <div class="mx-row opt-item" data-search="outline shapes">
+              <span class="opt-text"
+                ><span class="opt-label" id="lbl-outline">Outline</span
+                ><span class="opt-help"
+                  >Outlines every shape so overlaps stay readable.</span
+                ></span
+              >
+              <span class="cell"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="hideOutline"
+                    class="inv"
+                    aria-labelledby="lbl-outline col-visible" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+              <span class="cell dep"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="defaultOutline"
+                    aria-labelledby="lbl-outline col-default" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+            </div>
+
+            <div class="mx-row opt-item" data-search="background checkerboard">
+              <span class="opt-text"
+                ><span class="opt-label" id="lbl-bg">Background</span
+                ><span class="opt-help"
+                  >Swaps the output background to spot transparent areas.</span
+                ></span
+              >
+              <span class="cell"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="hideBackground"
+                    class="inv"
+                    aria-labelledby="lbl-bg col-visible" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+              <span class="cell dep"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="defaultBackground"
+                    aria-labelledby="lbl-bg col-default" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+            </div>
+          </div>
+
+          <p class="subhead">Difference tool settings</p>
+          <div class="rows">
+            <label class="opt opt-item" data-search="invert difference colors">
+              <span class="opt-text"
+                ><span class="opt-label">Invert the difference colors</span
+                ><span class="opt-help"
+                  >Differing pixels are drawn inverted instead of plain.</span
+                ></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="invertDifference" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label
+              class="opt opt-item"
+              data-search="double difference x2 amplify"
+            >
+              <span class="opt-text"
+                ><span class="opt-label">Double the difference</span
+                ><span class="opt-help"
+                  >Amplifies the result ×2 so faint gaps become visible.</span
+                ></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="x2Difference" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <div
+              class="field opt-item"
+              data-search="brightness difference multiplier"
+            >
+              <label for="nbBrightnessDifference">
+                <span class="opt-label">Brightness multiplier</span>
+                <span class="opt-help"
+                  >Brightens the difference so near-matching pixels stand out. 1
+                  leaves it untouched.</span
+                >
+              </label>
               <input
-                id="strKbdToggleIncrement"
+                type="number"
+                id="nbBrightnessDifference"
+                value="1"
+                min="1"
+                max="10"
+                step="1"
+                inputmode="numeric"
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset aria-labelledby="ph-layout">
+          <h2 class="panel-head" id="ph-layout">Page layout</h2>
+          <p class="legend-help">
+            Turn a row off to hide that part of cssbattle.dev.
+          </p>
+          <div class="rows">
+            <label class="opt opt-item" data-search="site header">
+              <span class="opt-text"
+                ><span class="opt-label">Site header</span></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideHeader" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="site footer">
+              <span class="opt-text"
+                ><span class="opt-label">Site footer</span></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideFooter" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="sponsor banner ad">
+              <span class="opt-text"
+                ><span class="opt-label">Sponsor banner</span></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideSponsor" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="global stats">
+              <span class="opt-text"
+                ><span class="opt-label">Global stats</span
+                ><span class="opt-help"
+                  >The community score summary shown next to a battle.</span
+                ></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideGlobalStats" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="leaderboard ranking">
+              <span class="opt-text"
+                ><span class="opt-label">Leaderboard</span></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideLeaderboard" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="share twitter x button">
+              <span class="opt-text"
+                ><span class="opt-label">Share on Twitter button</span></span
+              >
+              <span class="switch"
+                ><input
+                  type="checkbox"
+                  id="hideShareTwitter"
+                  class="inv" /><span class="track"></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="battle mode pill">
+              <span class="opt-text"
+                ><span class="opt-label">Battle mode pill</span
+                ><span class="opt-help"
+                  >The badge naming the current mode above the editor.</span
+                ></span
+              >
+              <span class="switch"
+                ><input
+                  type="checkbox"
+                  id="hideBattleModePill"
+                  class="inv" /><span class="track"></span
+              ></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset aria-labelledby="ph-editor">
+          <h2 class="panel-head" id="ph-editor">Battle editor</h2>
+          <p class="legend-help">
+            Turn a row off to hide that control while you play.
+          </p>
+          <div class="rows">
+            <label class="opt opt-item" data-search="target image preview">
+              <span class="opt-text"
+                ><span class="opt-label">Target image</span></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideTarget" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label
+              class="opt opt-item"
+              data-search="code editor text code in the dark blind"
+            >
+              <span class="opt-text"
+                ><span class="opt-label">Editor code</span
+                ><span class="opt-help"
+                  >Off means “code in the dark”: your CSS still runs, but the
+                  text stays hidden.</span
+                ></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideOutputCode" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label
+              class="opt opt-item"
+              data-search="character count characters"
+            >
+              <span class="opt-text"
+                ><span class="opt-label">Character count</span></span
+              >
+              <span class="switch"
+                ><input
+                  type="checkbox"
+                  id="hideNumberOfCharacters"
+                  class="inv" /><span class="track"></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="minified character count">
+              <span class="opt-text"
+                ><span class="opt-label">Minified character count</span
+                ><span class="opt-help"
+                  >The count the extension computes after minifying your
+                  code.</span
+                ></span
+              >
+              <span class="switch"
+                ><input
+                  type="checkbox"
+                  id="hideNbMinifiedCharacters"
+                  class="inv" /><span class="track"></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="prettify format button">
+              <span class="opt-text"
+                ><span class="opt-label">Prettify button</span></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hidePrettify" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="minify button">
+              <span class="opt-text"
+                ><span class="opt-label">Minify button</span></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideMinify" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="submit button">
+              <span class="opt-text"
+                ><span class="opt-label">Submit button</span
+                ><span class="opt-help"
+                  >Only hidden on past daily targets — today’s submit button
+                  always stays.</span
+                ></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideSubmit" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="my solution">
+              <span class="opt-text"
+                ><span class="opt-label">My solution</span></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideMySolution" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="top solution best">
+              <span class="opt-text"
+                ><span class="opt-label">Top solution</span
+                ><span class="opt-help"
+                  >Only hidden on today’s daily target, to keep the spoiler out
+                  of reach.</span
+                ></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideTopSolution" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="plugins menu">
+              <span class="opt-text"
+                ><span class="opt-label">Plugins menu</span></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hidePlugins" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="color mixer picker">
+              <span class="opt-text"
+                ><span class="opt-label">Color mixer</span></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideColorMixer" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="unit golf units">
+              <span class="opt-text"
+                ><span class="opt-label">Unit golf</span
+                ><span class="opt-help"
+                  >Suggests shorter units for the values in your code.</span
+                ></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideUnitGolf" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset aria-labelledby="ph-increment">
+          <h2 class="panel-head" id="ph-increment">Increment mode</h2>
+          <p class="legend-help">
+            Nudge the number under the caret without leaving the keyboard. Each
+            shortcut is a single character.
+          </p>
+          <div class="keys">
+            <div
+              class="key-row opt-item"
+              data-search="toggle increment mode shortcut"
+            >
+              <label for="strKbdToggleIncrement">
+                <span class="opt-label">Toggle increment mode</span>
+                <span class="opt-help"
+                  >Used together with <kbd>Ctrl</kbd> <kbd>Shift</kbd> —
+                  currently <kbd>Ctrl</kbd> <kbd>Shift</kbd>
+                  <kbd id="toggle-key-letter">I</kbd>.</span
+                >
+              </label>
+              <span class="chord"
+                ><kbd>Ctrl</kbd><kbd>Shift</kbd
+                ><input
+                  type="text"
+                  id="strKbdToggleIncrement"
+                  class="keyinput"
+                  maxlength="1"
+                  size="1"
+                  autocomplete="off"
+                  spellcheck="false"
+              /></span>
+            </div>
+            <div class="key-row opt-item" data-search="increment value key">
+              <label for="strKbdIncrement">
+                <span class="opt-label">Increment the value</span>
+              </label>
+              <input
                 type="text"
+                id="strKbdIncrement"
+                class="keyinput"
                 maxlength="1"
                 size="1"
-                style="text-transform: uppercase"
-                onchange="updateToggleKeyLetter"
+                autocomplete="off"
+                spellcheck="false"
               />
-            </li>
-            <li>
-              To come back to the editor press
-              <kbd>Ctrl</kbd> <kbd>Shift</kbd>
-              <kbd id="toggle-key-letter">I</kbd> or <kbd>Esc</kbd>
-            </li>
-            <li>
-              Navigate throught numbers with arrows, or click on a number.
-            </li>
-            <li>
-              To <strong>a</strong>dd or remove the number to the selection
-              press <kbd>a</kbd>, or <kbd>Shift</kbd> + click on a number
-            </li>
-            <li>
-              To <strong>d</strong>eselect all numbers in the selection press
-              <kbd>d</kbd>
-            </li>
-            <li>
-              <label>
-                <span>To increment selection press</span>
-                <input
-                  id="strKbdIncrement"
-                  type="text"
-                  maxlength="1"
-                  size="1"
-                />
+            </div>
+            <div class="key-row opt-item" data-search="decrement value key">
+              <label for="strKbdDecrement">
+                <span class="opt-label">Decrement the value</span>
               </label>
-            </li>
-            <li>
-              <label>
-                To decrement selection press
-                <input
-                  id="strKbdDecrement"
-                  type="text"
-                  maxlength="1"
-                  size="1"
-                />
+              <input
+                type="text"
+                id="strKbdDecrement"
+                class="keyinput"
+                maxlength="1"
+                size="1"
+                autocomplete="off"
+                spellcheck="false"
+              />
+            </div>
+            <div
+              class="key-row opt-item"
+              data-search="increase increment step key"
+            >
+              <label for="strKbdIncreaseIncrement">
+                <span class="opt-label">Increase the step</span>
+                <span class="opt-help"
+                  >Walks the step up through 0.01 → 0.1 → 1 → 10 → 100, then
+                  wraps around.</span
+                >
               </label>
-            </li>
-            <li>
-              <label>
-                To increase increment press
-                <input
-                  id="strKbdIncreaseIncrement"
-                  type="text"
-                  maxlength="1"
-                  size="1"
-                />
+              <input
+                type="text"
+                id="strKbdIncreaseIncrement"
+                class="keyinput"
+                maxlength="1"
+                size="1"
+                autocomplete="off"
+                spellcheck="false"
+              />
+            </div>
+            <div
+              class="key-row opt-item"
+              data-search="decrease increment step key"
+            >
+              <label for="strKbdDecreaseIncrement">
+                <span class="opt-label">Decrease the step</span>
+                <span class="opt-help"
+                  >Walks the same list the other way: 100 → 10 → 1 → 0.1 →
+                  0.01.</span
+                >
               </label>
-            </li>
-            <li>
-              <label>
-                To decrease increment press
-                <input
-                  id="strKbdDecreaseIncrement"
-                  type="text"
-                  maxlength="1"
-                  size="1"
-                />
-              </label>
-            </li>
-          </ul>
+              <input
+                type="text"
+                id="strKbdDecreaseIncrement"
+                class="keyinput"
+                maxlength="1"
+                size="1"
+                autocomplete="off"
+                spellcheck="false"
+              />
+            </div>
+          </div>
+
+          <div
+            class="docs opt-item"
+            data-search="documentation gestures arrows escape shift click selection navigate"
+          >
+            <p class="docs-title">
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 11v5.5M12 7.6v.1"></path>
+              </svg>
+              Fixed gestures — not configurable
+            </p>
+            <dl>
+              <dt><kbd>←</kbd><kbd>→</kbd></dt>
+              <dd>Move to the previous / next number on the current line.</dd>
+              <dt><kbd>↑</kbd><kbd>↓</kbd></dt>
+              <dd>Move to the line above / below, on its first number.</dd>
+              <dt><kbd>a</kbd></dt>
+              <dd>Add the active number to the selection, or take it out.</dd>
+              <dt><kbd>d</kbd></dt>
+              <dd>Clear the whole selection.</dd>
+              <dt><kbd>Esc</kbd></dt>
+              <dd>Leave increment mode.</dd>
+              <dt>Click</dt>
+              <dd>Make that number the active one.</dd>
+              <dt><kbd>Shift</kbd> + click</dt>
+              <dd>Add that number to the selection, or take it out.</dd>
+            </dl>
+          </div>
         </fieldset>
-      </div>
-    </div>
 
-    <div class="actions">
-      <button id="save" type="submit" class="button button--primary">
-        Save
-      </button>
-      <div id="status"></div>
-    </div>
+        <fieldset aria-labelledby="ph-template">
+          <h2 class="panel-head" id="ph-template">Code template</h2>
+          <p class="legend-help">
+            Inserted in the editor when you open an empty battle.
+          </p>
+          <div
+            class="template opt-item"
+            data-search="default code template starter"
+          >
+            <textarea
+              id="strDefaultCode"
+              rows="12"
+              spellcheck="false"
+              autocomplete="off"
+              aria-label="Default code template"
+            ></textarea>
+            <div class="template-actions">
+              <button type="button" id="resetTemplate" class="button-secondary">
+                Reset to default template
+              </button>
+            </div>
+          </div>
+        </fieldset>
 
+        <div class="empty" id="filterEmpty" hidden>
+          No option matches that filter.
+        </div>
+
+        <div class="actionbar">
+          <div class="inner">
+            <span id="status" role="status" aria-live="polite"></span>
+            <button type="button" id="save" class="button-primary">
+              Save options
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
     <script src="options.js"></script>
   </body>
 </html>
