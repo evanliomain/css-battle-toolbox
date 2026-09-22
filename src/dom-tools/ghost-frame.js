@@ -1,4 +1,4 @@
-import { BACKGROUND_FLAG, ghostCss, OUTLINE_FLAG } from "./ghost-sheet";
+import { BACKGROUND_FLAG, ghostCss, OUTLINE_FLAG, OWN } from "./ghost-sheet";
 import { HIDE_SHEET_ID, isHideSheet } from "./hidden-layers";
 
 const SHEET_ID = "cbt-ghost-sheet";
@@ -136,6 +136,9 @@ function sanitize(root, ghostDoc, realDoc) {
   // would 404 in the ghost and lose the intrinsic size that sizes its box.
   const base = ghostDoc.createElement("base");
   base.href = realDoc.baseURI;
+  // Marked, like every node below: the ghost sheet hides what the tool adds, so
+  // a player who puts their own <style> on screen does not get ours too.
+  base.setAttribute(OWN, "");
   head.insertAdjacentElement("afterbegin", base);
 
   // A sheet built through CSSOM has no matching text in the DOM, so the clone
@@ -146,6 +149,7 @@ function sanitize(root, ghostDoc, realDoc) {
   );
   if (0 < adoptedSheets.length) {
     const adopted = ghostDoc.createElement("style");
+    adopted.setAttribute(OWN, "");
     adopted.textContent = adoptedSheets
       .flatMap((sheet) => Array.from(sheet.cssRules, (rule) => rule.cssText))
       .join("\n");
@@ -154,6 +158,7 @@ function sanitize(root, ghostDoc, realDoc) {
 
   const sheet = ghostDoc.createElement("style");
   sheet.id = SHEET_ID;
+  sheet.setAttribute(OWN, "");
   sheet.textContent = ghostCss();
   head.insertAdjacentElement("beforeend", sheet);
 }

@@ -6,6 +6,8 @@ export const DEPTH = "data-cbt-depth";
 export const HOVER = "data-cbt-hover";
 /** Set on the ghost node of a layer the user switched off from the panel. */
 export const HIDDEN = "data-cbt-hidden";
+/** Set on the nodes this tool adds to the ghost, which the player never wrote. */
+export const OWN = "data-cbt-own";
 /** Mirrors of the host classes that toggle the two display modes. */
 export const OUTLINE_FLAG = "data-cbt-outline";
 export const BACKGROUND_FLAG = "data-cbt-background";
@@ -71,6 +73,14 @@ export function ghostCss() {
     visibility: visible !important;
   }
 
+  /* The <base> and the <style> elements this tool adds to the head. A head is
+     display:none until the player writes head,style{display:block} to put their
+     own code on screen — and then the ghost would grow three boxes the render
+     has not. Hiding a <style> does not stop its rules from applying. */
+  [${OWN}] {
+    display: none !important;
+  }
+
 ${colors}
 
   [${DEPTH}] {
@@ -121,6 +131,24 @@ ${colors}
        border-radius and the transform just the same. */
     outline: var(--cbt-margin, 0px) solid ${MARGIN} !important;
     box-shadow: inset 0 0 0 3px var(--cbt-color) !important;
+  }
+
+  /* The labels are elements in the played document, so the player's selectors
+     reach them: golfed code is all universal selectors, and a single
+     "* * { scale: -1 }" was enough to mirror every one of them. Only all can
+     cover the properties an enumerated list cannot — scale, zoom, writing-mode,
+     whatever Chrome ships next — and it leaves custom properties alone, so the
+     position set inline on each label survives it.
+   *
+   * Stays before the two rules below: same specificity, so source order is what
+   * lets them style what this one has just stripped. */
+  cbt-labels,
+  cbt-labels::before,
+  cbt-labels::after,
+  cbt-labels *,
+  cbt-labels *::before,
+  cbt-labels *::after {
+    all: initial !important;
   }
 
   /* The label layer is fixed rather than absolute: absolute would join the
