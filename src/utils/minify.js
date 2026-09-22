@@ -13,6 +13,8 @@ export function minify(code) {
       .replaceAll(/\s0\s+0\./g, " .0.")
       // Trim leading 0 before space remove
       .replaceAll(/(\s)0+\./g, "$1.")
+      // Trim leading 0 after a minus sign: -0.56 => -.56
+      .replaceAll(/(-)0+\./g, "$1.")
       .replaceAll(/\s*\#/g, "#")
       .replaceAll(/:\s*/g, ":")
       .replaceAll(/,\s*/g, ",")

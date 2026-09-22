@@ -1,6 +1,7 @@
 # 1.2.6
 
 - Options: redesign the option page
+- Minify: Remove leading 0 of a negative decimal, `-0.56lh` becomes `-.56lh`
 
 # 1.2.5
 
