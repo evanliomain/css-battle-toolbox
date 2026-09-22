@@ -17,6 +17,24 @@ function stubChrome() {
   };
 }
 
+/** Builds the output panel and its render iframe, the way cssbattle lays it out. */
+function renderOutputPanel(body) {
+  document.body.innerHTML = `
+      <div class="container__item--output">
+        <div class="item__content"><div class="stats"></div></div>
+      </div>
+      <div class="target-container"><iframe></iframe></div>`;
+
+  const doc = document.querySelector(
+    ".target-container iframe",
+  ).contentDocument;
+  doc.open();
+  doc.write(`<!doctype html><html><head></head><body>${body}</body></html>`);
+  doc.close();
+
+  return doc;
+}
+
 /** Lets the doAsync poll (100ms) and any settle delay run. */
 function tick(ms = 400) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -95,6 +113,61 @@ describe("tools inject into a cssbattle-shaped DOM", () => {
 
     expect(document.getElementById("cbt-copy-image-url")).not.toBeNull();
     expect(document.getElementById("cbt-link-to-previewer-url")).not.toBeNull();
+  });
+
+  it("dom-tools injects the panel and the outline overlay", async () => {
+    renderOutputPanel("<p>hi</p>");
+
+    await import("./dom-tools.js");
+    await tick();
+
+    expect(document.getElementById("dom-tool")).not.toBeNull();
+    expect(document.querySelector("#dom-outline iframe")).not.toBeNull();
+    expect(
+      [...document.querySelectorAll(".dom-title-name")].map(
+        (name) => name.textContent,
+      ),
+    ).toEqual(["html", "body", "p"]);
+  });
+
+  it("dom-tools never writes to the played document", async () => {
+    // The whole point of the ghost iframe: the outlines cost the player's own
+    // DOM nothing — no inline transform, no data-id, no stamped attribute.
+    const iframeDoc = renderOutputPanel(
+      "<div style='transform:rotate(30deg)'><span></span></div>",
+    );
+    const before = iframeDoc.documentElement.outerHTML;
+
+    await import("./dom-tools.js");
+    await tick();
+
+    expect(iframeDoc.documentElement.outerHTML).toBe(before);
+  });
+
+  it("dom-tools follows the played code as it changes", async () => {
+    const iframeDoc = renderOutputPanel("<p></p>");
+
+    await import("./dom-tools.js");
+    await tick();
+
+    iframeDoc.body.insertAdjacentHTML("beforeend", "<span></span>");
+    // Rebuilds are coalesced on a frame, so the panel catches up one tick later.
+    await tick(100);
+
+    expect(
+      [...document.querySelectorAll(".dom-title-name")].map(
+        (name) => name.textContent,
+      ),
+    ).toEqual(["html", "body", "p", "span"]);
+  });
+
+  it("dom-tools survives a doctype and a comment in the played code", async () => {
+    renderOutputPanel("<!-- a note --><p></p>");
+
+    await import("./dom-tools.js");
+    await tick();
+
+    expect(document.getElementById("dom-tool")).not.toBeNull();
   });
 
   it("does nothing on a non-play page", async () => {
