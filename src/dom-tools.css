@@ -95,15 +95,24 @@
 }
 
 /* Only ever on screen while a layer is hidden, because a hidden layer means the
-   render no longer matches the code. */
+   render no longer matches the code.
+ *
+ * Out of the flow, in the band the panel's own top margin already leaves free:
+ * appearing and disappearing must not push the whole tree up and down, which is
+ * exactly what happens every time you switch a layer off and on again. The rows
+ * are stacked at z-index 50, so it sits one above them. */
 #dom-show-all {
-  justify-self: start;
-  padding: 0.2em 0.6em;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 51;
+  padding: 0.1em 0.5em;
   border: 1px solid var(--clr-border-1);
   border-radius: 4px;
-  background: none;
+  background: var(--clr-bg);
   color: var(--clr-text-light);
-  font-size: 0.8em;
+  font-size: 0.75em;
+  line-height: 1.4;
   cursor: pointer;
 }
 
