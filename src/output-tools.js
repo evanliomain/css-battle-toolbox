@@ -21,11 +21,6 @@ mount("output-tools", {
     hstack: ".container__item--output .header__extra-info .hstack",
     target: ".target-container > div:not(#overlay-grid)",
     targetContainer: ".target-container",
-    // Excludes the extension's own hidden iframes (unit-tools' calculator
-    // and leaderboard-tools' scraper), which a bare "iframe" could match.
-    iframe: "iframe:not(#calcFrame):not(.cbt-scraper)",
-    iframeDoc: (refs) =>
-      refs.iframe.contentDocument ?? refs.iframe.contentWindow?.document,
   },
   async init(refs, onCleanup, signal) {
     // The option checkboxes live inside a wrapping <label>, so drop the label
@@ -59,8 +54,6 @@ mount("output-tools", {
       signal,
       name: "output-tools:diff",
     })();
-
-    flagOutput(refs, onCleanup);
 
     onCleanup(() => {
       document.body.classList.remove("compare-tool", "diff-tool");
@@ -362,51 +355,6 @@ function applyX2Settings(img, isApply) {
     img.src = img.srcset;
   } else {
     img.src = img.src.replace(/@2x\.png/, ".png").replace(/%202x$/, "");
-  }
-}
-
-function flagOutput(refs, onCleanup) {
-  const observe = { attributes: true, childList: true };
-  let flagging = false;
-  const observer = new MutationObserver(flag);
-
-  // flagOutputDOM stamps data-tagname onto the iframe's own nodes, which this
-  // observer watches. Staying connected while stamping feeds it its own
-  // mutations and spins.
-  function flag() {
-    if (flagging) {
-      return;
-    }
-    flagging = true;
-    observer.disconnect();
-    try {
-      flagOutputDOM(refs.iframeDoc);
-    } finally {
-      observer.observe(refs.iframeDoc, observe);
-      flagging = false;
-    }
-  }
-
-  observer.observe(refs.iframeDoc, observe);
-  onCleanup(() => observer.disconnect());
-
-  flag();
-}
-
-function flagOutputDOM(iframeDoc) {
-  for (let i = 0; i < iframeDoc.children.length; i++) {
-    const child = iframeDoc.children.item(i);
-
-    flagOutputElement(child);
-  }
-}
-function flagOutputElement(element) {
-  element.dataset.tagname = element.localName;
-
-  for (let i = 0; i < element.children.length; i++) {
-    const child = element.children.item(i);
-
-    flagOutputElement(child);
   }
 }
 
