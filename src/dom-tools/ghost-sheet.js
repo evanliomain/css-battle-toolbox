@@ -32,6 +32,15 @@ export function ghostCss() {
   ).join("\n");
 
   return `@layer cbt {
+  /* The canvas has to stay see-through, and that takes both halves: a
+     transparent root background, and a used color-scheme equal to the one on
+     the <iframe> element, which createGhost pins to normal for this. Disagree
+     on either and Chrome paints the canvas opaque, hiding the render under it. */
+  :root {
+    background: transparent !important;
+    color-scheme: normal !important;
+  }
+
   /* The content property is never touched: none drops a pseudo-element's box
      and "" empties it, and either one moves the boxes around it. Same reason
      border-color is neutralised but border-style is not: none forces the used

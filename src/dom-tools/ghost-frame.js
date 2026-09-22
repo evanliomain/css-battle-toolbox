@@ -17,8 +17,15 @@ export function createGhost(container, realDoc) {
   // A default <iframe> carries `border: 2px inset` from the UA sheet, which
   // shifts the embedded viewport by 2px and shrinks it by 4 — enough on its own
   // to throw every outline off.
+  //
+  // color-scheme is the one that decides whether the render shows through: an
+  // iframe canvas is transparent only while the embedded document's used
+  // color-scheme matches the embedding element's. cssbattle's root is dark, so
+  // an element left to inherit it would disagree with the about:blank document
+  // and Chrome would paint an opaque canvas over the whole preview. Both sides
+  // are pinned to `normal` — here, and on the ghost root in ghostCss.
   frame.style.cssText =
-    "border:0;margin:0;padding:0;display:block;width:100%;height:100%;background:transparent;pointer-events:none";
+    "border:0;margin:0;padding:0;display:block;width:100%;height:100%;background:transparent;color-scheme:normal;pointer-events:none";
   container.insertAdjacentElement("beforeend", frame);
 
   const ghostDoc = frame.contentDocument;
