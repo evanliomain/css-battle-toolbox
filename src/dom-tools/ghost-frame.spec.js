@@ -4,6 +4,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { createGhost, mirrorFlags, syncGhost } from "./ghost-frame";
+import { OWN } from "./ghost-sheet";
 
 /** Stands in for cssbattle's output iframe: same-origin, written from code. */
 function renderFrame(html) {
@@ -107,6 +108,19 @@ describe("the ghost frame", () => {
     const base = root.querySelector("head > :first-child");
     expect(base?.localName).toBe("base");
     expect(base?.getAttribute("href")).toBe(realDoc.baseURI);
+  });
+
+  it("marks every node it adds to the head as its own", () => {
+    const realDoc = renderFrame(
+      `<!doctype html><html><head></head><body></body></html>`,
+    );
+    const { root } = ghostOf(realDoc);
+    const injected = Array.from(root.querySelectorAll("head > *"));
+
+    // The sheet hides them on that mark alone: a player who writes
+    // head,style{display:block} must see their own code, never the tool's.
+    expect(injected.length).toBeGreaterThan(0);
+    expect(injected.every((node) => node.hasAttribute(OWN))).toBe(true);
   });
 
   it("carries the display flags onto the ghost root", () => {
