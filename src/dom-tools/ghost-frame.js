@@ -1,4 +1,5 @@
 import { BACKGROUND_FLAG, ghostCss, OUTLINE_FLAG } from "./ghost-sheet";
+import { HIDE_SHEET_ID, isHideSheet } from "./hidden-layers";
 
 const SHEET_ID = "cbt-ghost-sheet";
 
@@ -105,7 +106,18 @@ export function fitOverlay(overlay, realFrame) {
 function sanitize(root, ghostDoc, realDoc) {
   // A script only runs once inserted into a document with a browsing context, so
   // stripping them while the tree is still detached can never let one fire.
-  root.querySelectorAll("script").forEach((script) => script.remove());
+  //
+  // Swapped rather than removed: dropping the node would shift the :nth-child of
+  // every sibling after it, both for the player's own selectors and for the
+  // paths the panel builds. A <template> holds the index without a box and
+  // without anything runnable.
+  root.querySelectorAll("script").forEach((script) => {
+    script.replaceWith(ghostDoc.createElement("template"));
+  });
+
+  // The hide rules must never reach the ghost. Not cloning them is exactly what
+  // keeps the contour of a switched-off layer on screen.
+  root.querySelector(`#${HIDE_SHEET_ID}`)?.remove();
 
   // Replaced elements stay: <img>, <video> and <canvas> carry an intrinsic size
   // that feeds the layout. Only the framed ones lose their source — their box
@@ -127,10 +139,14 @@ function sanitize(root, ghostDoc, realDoc) {
   head.insertAdjacentElement("afterbegin", base);
 
   // A sheet built through CSSOM has no matching text in the DOM, so the clone
-  // would lay out without it.
-  if (0 < (realDoc.adoptedStyleSheets?.length ?? 0)) {
+  // would lay out without it. The tool's own hide sheet is left out for the same
+  // reason as the style element above.
+  const adoptedSheets = (realDoc.adoptedStyleSheets ?? []).filter(
+    (sheet) => !isHideSheet(sheet),
+  );
+  if (0 < adoptedSheets.length) {
     const adopted = ghostDoc.createElement("style");
-    adopted.textContent = realDoc.adoptedStyleSheets
+    adopted.textContent = adoptedSheets
       .flatMap((sheet) => Array.from(sheet.cssRules, (rule) => rule.cssText))
       .join("\n");
     head.insertAdjacentElement("beforeend", adopted);

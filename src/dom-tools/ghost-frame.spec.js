@@ -74,6 +74,22 @@ describe("the ghost frame", () => {
     expect(root.querySelector("iframe").hasAttribute("src")).toBe(false);
   });
 
+  it("keeps the index of a script's siblings", () => {
+    const realDoc = renderFrame(
+      `<!doctype html><html><body><i></i><script>window.x=1</script><b></b></body></html>`,
+    );
+    const { root } = ghostOf(realDoc);
+
+    // Removing the script outright would move <b> from the third child to the
+    // second, and every :nth-child the player wrote past it would shift.
+    const index = (doc) =>
+      Array.from(doc.querySelector("body").children).indexOf(
+        doc.querySelector("b"),
+      );
+
+    expect(index(root)).toBe(index(realDoc));
+  });
+
   it("keeps replaced elements, which carry the layout's intrinsic size", () => {
     const realDoc = renderFrame(
       `<!doctype html><html><body><img src="shape.png"><canvas></canvas></body></html>`,

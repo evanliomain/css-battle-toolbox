@@ -4,6 +4,8 @@ import { DOM_COLOR } from "../utils/dom-color";
 export const DEPTH = "data-cbt-depth";
 /** Set on the ghost node matching the hovered panel row. */
 export const HOVER = "data-cbt-hover";
+/** Set on the ghost node of a layer the user switched off from the panel. */
+export const HIDDEN = "data-cbt-hidden";
 /** Mirrors of the host classes that toggle the two display modes. */
 export const OUTLINE_FLAG = "data-cbt-outline";
 export const BACKGROUND_FLAG = "data-cbt-background";
@@ -13,6 +15,9 @@ const CONTENT = "rgb(161 197 232 / 0.55)";
 const PADDING = "rgb(196 222 184 / 0.55)";
 const BORDER = "rgb(251 220 169 / 0.55)";
 const MARGIN = "rgb(249 204 158 / 0.45)";
+
+/** Reads on both a light and a dark render, and on none of the depth colours. */
+const OFF = "rgb(160 160 160 / 0.9)";
 
 /**
  * The stylesheet injected into the ghost document.
@@ -77,6 +82,19 @@ ${colors}
   *::before,
   *::after {
     outline: 2px dashed rgb(136 136 136 / 0.65) !important;
+  }
+
+  /* A layer switched off from the panel. It is gone from the render, but its
+     contour stays right where it was, in grey — which only works because the
+     hiding uses opacity: it does not reflow, so the ghost, which never receives
+     the rule, still lays out exactly like the render. */
+  [${HIDDEN}] {
+    outline-color: ${OFF} !important;
+  }
+
+  cbt-label[${HIDDEN}] {
+    color: ${OFF} !important;
+    -webkit-text-fill-color: ${OFF} !important;
   }
 
   :root:not([${OUTLINE_FLAG}]) [${DEPTH}]:not([${HOVER}]),
