@@ -25,9 +25,12 @@ mount("dom-tools", {
   selectors: {
     container: ".container__item--output .item__content :first-child",
     targetContainer: ".target-container",
-    // Excludes the extension's own hidden iframes (unit-tools' calculator
-    // and leaderboard-tools' scraper), which a bare "iframe" could match.
-    iframe: "iframe:not(#calcFrame):not(.cbt-scraper)",
+    // Excludes the extension's own iframes, which a bare "iframe" could match:
+    // unit-tools' calculator, leaderboard-tools' scraper, and this tool's own
+    // ghost — a re-mount resolves its selectors while the previous ghost is
+    // still on the page, and cloning that into itself would leave the panel
+    // describing the overlay rather than the render.
+    iframe: "iframe:not(#calcFrame):not(.cbt-scraper):not(.cbt-ghost)",
     iframeDoc: (refs) =>
       refs.iframe.contentDocument ?? refs.iframe.contentWindow?.document,
   },

@@ -12,6 +12,7 @@ const SHEET_ID = "cbt-ghost-sheet";
 export function createGhost(container, realDoc) {
   const frame = document.createElement("iframe");
   frame.id = "dom-ghost";
+  frame.className = "cbt-ghost";
   frame.setAttribute("aria-hidden", "true");
   frame.setAttribute("tabindex", "-1");
   // A default <iframe> carries `border: 2px inset` from the UA sheet, which
@@ -87,8 +88,18 @@ export function mirrorFlags(ghostRoot, targetContainer) {
  * a pixel moves every shape in the clone.
  */
 export function fitOverlay(overlay, realFrame) {
-  overlay.style.width = `${realFrame.clientWidth}px`;
-  overlay.style.height = `${realFrame.clientHeight}px`;
+  // clientWidth is specified to return zero for an inline-level box, and an
+  // iframe is inline by default. Blink answers with the content box anyway, but
+  // a zero here would size the ghost out of existence, so offsetWidth backs it.
+  const width = realFrame.clientWidth || realFrame.offsetWidth;
+  const height = realFrame.clientHeight || realFrame.offsetHeight;
+
+  if (0 === width || 0 === height) {
+    console.debug("[cbt] dom-tools: the render has no size, ghost left empty");
+  }
+
+  overlay.style.width = `${width}px`;
+  overlay.style.height = `${height}px`;
 }
 
 function sanitize(root, ghostDoc, realDoc) {
