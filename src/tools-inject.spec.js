@@ -161,6 +161,100 @@ describe("tools inject into a cssbattle-shaped DOM", () => {
     ).toEqual(["html", "body", "p", "span"]);
   });
 
+  it("dom-tools switches a layer off without touching the played markup", async () => {
+    const iframeDoc = renderOutputPanel("<p></p>");
+    const before = iframeDoc.documentElement.outerHTML;
+
+    await import("./dom-tools.js");
+    await tick();
+
+    const eyes = [...document.querySelectorAll(".dom-eye")];
+    expect(eyes).toHaveLength(3);
+
+    eyes[2].click();
+    await tick(100);
+
+    const sheets = iframeDoc.adoptedStyleSheets ?? [];
+    expect(sheets).toHaveLength(1);
+    expect(sheets[0].cssRules[0].cssText).toContain("opacity: 0");
+    // The render changed; not one node of the player's document did.
+    expect(iframeDoc.documentElement.outerHTML).toBe(before);
+    expect(document.querySelector(".dom-element--off")).not.toBeNull();
+
+    [...document.querySelectorAll(".dom-eye")][2].click();
+    await tick(100);
+
+    expect(iframeDoc.adoptedStyleSheets ?? []).toHaveLength(0);
+    expect(iframeDoc.documentElement.outerHTML).toBe(before);
+  });
+
+  it("dom-tools keeps drawing the contour of a layer that is off", async () => {
+    renderOutputPanel("<p></p>");
+
+    await import("./dom-tools.js");
+    await tick();
+
+    [...document.querySelectorAll(".dom-eye")][2].click();
+    await tick(100);
+
+    const ghostDoc = document.querySelector(
+      "#dom-outline iframe",
+    ).contentDocument;
+    const ghost = ghostDoc.querySelector("p");
+
+    // Still stamped with its depth, so it still gets an outline — the rule that
+    // hides it is the one thing the ghost never receives.
+    expect(ghost.hasAttribute("data-cbt-depth")).toBe(true);
+    expect(ghost.hasAttribute("data-cbt-hidden")).toBe(true);
+    expect(ghostDoc.documentElement.outerHTML).not.toContain(
+      "opacity: 0 !important",
+    );
+  });
+
+  it("dom-tools holds a layer off across an edit, and forgets a dropped one", async () => {
+    const iframeDoc = renderOutputPanel("<p></p>");
+
+    await import("./dom-tools.js");
+    await tick();
+
+    [...document.querySelectorAll(".dom-eye")][2].click();
+    await tick(100);
+
+    iframeDoc.body.insertAdjacentHTML("beforeend", "<span></span>");
+    await tick(100);
+
+    expect(iframeDoc.adoptedStyleSheets ?? []).toHaveLength(1);
+    expect(document.querySelector(".dom-element--off")).not.toBeNull();
+
+    // The hidden node itself is gone from the code now.
+    iframeDoc.body.innerHTML = "";
+    await tick(100);
+
+    expect(iframeDoc.adoptedStyleSheets ?? []).toHaveLength(0);
+  });
+
+  it("dom-tools shows every layer again in one click", async () => {
+    const iframeDoc = renderOutputPanel("<p></p><span></span>");
+
+    await import("./dom-tools.js");
+    await tick();
+
+    const eyes = [...document.querySelectorAll(".dom-eye")];
+    eyes[2].click();
+    eyes[3].click();
+    await tick(100);
+
+    const showAll = document.getElementById("dom-show-all");
+    expect(showAll.hidden).toBe(false);
+    expect(showAll.textContent).toContain("2 layers hidden");
+
+    showAll.click();
+    await tick(100);
+
+    expect(iframeDoc.adoptedStyleSheets ?? []).toHaveLength(0);
+    expect(document.getElementById("dom-show-all").hidden).toBe(true);
+  });
+
   it("dom-tools survives a doctype and a comment in the played code", async () => {
     renderOutputPanel("<!-- a note --><p></p>");
 

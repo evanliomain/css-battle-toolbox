@@ -61,7 +61,50 @@
     .dom-element--hidden {
       opacity: 0.55;
     }
+
+    /* Switched off from the panel. The box is still there — only its paint is
+       gone — so the row keeps showing real dimensions. */
+    .dom-element--off .dom-title {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .dom-eye {
+      padding: 0;
+      margin-inline-end: 0.25em;
+      border: none;
+      background: none;
+      color: var(--dom-level-color);
+      cursor: pointer;
+      vertical-align: middle;
+      /* Faded until it is needed, like an inspector — but a layer that is off
+         has to stay obvious with the pointer somewhere else entirely. */
+      opacity: 0.3;
+
+      svg {
+        display: block;
+      }
+    }
+
+    .dom-element:hover .dom-eye,
+    .dom-eye:focus-visible,
+    .dom-eye[aria-pressed="true"] {
+      opacity: 1;
+    }
   }
+}
+
+/* Only ever on screen while a layer is hidden, because a hidden layer means the
+   render no longer matches the code. */
+#dom-show-all {
+  justify-self: start;
+  padding: 0.2em 0.6em;
+  border: 1px solid var(--clr-border-1);
+  border-radius: 4px;
+  background: none;
+  color: var(--clr-text-light);
+  font-size: 0.8em;
+  cursor: pointer;
 }
 
 .dom-truncated {

@@ -1,4 +1,5 @@
 import { DOM_COLOR } from "../utils/dom-color";
+import { HIDDEN } from "./ghost-sheet";
 
 /**
  * Draws the tag name of every element over its shape.
@@ -23,6 +24,11 @@ export function renderLabels(ghostDoc, entries) {
 
     const label = ghostDoc.createElement("cbt-label");
     label.textContent = element.localName;
+    // Greyed with its contour, so a switched-off layer reads as off from the
+    // render alone, without going back to the panel.
+    if (element.hasAttribute(HIDDEN)) {
+      label.setAttribute(HIDDEN, "");
+    }
     label.style.setProperty("--cbt-x", `${rect.left + 4}px`);
     label.style.setProperty("--cbt-y", `${rect.top + 4}px`);
     label.style.setProperty("--cbt-color", DOM_COLOR[depth % DOM_COLOR.length]);

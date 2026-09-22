@@ -6,6 +6,7 @@ import {
   mirrorFlags,
   syncGhost,
 } from "./dom-tools/ghost-frame";
+import { createHiddenLayers } from "./dom-tools/hidden-layers";
 import { renderLabels } from "./dom-tools/tag-labels";
 import { htmlToElement } from "./utils/html-to-element";
 import { mount } from "./utils/mount";
@@ -52,7 +53,14 @@ mount("dom-tools", {
     onCleanup(() => overlay.remove());
 
     const main = tool.querySelector(`[data-dom-tool="main"]`);
+    const showAll = tool.querySelector("#dom-show-all");
     const { ghostDoc } = createGhost(overlay, iframeDoc);
+
+    // The only thing in this tool that writes to the render, and only while the
+    // user is holding a layer off. Disposed with the mount: a hidden layer must
+    // not survive into the next battle.
+    const hidden = createHiddenLayers(iframe, iframeDoc);
+    onCleanup(() => hidden.dispose());
 
     let byId = new Map();
     let hovered = null;
@@ -70,9 +78,18 @@ mount("dom-tools", {
       const ghostRoot = syncGhost(ghostDoc, iframeDoc);
       mirrorFlags(ghostRoot, targetContainer);
 
-      const entries = buildPanel(ghostRoot, main);
+      const entries = buildPanel(ghostRoot, main, hidden);
       byId = new Map(entries.map((entry) => [entry.id, entry]));
+
+      // Re-applied on every rebuild, not just on a click: cssbattle rebuilds the
+      // render from scratch on each keystroke and takes the sheet with it.
+      hidden.prune(new Set(entries.map((entry) => entry.path)));
+      hidden.apply();
+
       renderLabels(ghostDoc, entries);
+
+      showAll.hidden = 0 === hidden.size;
+      showAll.textContent = `${hidden.size} layer${1 === hidden.size ? "" : "s"} hidden — show all`;
     }
 
     // Coalesced on a frame: a keystroke fires a burst of mutations. A rebuild
@@ -133,11 +150,33 @@ mount("dom-tools", {
         hovered = null;
       }
     }
+    // Delegated for the same reason, and on the same root.
+    function onClick(event) {
+      const target = event.target;
+
+      if (null !== (target.closest?.("#dom-show-all") ?? null)) {
+        hidden.clear();
+      } else {
+        const path = target.closest?.("[data-eye]")?.dataset.eye;
+        if (undefined === path) {
+          return;
+        }
+        hidden.toggle(path);
+      }
+
+      hidden.apply();
+      // Nothing observes a stylesheet, so the panel and the ghost have to be
+      // told to catch up — the render itself is already up to date.
+      schedule();
+    }
+
     tool.addEventListener("mouseover", onHover);
     tool.addEventListener("mouseleave", onLeave);
+    tool.addEventListener("click", onClick);
     onCleanup(() => {
       tool.removeEventListener("mouseover", onHover);
       tool.removeEventListener("mouseleave", onLeave);
+      tool.removeEventListener("click", onClick);
     });
 
     rebuild();
@@ -147,6 +186,7 @@ mount("dom-tools", {
 function template() {
   return `
     <div id="dom-tool">
+      <button type="button" id="dom-show-all" hidden></button>
       <div data-dom-tool="main"></div>
     </div>
   `;

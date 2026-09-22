@@ -1,6 +1,6 @@
 import { DOM_COLOR } from "../utils/dom-color";
 import { round } from "../utils/round";
-import { DEPTH, HOVER } from "./ghost-sheet";
+import { DEPTH, HIDDEN, HOVER } from "./ghost-sheet";
 
 /** Tags that never paint a box of their own. */
 const SKIPPED = new Set([
@@ -25,11 +25,15 @@ const MAX_NODES = 2000;
  * The walk reads the ghost and never the player's document: that is what keeps
  * the tool read-only on the code being played.
  *
- * @returns {{id: string, element: Element, depth: number}[]} one entry per row
+ * @param {Element} ghostRoot
+ * @param {Element} main The node the panel is rendered into.
+ * @param {{has: (path: string) => boolean}} hidden The layers switched off.
+ * @returns {{id: string, element: Element, depth: number, path: string}[]}
+ *   one entry per row
  */
-export function buildPanel(ghostRoot, main) {
+export function buildPanel(ghostRoot, main, hidden) {
   const entries = [];
-  const html = walk(ghostRoot, 0, entries);
+  const html = walk(ghostRoot, 0, ":root", entries, hidden);
   const isTruncated = MAX_NODES <= entries.length;
 
   // One parse for the whole tree. Building it node by node meant a DOMParser
@@ -60,24 +64,33 @@ export function setHover(element, isOn) {
   element.setAttribute(HOVER, "");
 }
 
-function walk(element, depth, entries) {
+function walk(element, depth, path, entries, hidden) {
   if (MAX_NODES <= entries.length) {
     return "";
   }
 
   const id = `${element.localName}-${entries.length}`;
+  const isOff = hidden.has(path);
   element.setAttribute(DEPTH, depth % DOM_COLOR.length);
-  entries.push({ id, element, depth });
+  if (isOff) {
+    element.setAttribute(HIDDEN, "");
+  }
+  entries.push({ id, element, depth, path });
 
   const children = Array.from(element.children)
-    .filter((child) => !SKIPPED.has(child.localName))
-    .map((child) => walk(child, 1 + depth, entries))
+    // Numbered before the filter: :nth-child counts every element child, so a
+    // <style> skipped by the panel still takes up a slot in the path.
+    .map((child, index) => [child, `${path}>:nth-child(${1 + index})`])
+    .filter(([child]) => !SKIPPED.has(child.localName))
+    .map(([child, childPath]) =>
+      walk(child, 1 + depth, childPath, entries, hidden),
+    )
     .join("");
 
-  return row(element, id, depth, children);
+  return row(element, id, depth, path, isOff, children);
 }
 
-function row(element, id, depth, children) {
+function row(element, id, depth, path, isOff, children) {
   const styles = getComputedStyle(element);
   const isHidden = "none" === styles.display;
   const margin = margins(styles);
@@ -102,7 +115,8 @@ function row(element, id, depth, children) {
   return `
   <ul data-id="${escapeHtml(id)}">
     <li style="--dom-level-color: ${DOM_COLOR[depth % DOM_COLOR.length]}">
-      <div class="dom-element${isHidden ? " dom-element--hidden" : ""}">
+      <div class="dom-element${isHidden ? " dom-element--hidden" : ""}${isOff ? " dom-element--off" : ""}">
+        ${eye(path, isOff)}
         <div class="dom-title">
           <span class="dom-title-name">${escapeHtml(element.localName)}</span>
           <span class="dom-title-attrs dom-title-id">${"" === element.id ? "" : "#" + escapeHtml(element.id)}</span>
@@ -115,6 +129,27 @@ function row(element, id, depth, children) {
       <div data-dom-tool="${escapeHtml(id)}">${children}</div>
     </li>
   </ul>`;
+}
+
+/**
+ * The switch that hides one layer in the render.
+ *
+ * It carries its own path rather than a row id: the panel is thrown away and
+ * rebuilt on every keystroke, so the click has to name something that outlives
+ * it — and a position in the tree is the only such name that costs the player's
+ * own nodes nothing.
+ */
+function eye(path, isOff) {
+  const hint = isOff ? "Show this layer" : "Hide this layer";
+
+  return `<button
+          type="button"
+          class="dom-eye hint--bottom"
+          data-eye="${escapeHtml(path)}"
+          aria-pressed="${isOff}"
+          aria-label="${hint}"
+          data-hint="${hint}"
+        >${isOff ? eyeOffIcon() : eyeIcon()}</button>`;
 }
 
 function marginLabel(margin) {
@@ -202,4 +237,38 @@ function escapeHtml(value) {
     (character) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character],
   );
+}
+
+// Icons
+
+function eyeIcon() {
+  return `<svg xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width="14"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>`;
+}
+
+function eyeOffIcon() {
+  return `<svg xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width="14"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M4.6 6.6C2.9 8.3 2 10.5 2 12c0 0 3.6 7 10 7 1.7 0 3.2-.5 4.5-1.2" />
+    <path d="M9.9 5.2A10 10 0 0 1 12 5c6.4 0 10 7 10 7a18 18 0 0 1-3.3 4.1" />
+    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    <path d="M3 3 21 21" />
+  </svg>`;
 }
