@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ghostCss, OWN } from "./ghost-sheet";
+import { ghostCss, HOVER, OUTLINE_FLAG, OWN } from "./ghost-sheet";
 
 describe("the ghost stylesheet", () => {
   it("cuts the label layer off from the played code", () => {
@@ -28,6 +28,15 @@ describe("the ghost stylesheet", () => {
     // A head is display:none until the player writes head,style{display:block}
     // to show their own code, and the ghost would then paint ours as well.
     expect(rule).toMatch(/^\[data-cbt-own\] \{\s*display: none !important;/);
+  });
+
+  it("switches the contour of the root off with all the others", () => {
+    // A descendant combinator starts below the element it names, so gating on
+    // ":root:not(...) [data-cbt-depth]" alone left <html> outlined while the
+    // option was unchecked.
+    expect(ghostCss()).toContain(
+      `:root:not([${OUTLINE_FLAG}]):not([${HOVER}]),`,
+    );
   });
 
   it("keeps everything in a layer, so an !important of the player loses", () => {

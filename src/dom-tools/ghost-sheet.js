@@ -107,6 +107,12 @@ ${colors}
     -webkit-text-fill-color: ${OFF} !important;
   }
 
+  /* The root is named on its own, element and pseudo-elements alike: a
+     descendant combinator cannot reach the element it starts from, so the html
+     contour stayed on screen with the option unchecked. */
+  :root:not([${OUTLINE_FLAG}]):not([${HOVER}]),
+  :root:not([${OUTLINE_FLAG}])::before,
+  :root:not([${OUTLINE_FLAG}])::after,
   :root:not([${OUTLINE_FLAG}]) [${DEPTH}]:not([${HOVER}]),
   :root:not([${OUTLINE_FLAG}]) *::before,
   :root:not([${OUTLINE_FLAG}]) *::after {
