@@ -6,13 +6,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Every tool is its own content-script entry, but they all share utils/mount.js.
 // A throw at import time in any of them means that tool never runs at all — and
-// a throw inside the shared chunk takes all fifteen down together, which reads
+// a throw inside the shared chunk takes all sixteen down together, which reads
 // as "the extension is not active".
 const TOOLS = [
   "./unit-tools.js",
   "./color-tools.js",
   "./editor-buttons.js",
   "./reset-tools.js",
+  "./save-tools.js",
   "./score-tools.js",
   "./output-tools.js",
   "./autoclose-tools.js",
@@ -63,7 +64,7 @@ describe("content script entry points", () => {
       await import(tool);
     }
     // A shared-chunk failure would have surfaced above; this also proves the
-    // fifteen mounts do not collide in mount.js's name registry.
+    // sixteen mounts do not collide in mount.js's name registry.
     expect(console.debug).not.toHaveBeenCalledWith(
       expect.stringContaining("registered twice"),
     );
