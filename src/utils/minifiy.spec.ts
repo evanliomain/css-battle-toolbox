@@ -236,6 +236,37 @@ describe("minify", () => {
     ['font: 14px "";color: red;', 'font:14px"";color:red'],
     ['font: 14rem "";color: red;', 'font:14rem"";color:red'],
     ["box-shadow: -0.56lh 11Q;", "box-shadow:-.56lh 11Q"],
+    // Remove spaces between ~ and *
+    ["~*", "~*"],
+    ["~ *", "~*"],
+    ["~  *", "~*"],
+    ["~     *", "~*"],
+    ["~\t*", "~*"],
+    ["~ \n  *", "~*"],
+    ["p ~ *{color:red", "p ~*{color:red"],
+    ["p ~ *>a{color:red", "p ~*>a{color:red"],
+    ["p ~ * ~ *{color:red", "p ~* ~*{color:red"],
+    ["height: calc(2 * 3px)", "height:calc(2 * 3px"],
+    [
+      `<style>
+p ~   * {
+  color: red;
+}
+</style>`,
+      "<style>p ~*{color:red",
+    ],
+    [
+      `<style>
+* {
+  margin: 10;
+}
+p ~
+  * {
+  background: red;
+}
+</style>`,
+      "<style>*{margin:10}p ~*{background:red",
+    ],
   ])("#%#", (pretty, minified) => {
     expect(minify(pretty)).toEqual(minified);
     expect(minify(minified)).toEqual(minified);

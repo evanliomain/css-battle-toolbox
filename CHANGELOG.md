@@ -4,6 +4,7 @@
 - DOM tool: Add an eye on each layer to hide it in the output, its outline stays visible
 - Options: redesign the option page
 - Minify: Remove leading 0 of a negative decimal, `-0.56lh` becomes `-.56lh`
+- Minify: Remove spaces between `~` and `*`, `p ~ *` becomes `p ~*`
 - Editor: Keep your code on page refresh, instead of getting the template back
 
 # 1.2.5

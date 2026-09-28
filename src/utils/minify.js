@@ -40,6 +40,7 @@ export function minify(code) {
       .replaceAll(/\+\s+(\S)/g, "+$1")
       .replaceAll(/(\S)\s+\+/g, "$1+")
       .replaceAll(/\>\s*\*/g, ">*")
+      .replaceAll(/~\s*\*/g, "~*")
       .replaceAll(/\*\s*\>/g, "*>")
       .replaceAll(/\&\s*\>/g, "&>")
       .replaceAll(/\}\s*/g, "}")
