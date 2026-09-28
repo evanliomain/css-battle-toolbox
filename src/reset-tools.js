@@ -1,10 +1,12 @@
 import { changeCode } from "./utils/change-code";
 import { mount } from "./utils/mount";
+import { targetId } from "./utils/spa-router";
+import { BOILERPLATE, loadSavedCode } from "./utils/saved-code";
 
-// cssbattle's starting code for a battle. The reset only ever replaces exactly
-// this, so the user's own work is never touched.
-const BOILERPLATE =
-  "<div></div><style>  div {    width: 100px;    height: 100px;    background: #dd6b4d;  }</style><!-- OBJECTIVE --><!-- Write HTML/CSS in this editor and replicate the given target image in the least code possible. What you write here, renders as it is --><!-- SCORING --><!-- The score is calculated based on the number of characters you use (this comment included :P) and how close you replicate the image. Read the FAQS (https://cssbattle.dev/faqs) for more info. --><!-- IMPORTANT: remove the comments before submitting -->";
+// How long the boilerplate has to stay in the editor before it is replaced.
+// cssbattle drops the `lastCode-<id>` key a moment before its editor shows the
+// restored code, so the boilerplate can still be on screen right after it.
+const SETTLE_MS = 300;
 
 mount("reset-tools", {
   // Deliberately short. The boilerplate, when there is one, is in the editor
@@ -17,18 +19,69 @@ mount("reset-tools", {
     // client-side navigation React reuses the editor node, so it still holds the
     // previous battle's code for a moment — checking once there would silently
     // do nothing and never retry.
-    boilerplate: (refs) => refs.editor.textContent === BOILERPLATE || undefined,
+    // Also waiting for cssbattle to pick up the code it saved: until then, the
+    // boilerplate on screen is only a placeholder for the user's own work.
+    boilerplate: (refs) =>
+      (!hasCssbattleSavedCode() && refs.editor.textContent === BOILERPLATE) ||
+      undefined,
   },
-  init() {
-    // Reset code with simpler version
-    changeCode(reset);
+  init(refs, onCleanup, signal) {
+    return settle(signal).then(() => {
+      if (signal.aborted || hasCssbattleSavedCode()) {
+        return;
+      }
+      // Puts back the code the extension saved, or else a simpler template
+      changeCode(reset);
+    });
   },
 });
+
+/**
+ * Whether cssbattle has code of the user's to put back in the editor.
+ *
+ * On unload cssbattle saves the editor into `localStorage` under
+ * `lastCode-<id>`, then on load reads that key, removes it, and restores the
+ * code. Until it does, the editor shows the boilerplate — and replacing it
+ * there made the restore land on the template instead, losing the user's code
+ * on every refresh.
+ *
+ * Content scripts share the page's `localStorage`, so the key is visible here.
+ */
+function hasCssbattleSavedCode() {
+  try {
+    return null !== window.localStorage.getItem(`lastCode-${levelId()}`);
+  } catch {
+    // Storage blocked: better to skip a reset than to risk losing work.
+    return true;
+  }
+}
+
+// Mirrors how cssbattle derives the id it keys the saved code on: numeric
+// below seven characters, the raw string above.
+function levelId() {
+  const id = targetId();
+  return 6 < id.length ? id : parseInt(id, 10);
+}
+
+function settle(signal) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, SETTLE_MS);
+    signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
+  });
+}
 
 function reset(code) {
   return chrome.storage.sync.get("strDefaultCode").then((items) => {
     if (code === BOILERPLATE) {
       return (
+        loadSavedCode() ??
         items.strDefaultCode ??
         `<style>
 & {

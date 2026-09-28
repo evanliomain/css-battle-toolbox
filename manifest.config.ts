@@ -35,6 +35,7 @@ export default defineManifest(async (env) => ({
         "src/color-tools.js",
         "src/editor-buttons.js",
         "src/reset-tools.js",
+        "src/save-tools.js",
         "src/score-tools.js",
         "src/output-tools.js",
         "src/autoclose-tools.js",
