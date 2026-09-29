@@ -5,6 +5,7 @@
 - Increment tool: Fix the crash when entering increment mode before clicking into the editor
 - Increment tool: Moving to another line no longer leaves the previous line's number highlighted, and incremented along
 - Increment tool: The button hints now show your own keyboard shortcuts, not the default ones
+- Increment tool: Clicking a number selects it as soon as increment mode is on, and no longer once it is off
 
 # 1.2.6
 

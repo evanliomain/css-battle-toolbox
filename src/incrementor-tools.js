@@ -299,38 +299,42 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
     selection.modify("move", "forward", "character");
   }
 
+  // One listener on the editor for every number: adding one per span on each
+  // edit piled them up, and they kept answering after increment mode was left.
+  function onNumberClick(event) {
+    const span = event.target.closest(".ͼ1g, .ͼ18");
+    if (!incrementMode || !span || isNaN(parseFloat(span.textContent))) {
+      return;
+    }
+
+    event.preventDefault();
+    const activeLine = getActiveLine();
+    if (!activeLine) {
+      return;
+    }
+    let spanIndexOnActiveLine;
+    const numberSpans = getNumberSpansFromLine(activeLine);
+    numberSpans.forEach((element, j) => {
+      highlightElement(element, false);
+      if (element === span) {
+        spanIndexOnActiveLine = j;
+      }
+    });
+    if (!event.shiftKey) {
+      highlightElement(span);
+      activeNumberIndex = spanIndexOnActiveLine;
+      return;
+    }
+
+    // Toggle span to the selection
+    toggleSpanToSelection(numberSpans[spanIndexOnActiveLine]);
+  }
+  editor.addEventListener("click", onNumberClick);
+  onCleanup(() => editor.removeEventListener("click", onNumberClick));
+
   function onContentChange() {
     getAllNumberSpans().forEach((span) => {
       span.dataset.type = "number";
-      span.addEventListener("click", (event) => {
-        if (event.defaultPrevented) {
-          return true;
-        }
-
-        event.preventDefault();
-        const activeLine = getActiveLine();
-        if (!activeLine) {
-          return false;
-        }
-        let spanIndexOnActiveLine;
-        const numberSpans = getNumberSpansFromLine(activeLine);
-        numberSpans.forEach((element, j) => {
-          highlightElement(element, false);
-          if (element === span) {
-            spanIndexOnActiveLine = j;
-          }
-        });
-        if (!event.shiftKey) {
-          highlightElement(span);
-          activeNumberIndex = spanIndexOnActiveLine;
-          return true;
-        }
-
-        // Toggle span to the selection
-        toggleSpanToSelection(numberSpans[spanIndexOnActiveLine]);
-
-        return true;
-      });
     });
     selectedSpan.forEach((span) => {
       span.classList.add("locked");
