@@ -52,6 +52,10 @@ function highlighted() {
   );
 }
 
+function hint(selector) {
+  return panel().querySelector(selector).getAttribute("data-hint");
+}
+
 function selectedIncrement() {
   return panel().querySelector(".button--primary").dataset.increment;
 }
@@ -426,6 +430,37 @@ describe("incrementor-tools", () => {
 
       expect(texts()[0]).toBe("1");
       expect(selectedIncrement()).toBe("0.1");
+    });
+
+    it("names the shortcuts from the options in the hints", async () => {
+      await mountTool({
+        settings: {
+          strKbdIncrement: "+",
+          strKbdDecrement: "-",
+          strKbdIncreaseIncrement: "[",
+          strKbdDecreaseIncrement: "]",
+        },
+      });
+
+      expect(hint('[data-increment-move="-1"]')).toBe(
+        "Increase increment, click here or press '['",
+      );
+      expect(hint('[data-increment-move="1"]')).toBe(
+        "Decrease increment, click here or press ']'",
+      );
+      expect(hint("#increment-minus")).toBe(
+        "Decrement, click here or press '-'",
+      );
+      expect(hint("#increment-plus")).toBe(
+        "Increment, click here or press '+'",
+      );
+
+      const [onChange] = chrome.storage.onChanged.addListener.mock.calls[0];
+      onChange({ strKbdIncrement: { oldValue: "+", newValue: "!" } });
+
+      expect(hint("#increment-plus")).toBe(
+        "Increment, click here or press '!'",
+      );
     });
 
     it("keeps the default shortcuts when nothing is stored", async () => {

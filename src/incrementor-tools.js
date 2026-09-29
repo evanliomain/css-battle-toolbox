@@ -46,9 +46,10 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
   onCleanup(() => observer.disconnect());
 
   // Add incrementor tool bar
-  const panel = htmlToElement(template({ leftKey, rightKey, upKey, downKey }));
+  const panel = htmlToElement(template());
   container.insertAdjacentElement("afterend", panel);
   onCleanup(() => panel.remove());
+  refreshHints();
 
   toggleIncrementSelection();
 
@@ -194,7 +195,7 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
   )();
 
   // Increment tool bar template
-  function template({ leftKey, rightKey, upKey, downKey }) {
+  function template() {
     return `<div class="incrementor-panel">
     <div class="hstack" style="display: flex; gap: 0.25rem; align-items: center; justify-content: flex-start; flex-direction: row;">
       <h3 class="header__title">Increment by</h3>
@@ -204,7 +205,6 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
       <button
         type="button" class="button button--mini button--command hint--bottom"
         data-increment-move="-1"
-        data-hint="Increase increment, click here or press '${leftKey}'"
       >
         <
       </button>
@@ -222,7 +222,6 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
       <button
         type="button" class="button button--mini button--command hint--bottom-left"
         data-increment-move="1"
-        data-hint="Decrease increment, click here or press '${rightKey}'"
       >
         >
       </button>
@@ -232,7 +231,6 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
         type="button"
         id="increment-minus"
         class="button button--mini button--command hint--bottom-left"
-        data-hint="Decrement, click here or press '${downKey}'"
         >
         -
         </button>
@@ -240,7 +238,6 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
         type="button"
         id="increment-plus"
         class="button button--mini button--command hint--bottom-left"
-        data-hint="Increment, click here or press '${upKey}'"
       >
       +
       </button>
@@ -468,6 +465,20 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
     leftKey = settings?.strKbdIncreaseIncrement ?? leftKey;
     rightKey = settings?.strKbdDecreaseIncrement ?? rightKey;
     toggleKey = settings?.strKbdToggleIncrement ?? toggleKey;
+    refreshHints();
+  }
+
+  // The hints name the shortcuts, which the options can change at any time.
+  function refreshHints() {
+    const hints = {
+      '[data-increment-move="-1"]': `Increase increment, click here or press '${leftKey}'`,
+      '[data-increment-move="1"]': `Decrease increment, click here or press '${rightKey}'`,
+      "#increment-minus": `Decrement, click here or press '${downKey}'`,
+      "#increment-plus": `Increment, click here or press '${upKey}'`,
+    };
+    Object.entries(hints).forEach(([selector, hint]) =>
+      panel.querySelector(selector).setAttribute("data-hint", hint),
+    );
   }
 
   // Leaves the editor without our highlight classes when a navigation tears the
