@@ -260,45 +260,33 @@ function getUnitValues(px, unit, unitValue) {
 }
 
 function displayResults(result) {
-  const container = document.getElementById("unit-minify-result");
-  container.replaceChildren();
-  container.insertAdjacentElement(
-    "afterbegin",
-    htmlToElement(resultTemplate(result)),
-  );
+  const grid = htmlToElement(`
+    <div style="display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr; font-family: monospace; text-align: end;"></div>`);
+  result.forEach(({ pixelOffset, string }) => {
+    // Set as text and copied by a listener: an angle row repeats what the user
+    // typed, and a quote in it broke the inline onclick this used to be.
+    const value = htmlToElement(`
+      <span class="dropdown-menu__item" style="cursor: pointer; padding: 0;"></span>`);
+    value.textContent = string;
+    value.title = `Click to copy ${string}`;
+    value.addEventListener("click", () =>
+      navigator.clipboard.writeText(string),
+    );
+
+    const offset = htmlToElement(`
+      <span style="color: var(--clr-text-lightest-final);"></span>`);
+    offset.textContent = formatOffset(pixelOffset);
+
+    grid.append(value, offset);
+  });
+  document.getElementById("unit-minify-result").replaceChildren(grid);
 }
 
-function resultTemplate(result) {
-  return `
-  <div
-    style="display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr; font-family: monospace; text-align: end;">
-    ${result
-      .map(({ pixelOffset, string }) => ({
-        string,
-        pixelOffset:
-          0 === pixelOffset
-            ? ""
-            : pixelOffset > 0
-              ? `+${pixelOffset}px`
-              : `${pixelOffset}px`,
-      }))
-      .map(
-        ({ pixelOffset, string }) => `
-    <span
-      class="dropdown-menu__item" style="cursor: pointer; padding: 0;"
-      onclick="navigator.clipboard.writeText('${string}')"
-      title="Click to copy ${string}"
-    >
-      ${string}
-    </span>
-    <span style="color: var(--clr-text-lightest-final);">
-      ${pixelOffset}
-    </span>
-    `,
-      )
-      .join("")}
-  </div>
-  `;
+function formatOffset(pixelOffset) {
+  if (0 === pixelOffset) {
+    return "";
+  }
+  return pixelOffset > 0 ? `+${pixelOffset}px` : `${pixelOffset}px`;
 }
 
 function minifyAllPx() {
