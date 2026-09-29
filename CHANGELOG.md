@@ -4,6 +4,7 @@
 - Output tool: Keep your Target on output and Grid defaults when CssBattle renders its checkboxes late
 - Increment tool: Fix the crash when entering increment mode before clicking into the editor
 - Increment tool: Moving to another line no longer leaves the previous line's number highlighted, and incremented along
+- Increment tool: The button hints now show your own keyboard shortcuts, not the default ones
 
 # 1.2.6
 
