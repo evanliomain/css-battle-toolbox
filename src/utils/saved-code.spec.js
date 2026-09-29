@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  * @vitest-environment-options {"url": "https://cssbattle.dev/play/123"}
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   loadSavedCode,
   readEditorCode,
@@ -18,6 +18,7 @@ function cmEditor(html) {
 
 describe("saved-code", () => {
   afterEach(() => {
+    vi.restoreAllMocks();
     window.localStorage.clear();
     document.body.innerHTML = "";
   });
@@ -32,6 +33,33 @@ describe("saved-code", () => {
     expect(window.localStorage.getItem("cbt-lastCode-123")).toBe("<p></p>");
     expect(loadSavedCode()).toBe("<p></p>");
     expect(loadSavedCode("124")).toBeNull();
+  });
+
+  it("keys the code on the id it is given", () => {
+    expect(savedCodeKey("abc")).toBe("cbt-lastCode-abc");
+  });
+
+  it("reads nothing when the storage is not available", () => {
+    window.localStorage.setItem("cbt-lastCode-123", "<p></p>");
+    // Chrome throws on localStorage access when site data is blocked.
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new DOMException("denied", "SecurityError");
+    });
+
+    expect(loadSavedCode()).toBeNull();
+  });
+
+  it("does not throw when the code cannot be saved", () => {
+    vi.spyOn(console, "debug").mockImplementation(() => {});
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("full", "QuotaExceededError");
+    });
+
+    expect(() => saveCode("<p></p>")).not.toThrow();
+    expect(console.debug).toHaveBeenCalledWith(
+      "[cbt] could not save the code",
+      expect.any(DOMException),
+    );
   });
 
   it("keeps the line breaks between CodeMirror lines, empty ones included", () => {

@@ -46,6 +46,7 @@ describe("reset-tools", () => {
     vi.restoreAllMocks();
     vi.useRealTimers();
     window.localStorage.clear();
+    window.history.replaceState({}, "", "/play/123");
     document.body.innerHTML = "";
   });
 
@@ -116,5 +117,79 @@ describe("reset-tools", () => {
     await tick(600);
 
     expect(editor().textContent).toBe("<a></a>");
+  });
+
+  it("falls back on its own template when none is set in the options", async () => {
+    chrome.storage.sync.get.mockResolvedValue({});
+
+    await import("./reset-tools.js");
+    await tick(600);
+
+    expect(editor().textContent).toContain("background: ;");
+  });
+
+  it("keys a long target id on the raw string, as cssbattle does", async () => {
+    window.history.replaceState({}, "", "/play/abcdefgh");
+    window.localStorage.setItem("lastCode-abcdefgh", USER_CODE);
+
+    await import("./reset-tools.js");
+    await tick(600);
+
+    expect(editor().textContent).toBe(BOILERPLATE);
+  });
+
+  it("keys a short target id on its number", async () => {
+    window.history.replaceState({}, "", "/play/007");
+    window.localStorage.setItem("lastCode-7", USER_CODE);
+
+    await import("./reset-tools.js");
+    await tick(600);
+
+    expect(editor().textContent).toBe(BOILERPLATE);
+  });
+
+  it("never resets while the storage cannot be read", async () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new DOMException("denied", "SecurityError");
+    });
+
+    await import("./reset-tools.js");
+    await tick(600);
+
+    expect(editor().textContent).toBe(BOILERPLATE);
+  });
+
+  it("backs off when cssbattle saves code while the reset settles", async () => {
+    await import("./reset-tools.js");
+    await tick(100);
+    window.localStorage.setItem("lastCode-123", USER_CODE);
+    await tick(600);
+
+    expect(editor().textContent).toBe(BOILERPLATE);
+  });
+
+  it("keeps what the user typed while the reset settled", async () => {
+    await import("./reset-tools.js");
+    await tick(100);
+    editor().textContent = "<a></a>";
+    await tick(600);
+
+    expect(editor().textContent).toBe("<a></a>");
+    expect(chrome.storage.sync.get).toHaveBeenCalled();
+  });
+
+  it("drops a reset still settling when the user leaves the battle", async () => {
+    editor().textContent = "";
+
+    await import("./reset-tools.js");
+    // The boilerplate shows up just before the URL poll notices the navigation,
+    // so the reset is still settling when the mount is torn down.
+    await tick(150);
+    editor().textContent = BOILERPLATE;
+    window.history.replaceState({}, "", "/leaderboard");
+    await tick(1000);
+
+    expect(editor().textContent).toBe(BOILERPLATE);
+    expect(chrome.storage.sync.get).not.toHaveBeenCalled();
   });
 });

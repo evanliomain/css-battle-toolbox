@@ -2,9 +2,10 @@
  * @vitest-environment jsdom
  * @vitest-environment-options {"url": "https://cssbattle.dev/play/123"}
  */
-import { afterEach, describe, expect, it } from "vitest";
-import { createGhost, mirrorFlags, syncGhost } from "./ghost-frame";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createGhost, fitOverlay, mirrorFlags, syncGhost } from "./ghost-frame";
 import { OWN } from "./ghost-sheet";
+import { createHiddenLayers, HIDE_SHEET_ID } from "./hidden-layers";
 
 /** Stands in for cssbattle's output iframe: same-origin, written from code. */
 function renderFrame(html) {
@@ -29,6 +30,7 @@ function ghostOf(realDoc) {
 
 afterEach(() => {
   document.body.innerHTML = "";
+  vi.restoreAllMocks();
 });
 
 describe("the ghost frame", () => {
@@ -137,5 +139,197 @@ describe("the ghost frame", () => {
     targetContainer.classList.remove("display-outline");
     mirrorFlags(root, targetContainer);
     expect(root.hasAttribute("data-cbt-outline")).toBe(false);
+  });
+
+  it("stays in quirks mode when the render is", () => {
+    const realDoc = renderFrame(`<html><body></body></html>`);
+    const { ghostDoc } = ghostOf(realDoc);
+
+    expect(realDoc.compatMode).toBe("BackCompat");
+    expect(ghostDoc.compatMode).toBe("BackCompat");
+  });
+
+  it("gives the clone a head when the render has none", () => {
+    const realDoc = renderFrame(`<!doctype html><html><body></body></html>`);
+    realDoc.head.remove();
+    const { root } = ghostOf(realDoc);
+
+    expect(root.firstElementChild.localName).toBe("head");
+    expect(root.querySelector("head > base")).not.toBeNull();
+    // The render itself is left as it was.
+    expect(realDoc.head).toBeNull();
+  });
+
+  it("copies the sheets the render adopted, but not the hide sheet", () => {
+    const realDoc = renderFrame(`<!doctype html><html><body></body></html>`);
+    const player = new realDoc.defaultView.CSSStyleSheet();
+    player.replaceSync("p { color: red; }");
+    realDoc.adoptedStyleSheets = [player];
+
+    const hidden = createHiddenLayers(
+      realDoc.defaultView.frameElement,
+      realDoc,
+    );
+    hidden.toggle(":root");
+    hidden.apply();
+    expect(realDoc.adoptedStyleSheets).toHaveLength(2);
+
+    const { root } = ghostOf(realDoc);
+    const adopted = root.querySelector(`head > style[${OWN}]:not([id])`);
+
+    expect(adopted.textContent).toBe("p { color: red; }");
+    expect(root.outerHTML).not.toContain("opacity: 0");
+  });
+
+  it("adds no style for adopted sheets when there are only its own", () => {
+    const realDoc = renderFrame(`<!doctype html><html><body></body></html>`);
+    const hidden = createHiddenLayers(
+      realDoc.defaultView.frameElement,
+      realDoc,
+    );
+    hidden.toggle(":root");
+    hidden.apply();
+
+    const { root } = ghostOf(realDoc);
+
+    expect(root.querySelectorAll("head > style")).toHaveLength(1);
+  });
+
+  it("leaves the fallback hide element out of the clone", () => {
+    const realDoc = renderFrame(
+      `<!doctype html><html><head><style id="${HIDE_SHEET_ID}">p{opacity:0}</style></head><body></body></html>`,
+    );
+    const { root } = ghostOf(realDoc);
+
+    expect(root.querySelector(`#${HIDE_SHEET_ID}`)).toBeNull();
+    expect(realDoc.getElementById(HIDE_SHEET_ID)).not.toBeNull();
+  });
+
+  it("strips every source from framed content", () => {
+    const realDoc = renderFrame(
+      `<!doctype html><html><body><iframe srcdoc="<p>"></iframe><object data="a.svg"></object><embed src="b.swf"></body></html>`,
+    );
+    const { root } = ghostOf(realDoc);
+
+    root.querySelectorAll("iframe,object,embed").forEach((embedded) => {
+      expect(embedded.getAttributeNames()).toEqual([]);
+    });
+  });
+
+  it("restarts every animation at the phase of the render", () => {
+    const realDoc = renderFrame(
+      `<!doctype html><html><body><p></p><i></i></body></html>`,
+    );
+    const container = document.createElement("div");
+    document.body.insertAdjacentElement("beforeend", container);
+    const { ghostDoc } = createGhost(container, realDoc);
+
+    // jsdom runs no animation, so each document answers with fakes: the render
+    // has two running on <p>, the fresh clone only restarted one of them.
+    const ghostAnimation = { currentTime: 0 };
+    realDoc.defaultView.Element.prototype.getAnimations = function () {
+      return "p" === this.localName
+        ? [{ currentTime: 1250 }, { currentTime: 40 }]
+        : [];
+    };
+    ghostDoc.defaultView.Element.prototype.getAnimations = function () {
+      return "p" === this.localName ? [ghostAnimation] : [];
+    };
+
+    syncGhost(ghostDoc, realDoc);
+
+    expect(ghostAnimation.currentTime).toBe(1250);
+  });
+
+  it("carries the scroll position over", () => {
+    const realDoc = renderFrame(`<!doctype html><html><body></body></html>`);
+    const container = document.createElement("div");
+    document.body.insertAdjacentElement("beforeend", container);
+    const { ghostDoc } = createGhost(container, realDoc);
+
+    // jsdom defines no scrolling element.
+    const target = { scrollTop: 0, scrollLeft: 0 };
+    Object.defineProperty(realDoc, "scrollingElement", {
+      configurable: true,
+      value: { scrollTop: 30, scrollLeft: 12 },
+    });
+    Object.defineProperty(ghostDoc, "scrollingElement", {
+      configurable: true,
+      value: target,
+    });
+
+    syncGhost(ghostDoc, realDoc);
+
+    expect(target).toEqual({ scrollTop: 30, scrollLeft: 12 });
+  });
+
+  it("skips the scroll when only the render can scroll", () => {
+    const realDoc = renderFrame(`<!doctype html><html><body></body></html>`);
+    Object.defineProperty(realDoc, "scrollingElement", {
+      configurable: true,
+      value: { scrollTop: 30, scrollLeft: 12 },
+    });
+
+    expect(() => ghostOf(realDoc)).not.toThrow();
+  });
+});
+
+describe("the overlay size", () => {
+  function overlay() {
+    return document.createElement("div");
+  }
+
+  it("matches the viewport of the render", () => {
+    const box = overlay();
+
+    fitOverlay(box, {
+      clientWidth: 400,
+      clientHeight: 300,
+      offsetWidth: 404,
+      offsetHeight: 304,
+    });
+
+    expect(box.style.width).toBe("400px");
+    expect(box.style.height).toBe("300px");
+  });
+
+  it("falls back on the offset size of an inline iframe", () => {
+    const box = overlay();
+
+    fitOverlay(box, {
+      clientWidth: 0,
+      clientHeight: 0,
+      offsetWidth: 400,
+      offsetHeight: 300,
+    });
+
+    expect(box.style.width).toBe("400px");
+    expect(box.style.height).toBe("300px");
+  });
+
+  it("says so when the render has no size at all", () => {
+    const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const box = overlay();
+
+    fitOverlay(box, document.createElement("iframe"));
+
+    expect(debug).toHaveBeenCalledWith(
+      "[cbt] dom-tools: the render has no size, ghost left empty",
+    );
+    expect(box.style.width).toBe("0px");
+    expect(box.style.height).toBe("0px");
+  });
+
+  it("says so when only one side is empty", () => {
+    const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
+
+    fitOverlay(overlay(), {
+      clientWidth: 400,
+      clientHeight: 0,
+      offsetWidth: 400,
+      offsetHeight: 0,
+    });
+
+    expect(debug).toHaveBeenCalledOnce();
   });
 });

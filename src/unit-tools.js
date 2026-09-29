@@ -313,6 +313,8 @@ function maxifyAllPx() {
 
   changeCode(() =>
     code.replace(RE_UNITS, (unit) => {
+      // RE_UNITS leaves px out and every match starts with a digit, so this never hits.
+      /* v8 ignore next 3 */
       if (unit.endsWith("px") || unit.startsWith("#")) {
         return unit;
       }

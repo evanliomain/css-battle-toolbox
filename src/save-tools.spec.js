@@ -42,6 +42,7 @@ describe("save-tools", () => {
     vi.restoreAllMocks();
     vi.useRealTimers();
     window.localStorage.clear();
+    window.history.replaceState({}, "", "/play/123");
     document.body.innerHTML = "";
   });
 
@@ -77,5 +78,84 @@ describe("save-tools", () => {
     await tick(400);
 
     expect(saved()).toBe("<p></p>");
+  });
+
+  it("saves once for a burst of keystrokes", async () => {
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+
+    type("<p>");
+    await tick(100);
+    type("<p></p>");
+    await tick(100);
+    type("<p></p><i>");
+    await tick(400);
+
+    expect(setItem).toHaveBeenCalledOnce();
+    expect(saved()).toBe("<p></p><i>");
+  });
+
+  it("saves what is pending when the tab is hidden", async () => {
+    const visibility = vi
+      .spyOn(document, "visibilityState", "get")
+      .mockReturnValue("hidden");
+    type("<p></p>");
+    // Lets the observer run, so the save is pending on the timer this time.
+    await tick(0);
+
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    expect(saved()).toBe("<p></p>");
+    visibility.mockRestore();
+  });
+
+  it("waits for the pause when the tab comes back into view", async () => {
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+    type("<p></p>");
+
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    expect(saved()).toBeNull();
+  });
+
+  it("does not save an editor that is only partly rendered", async () => {
+    const gap = document.createElement("div");
+    gap.className = "cm-gap";
+    type("<p></p>");
+    document.querySelector("[contenteditable]").append(gap);
+
+    await tick(400);
+
+    // Only the lines in view are in the DOM: saving now would truncate the code.
+    expect(saved()).toBeNull();
+  });
+
+  it("keeps the last keystrokes when the mount is torn down", async () => {
+    type("<p></p>");
+    // Same battle under another path: a navigation for the router, but the
+    // code still belongs to the id it was typed on.
+    window.history.replaceState({}, "", "/play/123/");
+    await tick(200);
+
+    expect(saved()).toBe("<p></p>");
+  });
+
+  it("does not save a battle's code under the next one", async () => {
+    type("<p></p>");
+    window.history.replaceState({}, "", "/play/456");
+    await tick(200);
+
+    expect(saved()).toBeNull();
+    expect(window.localStorage.getItem("cbt-lastCode-456")).toBeNull();
+  });
+
+  it("stops watching the editor once the user left the battle", async () => {
+    window.history.replaceState({}, "", "/leaderboard");
+    await tick(200);
+
+    type("<p></p>");
+    window.dispatchEvent(new Event("pagehide"));
+    await tick(400);
+
+    expect(window.localStorage.length).toBe(0);
   });
 });

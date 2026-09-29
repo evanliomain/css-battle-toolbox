@@ -104,6 +104,8 @@ function unCheckSlideNCompare(config, onCleanup) {
     const input = document.querySelector(
       '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"]) input',
     );
+    /* v8 ignore if -- unreachable: our own options, appended just before this
+       poll starts, are checkboxes inside labels in this very hstack. */
     if (null === node || null === label || null === input) {
       return false;
     }
@@ -148,6 +150,8 @@ function displayDiff(config, onCleanup) {
     const label = document.querySelector(
       ".container__item--output .header__extra-info .hstack label:nth-child(2)",
     );
+    /* v8 ignore if -- unreachable: the four options appended just before this
+       poll starts always give the hstack a second label. */
     if (null === label) {
       return false;
     }
