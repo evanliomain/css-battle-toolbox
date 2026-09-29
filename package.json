@@ -13,10 +13,12 @@
     "watch": "tsc && vite build && npm run copy-assets && npm run copy-preview && vite build --watch --emptyOutDir false",
     "preview": "vite preview",
     "test": "vitest",
+    "coverage": "vitest run --coverage",
     "release": "bash scripts/release.sh"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.2.1",
+    "@vitest/coverage-v8": "^4.0.5",
     "jsdom": "^29.1.1",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",

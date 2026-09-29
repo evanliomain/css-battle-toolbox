@@ -24,3 +24,6 @@ css-battle-toolbox.zip
 *.njsproj
 *.sln
 *.sw?
+
+# Test coverage
+coverage
