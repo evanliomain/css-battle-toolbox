@@ -137,12 +137,19 @@ function computeColor() {
     });
 }
 
+/**
+ * Reads the red, green and blue of a hex color, long or short, alpha or not.
+ * Splitting `#f00` in pairs used to give `[255, 0]`, with no blue at all.
+ */
+function parseHex(color) {
+  let hex = color.trim().replace(/^#/, "");
+  if (hex.length <= 4) {
+    hex = hex.replace(/./g, "$&$&");
+  }
+  return (hex.match(/../g) ?? []).slice(0, 3).map((n) => parseInt(n, 16));
+}
+
 function findColors(background, target) {
-  const parseHex = (color) =>
-    color
-      .substr(1)
-      .match(/.{1,2}/g)
-      .map((n) => parseInt(n, 16));
   const colors = [];
   const bg = parseHex(background);
   const fg = parseHex(target);

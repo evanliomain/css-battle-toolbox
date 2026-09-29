@@ -11,6 +11,7 @@
 - Unit tool: Leave out the units your browser does not support, instead of showing `Infinitycap`
 - Unit tool: List every value within the tolerance before the close ones, shortest first
 - Core: A tool that fails to start is fully undone before it retries, so it never shows up twice
+- Color tool: Accept short hex colors like `#f00`, and colors with an alpha
 
 # 1.2.6
 
