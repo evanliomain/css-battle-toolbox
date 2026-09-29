@@ -111,6 +111,7 @@ describe("unit-tools", () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     vi.useRealTimers();
+    delete navigator.clipboard;
     // The next test's router starts from wherever this one left the URL.
     window.history.replaceState({}, "", "/play/123");
     document.body.innerHTML = "";
@@ -270,6 +271,25 @@ describe("unit-tools", () => {
       type("unit-input-background", input);
 
       expect(results()).toEqual(expected.map((value) => [value, ""]));
+    });
+
+    it("copies a value on click, whatever the user typed", async () => {
+      const writeText = vi.fn(() => Promise.resolve());
+      Object.defineProperty(navigator, "clipboard", {
+        value: { writeText },
+        configurable: true,
+      });
+      await load();
+
+      // The first angle row is the input as typed, quote included.
+      type("unit-input-background", "9'0deg");
+      const [typed] = document.querySelectorAll("#unit-minify-result span");
+      expect(typed.textContent).toBe("9'0deg");
+      expect(typed.title).toBe("Click to copy 9'0deg");
+
+      typed.click();
+
+      expect(writeText).toHaveBeenCalledWith("9'0deg");
     });
 
     it("shows nothing when the angle unit is not at the end", async () => {

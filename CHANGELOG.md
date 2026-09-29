@@ -16,6 +16,7 @@
 - Leaderboard tool: No more `null` for empty slots, or as your rank on a battle you have not played
 - Leaderboard tool: Players tied on a rank each get their own line, instead of one merged `dan,eve` line
 - Score tool: The top solution gets its Copy button however CssBattle adds it to the page
+- Unit tool: Clicking a result copies it even when what you typed has a quote in it
 
 # 1.2.6
 
