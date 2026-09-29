@@ -7,6 +7,7 @@
 - Increment tool: The button hints now show your own keyboard shortcuts, not the default ones
 - Increment tool: Clicking a number selects it as soon as increment mode is on, and no longer once it is off
 - Unit tool: The px buttons convert decimal values whole, `1.5em` became `1.80px`
+- Unit tool: A value rounded to 0 shows as `0in`, instead of `.n`
 
 # 1.2.6
 

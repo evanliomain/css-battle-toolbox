@@ -213,6 +213,17 @@ describe("unit-tools", () => {
       expect(offsets.slice(firstInexact).every((o) => "" !== o)).toBe(true);
     });
 
+    it("drops the leading 0 of a decimal, and nothing else", async () => {
+      await load();
+
+      type("unit-input-background", "0.4px");
+
+      const found = results().map(([value]) => value);
+      expect(found).toContain(".4px");
+      expect(found).toContain("0in");
+      expect(found).not.toContain(".n");
+    });
+
     it("shows nothing for a zero length", async () => {
       await load();
 

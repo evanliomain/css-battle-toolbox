@@ -243,7 +243,8 @@ function getUnitValues(px, unit, unitValue) {
   const pixelOffset = clampPrecision(unitValue * multiplier - px);
   return {
     unitValue,
-    string: `${unitValue}${name}`.replace(/^0./, "."),
+    // Drops the leading 0 of a decimal only: `0in` must not turn into `.n`.
+    string: `${unitValue}${name}`.replace(/^0\./, "."),
     pixelOffset,
   };
 }
