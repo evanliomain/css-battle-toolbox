@@ -161,6 +161,23 @@ describe("leaderboard-tools", () => {
     expect(iframe.isConnected).toBe(false);
   });
 
+  it("shows a player's name as text, never as markup", async () => {
+    await import("./leaderboard-tools.js");
+    await tick(0);
+    const name = `<img src=x onerror="alert(1)">`;
+    const doc = loadScraper(scraper(), fullLeaderboard());
+    // Set as text, the way cssbattle renders a name it got from its API.
+    doc.querySelector(".leader__info__1 .name-link").textContent = name;
+    await tick(300);
+
+    const first = document.querySelector(".item__content ol li");
+    expect(first.querySelectorAll("span")[1].textContent).toBe(name);
+    expect(first.querySelectorAll("img")).toHaveLength(1);
+    expect(first.querySelector("img").getAttribute("alt")).toBe(
+      `${name} avatar`,
+    );
+  });
+
   it("waits for the leaderboard to render inside the scraper", async () => {
     await import("./leaderboard-tools.js");
     await tick(0);
