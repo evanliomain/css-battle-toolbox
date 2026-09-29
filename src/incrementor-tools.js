@@ -149,8 +149,11 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
         break;
       case "ArrowUp":
       case "ArrowDown":
+        // The active line only moves once the editor handled the key. Leave
+        // the highlight to the new line: re-highlighting the old one below
+        // kept a number of each line highlighted, so both got incremented.
         setTimeout(highlightFirstNumberOnLine, 0);
-        break;
+        return;
 
       case upKey:
         modifyNumber(1);
@@ -422,6 +425,7 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
       return;
     }
 
+    getAllNumberSpans().forEach((span) => highlightElement(span, false));
     const numberSpans = getNumberSpansFromLine(activeLine);
 
     if (0 < numberSpans.length) {
