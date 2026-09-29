@@ -92,15 +92,19 @@ function integrateLeaderboard(id, refs, onCleanup, signal) {
 
       // Scraped values are other players' text: set them as text and
       // attributes, never parse them as HTML, or a name could inject markup.
-      const rank = htmlToElement(`
+      // A player who never played this battle has no rank, and a battle with
+      // few players has empty slots: show nothing there rather than "null".
+      if (null !== results.selfRank) {
+        const rank = htmlToElement(`
             <span style="letter-spacing: 0.3px; font-size: var(--font-size-2); font-family: var(--font-base); font-weight: 500; text-align: left; line-height: 1.4; font-style: normal; text-transform: none; word-break: initial; color: var(--clr-text-light);"></span>
             `);
-      rank.textContent = `${results.selfRank}`;
-      refs.statsHstack.append(rank);
-      onCleanup(() => rank.remove());
+        rank.textContent = `${results.selfRank}`;
+        refs.statsHstack.append(rank);
+        onCleanup(() => rank.remove());
+      }
 
       const list = document.createElement("ol");
-      list.append(...tops.map(renderTop));
+      list.append(...tops.filter(({ name }) => null !== name).map(renderTop));
       refs.outputContent.append(list);
       onCleanup(() => list.remove());
     })

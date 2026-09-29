@@ -196,6 +196,21 @@ describe("leaderboard-tools", () => {
     expect(scraper()).toBeNull();
   });
 
+  it("lists only the players there are, and no rank for a newcomer", async () => {
+    await import("./leaderboard-tools.js");
+    await tick(0);
+
+    loadScraper(
+      scraper(),
+      `${podium(1, { chars: 101, name: "ana" })}${podium(2, { chars: 102, name: "bob" })}`,
+    );
+    await tick(300);
+
+    expect(listed().map(({ name }) => name)).toEqual(["ana", "bob"]);
+    expect(document.body.textContent).not.toContain("null");
+    expect(rank()).toBeNull();
+  });
+
   it("keeps every match when players tie on the same rank", async () => {
     await import("./leaderboard-tools.js");
     await tick(0);
@@ -234,7 +249,7 @@ describe("leaderboard-tools", () => {
     loadScraper(iframe, fullLeaderboard());
     await tick(300);
 
-    expect(rank().textContent.trim()).toBe("null");
+    expect(rank()).toBeNull();
     expect(listed().map(({ name }) => name)).toEqual(PLAYERS);
   });
 

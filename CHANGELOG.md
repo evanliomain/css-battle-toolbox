@@ -13,6 +13,7 @@
 - Core: A tool that fails to start is fully undone before it retries, so it never shows up twice
 - Color tool: Accept short hex colors like `#f00`, and colors with an alpha
 - Color tool: Each suggestion previews the exact color it gives, no longer a rounded one
+- Leaderboard tool: No more `null` for empty slots, or as your rank on a battle you have not played
 
 # 1.2.6
 
