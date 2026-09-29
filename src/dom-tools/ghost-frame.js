@@ -179,6 +179,8 @@ function copyAnimations(pairs) {
   }
 
   pairs.forEach(([real, ghost]) => {
+    // Defensive only: the pairs are taken from two identical trees.
+    /* v8 ignore if -- @preserve */
     if (undefined === ghost) {
       return;
     }

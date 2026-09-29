@@ -196,4 +196,123 @@ describe("the hidden layers of a render", () => {
     hidden.dispose();
     expect(doc.getElementById(HIDE_SHEET_ID)).toBeNull();
   });
+
+  it("falls back to a style element where constructing a sheet throws", () => {
+    const { doc } = renderFrame();
+    const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const frame = {
+      contentWindow: {
+        CSSStyleSheet: class {
+          constructor() {
+            throw new TypeError("Illegal constructor");
+          }
+        },
+      },
+    };
+    const hidden = createHiddenLayers(frame, doc);
+
+    hidden.toggle(":root>:nth-child(2)");
+    hidden.apply();
+
+    expect(debug).toHaveBeenCalledOnce();
+    expect(adopted(doc)).toHaveLength(0);
+    expect(doc.head.lastElementChild.id).toBe(HIDE_SHEET_ID);
+  });
+
+  it("falls back to a style element when the render has no window yet", () => {
+    const { doc } = renderFrame();
+    const hidden = createHiddenLayers({ contentWindow: null }, doc);
+
+    hidden.toggle(":root");
+    hidden.apply();
+
+    expect(doc.getElementById(HIDE_SHEET_ID)).not.toBeNull();
+  });
+
+  it("puts the style element on the root of a render with no head", () => {
+    const { doc } = renderFrame();
+    doc.head.remove();
+    const hidden = createHiddenLayers({ contentWindow: {} }, doc);
+
+    hidden.toggle(":root");
+    hidden.apply();
+
+    expect(doc.documentElement.lastElementChild.id).toBe(HIDE_SHEET_ID);
+  });
+
+  it("writes the style element only when the set changed", () => {
+    const { doc } = renderFrame();
+    const hidden = createHiddenLayers({ contentWindow: {} }, doc);
+
+    hidden.toggle(":root");
+    hidden.apply();
+    const style = doc.getElementById(HIDE_SHEET_ID);
+    const observer = new doc.defaultView.MutationObserver(() => {});
+    observer.observe(doc, { childList: true, subtree: true, characterData: true });
+
+    // In this fallback a needless write would wake the tool's own observer.
+    hidden.apply();
+    expect(observer.takeRecords()).toHaveLength(0);
+
+    hidden.toggle(":root>:nth-child(2)");
+    hidden.apply();
+    expect(observer.takeRecords()).not.toHaveLength(0);
+    expect(doc.getElementById(HIDE_SHEET_ID)).toBe(style);
+    expect(style.textContent).toContain(":root>:nth-child(2)");
+    observer.disconnect();
+  });
+
+  it("puts the style element back after the render dropped it", () => {
+    const { doc } = renderFrame();
+    const hidden = createHiddenLayers({ contentWindow: {} }, doc);
+
+    hidden.toggle(":root");
+    hidden.apply();
+    doc.getElementById(HIDE_SHEET_ID).remove();
+    hidden.apply();
+
+    expect(doc.getElementById(HIDE_SHEET_ID)?.textContent).toContain(
+      "opacity: 0 !important",
+    );
+  });
+
+  it("keeps the render's own adopted sheets when it detaches", () => {
+    const { frame, doc } = renderFrame();
+    const player = new frame.contentWindow.CSSStyleSheet();
+    doc.adoptedStyleSheets = [player];
+    const hidden = createHiddenLayers(frame, doc);
+
+    hidden.toggle(":root");
+    hidden.apply();
+    expect(adopted(doc)).toEqual([player, expect.anything()]);
+
+    hidden.dispose();
+    expect(adopted(doc)).toEqual([player]);
+  });
+
+  it("leaves the adopted sheets alone once the render dropped its own", () => {
+    const { frame, doc } = renderFrame();
+    const hidden = createHiddenLayers(frame, doc);
+
+    hidden.toggle(":root");
+    hidden.apply();
+    const player = new frame.contentWindow.CSSStyleSheet();
+    const rebuilt = [player];
+    doc.adoptedStyleSheets = rebuilt;
+    hidden.dispose();
+
+    expect(doc.adoptedStyleSheets).toBe(rebuilt);
+  });
+
+  it("detaches from a render that has no adopted sheets at all", () => {
+    const { frame, doc } = renderFrame();
+    const hidden = createHiddenLayers(frame, doc);
+
+    hidden.toggle(":root");
+    hidden.apply();
+    delete doc.adoptedStyleSheets;
+
+    expect(() => hidden.dispose()).not.toThrow();
+    expect(doc.adoptedStyleSheets).toBeUndefined();
+  });
 });

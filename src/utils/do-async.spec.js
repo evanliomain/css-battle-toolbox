@@ -107,6 +107,26 @@ describe("doAsync", () => {
     );
   });
 
+  it("falls back to the callback's own name in the warning", async () => {
+    function waitForEditor() {
+      return false;
+    }
+
+    await doAsync(waitForEditor, { interval: 1, timeout: 5 })();
+
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining("waitForEditor"),
+    );
+  });
+
+  it("calls an inline arrow 'anonymous' in the warning", async () => {
+    await doAsync(() => false, { interval: 1, timeout: 5 })();
+
+    expect(console.warn).toHaveBeenCalledWith(
+      "[cbt] anonymous gave up after 5ms",
+    );
+  });
+
   it("keeps polling a never-ready callback only until the timeout", async () => {
     const cb = vi.fn(() => false);
 

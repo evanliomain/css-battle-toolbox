@@ -35,5 +35,6 @@ mount("character-tools", {
 });
 
 function getMinifiedNbCharacters(editor) {
-  return minify(editor.textContent ?? "").length;
+  // An element's textContent is never null; the fallback is only defensive.
+  return minify(/* v8 ignore next */ editor.textContent ?? "").length;
 }
