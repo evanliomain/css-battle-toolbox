@@ -35,13 +35,20 @@ function renderOutputPanel(body) {
   return doc;
 }
 
-/** Lets the doAsync poll (100ms) and any settle delay run. */
+/**
+ * Lets the doAsync poll (100ms) and any settle delay run.
+ *
+ * Timers are fake so that the pollers every tool leaves running die with the
+ * test: on real timers they fire after jsdom is torn down, throw on `document`,
+ * and vitest fails the run on the unhandled error.
+ */
 function tick(ms = 400) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return vi.advanceTimersByTimeAsync(ms);
 }
 
 describe("tools inject into a cssbattle-shaped DOM", () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.resetModules();
     vi.stubGlobal("chrome", stubChrome());
     vi.spyOn(console, "debug").mockImplementation(() => {});
@@ -51,6 +58,7 @@ describe("tools inject into a cssbattle-shaped DOM", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+    vi.useRealTimers();
     document.body.innerHTML = "";
   });
 

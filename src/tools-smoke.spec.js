@@ -42,6 +42,10 @@ function stubChrome() {
 
 describe("content script entry points", () => {
   beforeEach(() => {
+    // Every import starts pollers that outlive the test. On fake timers they are
+    // dropped with the clock; on real ones they fire after jsdom is torn down,
+    // throw on `document`, and vitest fails the run on the unhandled error.
+    vi.useFakeTimers();
     vi.resetModules();
     vi.stubGlobal("chrome", stubChrome());
     vi.spyOn(console, "debug").mockImplementation(() => {});
