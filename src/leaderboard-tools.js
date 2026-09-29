@@ -90,30 +90,37 @@ function integrateLeaderboard(id, refs, onCleanup, signal) {
         },
       ];
 
+      // Scraped values are other players' text: set them as text and
+      // attributes, never parse them as HTML, or a name could inject markup.
       const rank = htmlToElement(`
-            <span style="letter-spacing: 0.3px; font-size: var(--font-size-2); font-family: var(--font-base); font-weight: 500; text-align: left; line-height: 1.4; font-style: normal; text-transform: none; word-break: initial; color: var(--clr-text-light);">
-            ${results.selfRank}
-            </span>
+            <span style="letter-spacing: 0.3px; font-size: var(--font-size-2); font-family: var(--font-base); font-weight: 500; text-align: left; line-height: 1.4; font-style: normal; text-transform: none; word-break: initial; color: var(--clr-text-light);"></span>
             `);
+      rank.textContent = `${results.selfRank}`;
       refs.statsHstack.append(rank);
       onCleanup(() => rank.remove());
 
-      const list = htmlToElement(
-        `<ol>${tops
-          .map(
-            ({ chars, name, img }) => `
-            <li>
-            <span>${chars}</span>
-            <img src="${img}" alt="${name} avatar" width="15" height="15" style="border-radius: 50%;">
-            <span>${name}</span>
-            </li>`,
-          )
-          .join("")}</ol>`,
-      );
+      const list = document.createElement("ol");
+      list.append(...tops.map(renderTop));
       refs.outputContent.append(list);
       onCleanup(() => list.remove());
     })
     .catch(() => {});
+}
+
+function renderTop({ chars, name, img }) {
+  const item = htmlToElement(`
+    <li>
+    <span></span>
+    <img width="15" height="15" style="border-radius: 50%;">
+    <span></span>
+    </li>`);
+  const [charsSpan, nameSpan] = item.querySelectorAll("span");
+  charsSpan.textContent = `${chars}`;
+  nameSpan.textContent = `${name}`;
+  const avatar = item.querySelector("img");
+  avatar.setAttribute("src", `${img}`);
+  avatar.setAttribute("alt", `${name} avatar`);
+  return item;
 }
 
 /**

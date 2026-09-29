@@ -1,5 +1,7 @@
 # 1.2.7
 
+- Leaderboard tool: Show player names as plain text, so a name can no longer inject HTML into the battle page
+
 # 1.2.6
 
 - DOM tool: Refacto of the outline DOM to build a ghost iframe, so they follow transforms, inherited transforms and any border shape
