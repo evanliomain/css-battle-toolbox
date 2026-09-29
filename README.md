@@ -68,16 +68,19 @@ In order to develop and see changes, you should run and serve the extension loca
 
 The script compares `package.json` and `CHANGELOG.md` with the version online on the Chrome Web Store. If they are ahead, it runs the tests and the build, then pushes a `X.Y.Z` tag. Otherwise it stops. Use `DRY_RUN=1 npm run release` to run every check without tagging.
 
-The tag triggers the `Release` GitHub Action. It uploads the zip on the Chrome Web Store, submits it for review (it goes live once approved), and creates the GitHub release with the changelog section.
+The tag triggers the `Release` GitHub Action. It uploads the zip on the Chrome Web Store, submits it for review (it goes live once approved), and creates the GitHub release with the changelog section, as a pre-release.
 
-### One-time setup of the Chrome Web Store API
+Every hour, the `Announce` GitHub Action checks the version online on the Chrome Web Store. Once the pre-release is live, it posts its changelog section on Discord and turns it into the latest release. GitHub pauses this scheduled action after 60 days without activity on the repository; run it by hand (`gh workflow run announce.yml`) to turn it back on.
+
+### One-time setup of the Chrome Web Store API and Discord
 
 1. In the [Google Cloud console](https://console.cloud.google.com/), create a project and enable the **Chrome Web Store API**
 2. Configure the OAuth consent screen (external) and set its publishing status to **In production**, otherwise the refresh token expires after 7 days. Then create an OAuth client ID of type **Web application**, with `https://developers.google.com/oauthplayground` as authorized redirect URI
 3. In the [OAuth Playground](https://developers.google.com/oauthplayground/), tick "Use your own OAuth credentials" in the settings, authorize the scope `https://www.googleapis.com/auth/chromewebstore`, then exchange the code for a refresh token
 4. Copy the publisher ID from the account section of the [developer dashboard](https://chrome.google.com/webstore/devconsole)
 5. Add these secrets in the GitHub repository settings: `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `CWS_PUBLISHER_ID`
-6. Check them with the `Check Chrome Web Store credentials` GitHub Action (`gh workflow run check-chrome-store.yml`): it only reads the item status, nothing is published
+6. Add the Discord webhook of the announcement room in the `DISCORD_WEBHOOK_URL` secret
+7. Check them with the `Check Chrome Web Store credentials` GitHub Action (`gh workflow run check-chrome-store.yml`): it only reads the item status, nothing is published
 
 ## Message commit
 

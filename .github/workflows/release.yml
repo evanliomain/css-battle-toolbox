@@ -48,4 +48,4 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           bash scripts/changelog-section.sh "$TAG" > release-notes.md
-          gh release create "$TAG" css-battle-toolbox.zip --title "$TAG" --notes-file release-notes.md
+          gh release create "$TAG" css-battle-toolbox.zip --title "$TAG" --notes-file release-notes.md --prerelease
