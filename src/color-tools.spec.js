@@ -147,6 +147,42 @@ describe("color-tools", () => {
     );
   });
 
+  it.each([["#f00"], ["#f00f"], ["#ff0000ff"], [" #FF0000 "]])(
+    "reads the target %j like #ff0000",
+    async (target) => {
+      renderTargetPanel();
+      await import("./color-tools.js");
+      await tick();
+
+      type("target", target);
+
+      expect(results()).toEqual([["#f00", "(0)"]]);
+    },
+  );
+
+  it("reads a short background too", async () => {
+    renderTargetPanel();
+    await import("./color-tools.js");
+    await tick();
+
+    type("background", "#00f");
+    type("target", "#ff0000");
+
+    expect(results()).toEqual([["#f00", "(0)"]]);
+  });
+
+  it("shows nothing for a color that is not hex", async () => {
+    renderTargetPanel();
+    await import("./color-tools.js");
+    await tick();
+
+    type("target", "#");
+    expect(results()).toEqual([]);
+
+    type("target", "red");
+    expect(results()).toEqual([]);
+  });
+
   it("suggests translucent colors, keeping only the closest ones", async () => {
     renderTargetPanel();
     await import("./color-tools.js");
