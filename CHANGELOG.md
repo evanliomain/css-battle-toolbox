@@ -10,6 +10,7 @@
 - Unit tool: A value rounded to 0 shows as `0in`, instead of `.n`
 - Unit tool: Leave out the units your browser does not support, instead of showing `Infinitycap`
 - Unit tool: List every value within the tolerance before the close ones, shortest first
+- Core: A tool that fails to start is fully undone before it retries, so it never shows up twice
 
 # 1.2.6
 
