@@ -14,6 +14,7 @@
 - Color tool: Accept short hex colors like `#f00`, and colors with an alpha
 - Color tool: Each suggestion previews the exact color it gives, no longer a rounded one
 - Leaderboard tool: No more `null` for empty slots, or as your rank on a battle you have not played
+- Leaderboard tool: Players tied on a rank each get their own line, instead of one merged `dan,eve` line
 
 # 1.2.6
 
