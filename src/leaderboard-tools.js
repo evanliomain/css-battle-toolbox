@@ -31,24 +31,12 @@ function integrateLeaderboard(id, refs, onCleanup, signal) {
       { key: "top1", selector: ".leader__info__1 .leader__meta" },
       { key: "top1Name", selector: ".leader__info__1 .name-link" },
       { key: "top1Img", selector: ".leader__info__1 .avatar-link__image img" },
-      {
-        key: "isTop1",
-        selector: ".leader__info__1:has(.avatar-link__image--self)",
-      },
       { key: "top2", selector: ".leader__info__2 .leader__meta" },
       { key: "top2Name", selector: ".leader__info__2 .name-link" },
       { key: "top2Img", selector: ".leader__info__2 .avatar-link__image img" },
-      {
-        key: "isTop2",
-        selector: ".leader__info__2:has(.avatar-link__image--self)",
-      },
       { key: "top3", selector: ".leader__info__3 .leader__meta" },
       { key: "top3Name", selector: ".leader__info__3 .name-link" },
       { key: "top3Img", selector: ".leader__info__3 .avatar-link__image img" },
-      {
-        key: "isTop3",
-        selector: ".leader__info__3:has(.avatar-link__image--self)",
-      },
       {
         key: "selfRank",
         selector: 'tr:has(.avatar-link__image--self) [data-column="Rank"]',
