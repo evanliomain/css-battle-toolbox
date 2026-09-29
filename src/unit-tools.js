@@ -204,14 +204,17 @@ function measureEl(calcDiv, widthValue, fontValue) {
   return width;
 }
 
+// Values within the tolerance first, then the shortest, then the closest. It
+// used to check only the first value's offset, so the order depended on how
+// the sort paired the values up, and exact ones could land after close ones.
 function convertAndSort(px, units, tolerance) {
   return units.map(findBestUnitValue(px, tolerance)).sort((a, b) => {
-    const [lnA, lnB] = [a, b].map((item) => item.string.length);
     const [offsetA, offsetB] = [a.pixelOffset, b.pixelOffset].map(Math.abs);
-    const lnDiff = lnA - lnB;
-    if (offsetA > tolerance) {
-      return 1;
+    const [outA, outB] = [offsetA, offsetB].map((offset) => offset > tolerance);
+    if (outA !== outB) {
+      return outA ? 1 : -1;
     }
+    const lnDiff = a.string.length - b.string.length;
     if (lnDiff === 0) {
       return offsetA - offsetB;
     }
@@ -309,7 +312,7 @@ function minifyAllPx() {
 
       if (pxWidth > 0) {
         result = convertAndSort(pxWidth, units, tolerance).filter(
-          ({ pixelOffset }) => pixelOffset <= tolerance,
+          ({ pixelOffset }) => Math.abs(pixelOffset) <= tolerance,
         );
       }
       if (result.length === 0) {

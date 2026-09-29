@@ -200,17 +200,30 @@ describe("unit-tools", () => {
       expect(results()).toContainEqual(["102q", "+0.38px"]);
     });
 
-    it("pushes values off by more than the tolerance to the end", async () => {
+    it.each(["96px", "10px", "7px"])(
+      "pushes values off by more than the tolerance to the end, for %s",
+      async (length) => {
+        await load();
+
+        type("tolerance-input-background", "0");
+        type("unit-input-background", length);
+
+        const offsets = results().map(([, offset]) => offset);
+        const firstInexact = offsets.findIndex((offset) => "" !== offset);
+        expect(firstInexact).toBeGreaterThan(0);
+        expect(offsets.slice(firstInexact).every((o) => "" !== o)).toBe(true);
+      },
+    );
+
+    it("sorts the values within the tolerance by length", async () => {
       await load();
 
-      type("tolerance-input-background", "0");
-      type("unit-input-background", "96px");
+      type("unit-input-background", "10px");
 
-      const found = results();
-      const offsets = found.map(([, offset]) => offset);
-      const firstInexact = offsets.findIndex((offset) => "" !== offset);
-      expect(firstInexact).toBeGreaterThan(0);
-      expect(offsets.slice(firstInexact).every((o) => "" !== o)).toBe(true);
+      const lengths = results()
+        .filter(([, offset]) => "" === offset)
+        .map(([value]) => value.length);
+      expect(lengths).toEqual([...lengths].sort((a, b) => a - b));
     });
 
     it("drops the leading 0 of a decimal, and nothing else", async () => {
