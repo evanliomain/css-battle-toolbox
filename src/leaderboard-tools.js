@@ -104,11 +104,27 @@ function integrateLeaderboard(id, refs, onCleanup, signal) {
       }
 
       const list = document.createElement("ol");
-      list.append(...tops.filter(({ name }) => null !== name).map(renderTop));
+      list.append(
+        ...tops
+          .flatMap(splitTies)
+          .filter(({ name }) => null !== name)
+          .map(renderTop),
+      );
       refs.outputContent.append(list);
       onCleanup(() => list.remove());
     })
     .catch(() => {});
+}
+
+// Players tied on a rank share its selectors, so each value is then a list:
+// one entry per player, rather than "dan,eve" in a single one.
+function splitTies({ chars, name, img }) {
+  const [allChars, allImgs] = [[chars].flat(), [img].flat()];
+  return [name].flat().map((player, i) => ({
+    chars: allChars[i],
+    name: player,
+    img: allImgs[i],
+  }));
 }
 
 function renderTop({ chars, name, img }) {

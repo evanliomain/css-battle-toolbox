@@ -225,11 +225,10 @@ describe("leaderboard-tools", () => {
     );
     await tick(300);
 
-    expect(listed()[3]).toEqual({
-      chars: "104,104",
-      name: "dan,eve",
-      img: "https://img.test/dan.png,https://img.test/eve.png",
-    });
+    expect(listed().slice(3)).toEqual([
+      { chars: "104", name: "dan", img: "https://img.test/dan.png" },
+      { chars: "104", name: "eve", img: "https://img.test/eve.png" },
+    ]);
   });
 
   it("still lists the top when the selector engine rejects :has()", async () => {
