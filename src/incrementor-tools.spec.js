@@ -323,9 +323,11 @@ describe("incrementor-tools", () => {
       setActiveLine(1);
       await tick(0);
 
-      expect(numbersOf(lines()[1])[0].classList.contains("highlighted")).toBe(
-        true,
-      );
+      // Only the new line's number: the old one would be incremented too.
+      expect(highlighted()).toEqual(["5"]);
+      press("=");
+      expect(texts()).toEqual(["10", "20", "auto"]);
+      expect(numbersOf(lines()[1])[0].textContent).toBe("6");
       expect(window.getSelection().anchorNode).toBe(numbersOf(lines()[1])[0]);
     });
 
@@ -337,6 +339,7 @@ describe("incrementor-tools", () => {
       setActiveLine(2);
       await tick(0);
 
+      expect(highlighted()).toEqual([]);
       expect(window.getSelection().anchorNode).toBe(numbersOf(lines()[2])[0]);
       expect(numbersOf(lines()[2])[0].classList.contains("highlighted")).toBe(
         false,
