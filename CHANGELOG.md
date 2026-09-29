@@ -2,6 +2,7 @@
 
 - Leaderboard tool: Show player names as plain text, so a name can no longer inject HTML into the battle page
 - Output tool: Keep your Target on output and Grid defaults when CssBattle renders its checkboxes late
+- Increment tool: Fix the crash when entering increment mode before clicking into the editor
 
 # 1.2.6
 
