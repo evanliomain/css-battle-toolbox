@@ -196,6 +196,14 @@ describe("color-tools", () => {
       ["#1118", "(0)"],
       ["#777e", "(0)"],
     ]);
+    // Both give the target exactly, and preview it as is, not rounded to #888.
+    document
+      .querySelectorAll("#color-result button")
+      .forEach((button) =>
+        expect(button.style.getPropertyValue("--color")).toBe(
+          "rgb(128 128 128)",
+        ),
+      );
   });
 
   it("mixes the suggestions over the background that was typed", async () => {

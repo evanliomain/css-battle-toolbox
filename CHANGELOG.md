@@ -12,6 +12,7 @@
 - Unit tool: List every value within the tolerance before the close ones, shortest first
 - Core: A tool that fails to start is fully undone before it retries, so it never shows up twice
 - Color tool: Accept short hex colors like `#f00`, and colors with an alpha
+- Color tool: Each suggestion previews the exact color it gives, no longer a rounded one
 
 # 1.2.6
 

@@ -166,7 +166,9 @@ function findColors(background, target) {
           const err = Math.abs(rdiff) + Math.abs(gdiff) + Math.abs(bdiff);
 
           if (err < threshold) {
-            colors.push([toHex([r, g, b, a]), err, toHex(mix)]);
+            // The preview shows the exact mix: as short hex it was rounded
+            // to steps of 17, off from what the color really gives.
+            colors.push([toHex([r, g, b, a]), err, `rgb(${mix.join(" ")})`]);
           }
         }
       }
@@ -191,7 +193,7 @@ function toHex([r, g, b, a]) {
       .padStart(1, "0");
 
   let color = `#${hex(r)}${hex(g)}${hex(b)}`;
-  const alpha = hex(a ?? 255);
+  const alpha = hex(a);
   if ("f" !== alpha) {
     color += alpha;
   }
