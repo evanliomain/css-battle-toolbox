@@ -7,7 +7,6 @@
 #        DRY_RUN=1 npm run release   (every check, no tag, no push)
 set -euo pipefail
 
-EXTENSION_ID="emdpbenabkkocjldgifjkciijdmcflin"
 REPOSITORY="evanliomain/css-battle-toolbox"
 
 cd "$(dirname "$0")/.."
@@ -28,12 +27,7 @@ git fetch --quiet --tags origin master
 # 2. The three versions
 local_version="$(node -p 'require("./package.json").version')"
 changelog_version="$(sed -n -E 's/^# ([0-9]+\.[0-9]+\.[0-9]+)[[:space:]]*$/\1/p' CHANGELOG.md | head -n 1)"
-online_version="$(
-  curl --silent --show-error --fail --location \
-    "https://clients2.google.com/service/update2/crx?response=updatecheck&acceptformat=crx3&prodversion=999&x=id%3D${EXTENSION_ID}%26uc" |
-    sed -n -E 's/.*<updatecheck[^>]* version="([^"]+)".*/\1/p'
-)"
-[ -n "$online_version" ] || fail "Could not read the version online on the Chrome Web Store."
+online_version="$(bash scripts/online-version.sh)"
 
 echo "package.json : $local_version"
 echo "CHANGELOG.md : ${changelog_version:-none}"
