@@ -267,6 +267,28 @@ describe("unit-tools", () => {
       );
     });
 
+    it("reads a decimal px value whole", async () => {
+      await load();
+      setCode("<p style='width:96.0px'></p>");
+
+      document.getElementById("minifyAllPx").click();
+      await tick();
+
+      expect(editor().textContent).toBe("<p style='width:1in'></p>");
+    });
+
+    it("turns a decimal value back into px whole", async () => {
+      await load();
+      setCode("<p style='width:1.5em;margin:.5em'></p>");
+
+      document.getElementById("maxifyAllPx").click();
+      await tick();
+
+      expect(editor().textContent).toBe(
+        "<p style='width:24px;margin:8px'></p>",
+      );
+    });
+
     it("keeps a px value that has no shorter equivalent", async () => {
       await load();
       setCode("<p style='width:7px'></p>");

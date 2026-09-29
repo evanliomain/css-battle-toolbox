@@ -22,8 +22,12 @@ const UNITS = [
 
 const ANGLE_UNITS = ["deg", "rad", "grad", "turn"];
 
+// A whole number: without the optional decimal part, `1.5em` was read as `5em`.
+const NUMBER = "(?:[0-9]*\\.)?[0-9]+";
+
 const RE_UNITS = new RegExp(
-  "[0-9]+(" +
+  NUMBER +
+    "(" +
     UNITS.filter((unit) => !unit.endsWith("px") && !unit.endsWith("in")).join(
       "|",
     ) +
@@ -289,7 +293,7 @@ function resultTemplate(result) {
 function minifyAllPx() {
   const code = document.querySelector("[contenteditable]").innerText;
   changeCode(() =>
-    code.replace(/[0-9]+px/g, (unit) => {
+    code.replace(new RegExp(`${NUMBER}px`, "g"), (unit) => {
       const { font, tolerance } = getInputs(0);
 
       const { units, pxWidth } = measureUnits(getCalcDiv(), unit, font, UNITS);
@@ -313,7 +317,7 @@ function maxifyAllPx() {
 
   changeCode(() =>
     code.replace(RE_UNITS, (unit) => {
-      // RE_UNITS leaves px out and every match starts with a digit, so this never hits.
+      // RE_UNITS leaves px out and every match starts with a number, so this never hits.
       /* v8 ignore next 3 */
       if (unit.endsWith("px") || unit.startsWith("#")) {
         return unit;
