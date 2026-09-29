@@ -180,13 +180,20 @@ function measureUnits(calcDiv, unitValue, fontValue, units) {
 
   return {
     pxWidth: initialWidth,
-    units: units.map((unit) => {
-      const measured = measureEl(calcDiv, `${initialWidth}${unit}`, fontValue);
-      return {
-        name: unit,
-        multiplier: measured / initialWidth,
-      };
-    }, []),
+    units: units
+      .map((unit) => {
+        const measured = measureEl(
+          calcDiv,
+          `${initialWidth}${unit}`,
+          fontValue,
+        );
+        return {
+          name: unit,
+          multiplier: measured / initialWidth,
+        };
+      })
+      // A unit the browser does not know measures 0, which gave `Infinitycap`.
+      .filter(({ multiplier }) => multiplier > 0),
   };
 }
 

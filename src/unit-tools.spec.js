@@ -238,6 +238,10 @@ describe("unit-tools", () => {
       type("unit-input-background", "96px");
 
       expect(results()[0]).toEqual(["1in", ""]);
+      // The unknown unit is left out rather than shown as `Infinitycap`.
+      expect(results().map(([value]) => value)).not.toContainEqual(
+        expect.stringMatching(/cap$/),
+      );
     });
   });
 
