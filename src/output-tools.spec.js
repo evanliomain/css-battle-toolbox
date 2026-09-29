@@ -215,11 +215,45 @@ describe("output-tools", () => {
       const clicks = vi.fn();
       hstack().addEventListener("click", clicks);
 
-      await mountTool({ defaultSlideAndCompare: true, defaultDifference: true });
+      await mountTool({
+        defaultSlideAndCompare: true,
+        defaultDifference: true,
+      });
 
       expect(slideInput().checked).toBe(true);
       expect(diffLabel().querySelector("input").checked).toBe(true);
       expect(clicks).not.toHaveBeenCalled();
+    });
+
+    it("waits for cssbattle's checkboxes, and never takes ours for them", async () => {
+      renderOutputPanel({ options: "" });
+      await mountTool({ defaultTargetOnOutput: true, defaultGrid: true });
+
+      // Our options are the only labels for now: they must be left as they are.
+      expect(option("output-compare-input").checked).toBe(true);
+      expect(option("output-grid-input").checked).toBe(true);
+      expect(hstack().querySelector("[data-hint='Slide and Compare']")).toBe(
+        null,
+      );
+      expect(hstack().querySelector("[data-hint='Show the difference']")).toBe(
+        null,
+      );
+
+      hstack().insertAdjacentHTML(
+        "afterbegin",
+        `<label><input type="checkbox" checked /> Slide</label>
+        <label><input type="checkbox" checked /> Diff</label>`,
+      );
+      await tick();
+
+      expect(slideInput().closest("label").getAttribute("data-hint")).toBe(
+        "Slide and Compare",
+      );
+      expect(diffLabel().getAttribute("data-hint")).toBe("Show the difference");
+      expect(slideInput().checked).toBe(false);
+      expect(diffLabel().querySelector("input").checked).toBe(false);
+      expect(option("output-compare-input").checked).toBe(true);
+      expect(option("output-grid-input").checked).toBe(true);
     });
 
     it("unchecks cssbattle's checkboxes when the settings say off", async () => {
