@@ -1,3 +1,5 @@
+# 1.2.7
+
 # 1.2.6
 
 - DOM tool: Refacto of the outline DOM to build a ghost iframe, so they follow transforms, inherited transforms and any border shape
