@@ -11,6 +11,7 @@ export default defineConfig({
       exclude: ["src/**/*.spec.{js,ts}", "src/vite-env.d.ts"],
       reporter: ["text", "json-summary", "json"],
       reportOnFailure: true,
+      thresholds: { 100: true },
     },
   },
 });
