@@ -281,20 +281,24 @@ describe("mount", () => {
   });
 
   describe("a failing init", () => {
-    it("rolls back what it did, then retries", async () => {
+    it.each([
+      ["an async", true],
+      ["a synchronous", false],
+    ])("rolls back what %s init did, then retries", async (_, isAsync) => {
       const cleanup = vi.fn();
       const signals = [];
       let calls = 0;
-      // Async on purpose: a synchronous throw escapes `Promise.resolve()` in
-      // mount.js and skips this rollback.
-      const init = vi.fn(async (refs, onCleanup, signal) => {
+      function attempt(refs, onCleanup, signal) {
         signals.push(signal);
         onCleanup(cleanup);
         calls += 1;
         if (1 === calls) {
           throw new Error("not yet");
         }
-      });
+      }
+      const init = vi.fn(
+        isAsync ? async (...args) => attempt(...args) : attempt,
+      );
 
       mount("tool", { init });
       await tick(0);

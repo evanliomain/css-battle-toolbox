@@ -118,7 +118,11 @@ export function mount(name, config) {
         signal.addEventListener("abort", abortAttempt, { once: true });
 
         // `init` may be async — a sub-feature reading chrome.storage, typically.
-        return Promise.resolve(init(refs, onCleanup, attempt.signal))
+        // Called inside the executor, so a synchronous throw is rolled back
+        // too, rather than escaping before the `.catch` is attached.
+        return new Promise((resolve) =>
+          resolve(init(refs, onCleanup, attempt.signal)),
+        )
           .then(() => true)
           .catch((error) => {
             attempt.abort();
