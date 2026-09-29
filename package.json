@@ -8,10 +8,12 @@
     "start": "vite",
     "copy-assets": "cp src/options.js src/options-ui.js dist/src && cp -R images dist",
     "copy-preview": "cp src/theme-compare.html dist/src",
-    "build": "tsc && vite build && npm run copy-assets && zip -r css-battle-toolbox.zip dist",
+    "build": "tsc && vite build && npm run copy-assets && npm run zip",
+    "zip": "rm -f css-battle-toolbox.zip && cd dist && zip -qr ../css-battle-toolbox.zip .",
     "watch": "tsc && vite build && npm run copy-assets && npm run copy-preview && vite build --watch --emptyOutDir false",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "release": "bash scripts/release.sh"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.2.1",

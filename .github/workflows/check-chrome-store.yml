@@ -1,0 +1,27 @@
+name: Check Chrome Web Store credentials
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - scripts/chrome-store-api.sh
+      - scripts/check-chrome-store.sh
+      - .github/workflows/check-chrome-store.yml
+
+jobs:
+  check:
+    name: Check credentials
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Read the item status on the Chrome Web Store
+        env:
+          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+          CWS_PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+          CWS_EXTENSION_ID: emdpbenabkkocjldgifjkciijdmcflin
+        run: bash scripts/check-chrome-store.sh
