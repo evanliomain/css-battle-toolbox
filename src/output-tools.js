@@ -39,9 +39,7 @@ mount("output-tools", {
     addOutlineOption(config, refs, onCleanup);
     addBackgroundOption(config, refs, onCleanup);
 
-    // These three wait on nodes owned by cssbattle that show up later, and they
-    // read `label:nth-child(2)` of the hstack we just appended to, so they stay
-    // sequenced after the options above.
+    // These three wait on nodes owned by cssbattle that show up later.
     doAsync(useX2Image(onCleanup), {
       signal,
       name: "output-tools:x2-image",
@@ -93,22 +91,27 @@ function displayBackground(targetContainer) {
   targetContainer.classList.toggle("display-background");
 }
 
+/**
+ * cssbattle's own labels in the output header, leaving ours out: until
+ * cssbattle renders its checkboxes, a plain lookup would land on our options.
+ */
+function cssbattleLabels() {
+  return [
+    ...document.querySelectorAll(
+      ".container__item--output .header__extra-info .hstack label",
+    ),
+  ].filter((label) => null === label.querySelector('[id^="output-"]'));
+}
+
 function unCheckSlideNCompare(config, onCleanup) {
   return () => {
-    const node = document.querySelector(
-      '.container__item--output .header__extra-info .hstack input[type="checkbox"]',
+    const label = cssbattleLabels().find(
+      (l) => null !== l.querySelector('input[type="checkbox"]'),
     );
-    const label = document.querySelector(
-      '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"])',
-    );
-    const input = document.querySelector(
-      '.container__item--output .header__extra-info .hstack label:has(input[type="checkbox"]) input',
-    );
-    /* v8 ignore if -- unreachable: our own options, appended just before this
-       poll starts, are checkboxes inside labels in this very hstack. */
-    if (null === node || null === label || null === input) {
+    if (undefined === label) {
       return false;
     }
+    const input = label.querySelector('input[type="checkbox"]');
 
     const icon = htmlToElement(slideNCompareIcon());
     label.insertAdjacentElement("beforeend", icon);
@@ -122,7 +125,7 @@ function unCheckSlideNCompare(config, onCleanup) {
     // Compare against the current state rather than clicking blindly: this is
     // cssbattle's own checkbox, so a re-mount that clicks again would flip the
     // setting to the opposite of what the user asked for.
-    setChecked(node, config.defaultSlideAndCompare ?? false);
+    setChecked(input, config.defaultSlideAndCompare ?? false);
 
     const marker = document.querySelector('[class^="Preview_previewDistance"]');
 
@@ -147,12 +150,8 @@ function unCheckSlideNCompare(config, onCleanup) {
 
 function displayDiff(config, onCleanup) {
   return () => {
-    const label = document.querySelector(
-      ".container__item--output .header__extra-info .hstack label:nth-child(2)",
-    );
-    /* v8 ignore if -- unreachable: the four options appended just before this
-       poll starts always give the hstack a second label. */
-    if (null === label) {
+    const label = cssbattleLabels()[1];
+    if (undefined === label) {
       return false;
     }
     const icon = htmlToElement(diffIcon());
