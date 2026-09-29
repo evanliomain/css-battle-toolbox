@@ -39,10 +39,12 @@ mount("score-tools:scores", {
   },
 });
 
+const TOP_SCORE = ".top-submission-container:has(.top-submission__author)";
+
 mount("score-tools:top-score", {
   timeout: Infinity,
   selectors: {
-    items: { all: ".top-submission-container:has(.top-submission__author)" },
+    items: { all: TOP_SCORE },
   },
   init({ items }, onCleanup, signal) {
     const buttons = [];
@@ -53,10 +55,12 @@ mount("score-tools:top-score", {
         if (mutation.type === "childList" && 0 < mutation.addedNodes.length) {
           mutation.addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
+              // The added node may be the top solution itself, not a wrapper.
               addCopyTopScoreButtons(
-                node.querySelectorAll(
-                  ".top-submission-container:has(.top-submission__author)",
-                ),
+                [
+                  ...(node.matches(TOP_SCORE) ? [node] : []),
+                  ...node.querySelectorAll(TOP_SCORE),
+                ],
                 buttons,
                 signal,
               );

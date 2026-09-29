@@ -83,7 +83,10 @@ describe("score-tools", () => {
     document.body.innerHTML = `<div class="submissions-list"></div>`;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Tear the mounts down: their observer on `body` outlives the test and
+    // would decorate the next test's nodes.
+    await navigate("/");
     vi.doUnmock("./utils/prettify");
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
@@ -166,7 +169,9 @@ describe("score-tools", () => {
       await import("./score-tools.js");
       await tick(100);
 
-      const [button] = copyButtons(top.querySelector(".top-submission__author"));
+      const [button] = copyButtons(
+        top.querySelector(".top-submission__author"),
+      );
       button.click();
       expect(writeText).toHaveBeenCalledWith(
         `*Top solution by alice: 999*\n\`\`\`${await prettify(CODE)}\`\`\``,
@@ -179,7 +184,7 @@ describe("score-tools", () => {
       document.body.append(topScore("alice", "999", CODE));
       await tick(100);
 
-      // cssbattle renders it inside a wrapper, and the observer looks below the added node.
+      // Inside a wrapper, the observer looks below the added node.
       const wrapper = document.createElement("section");
       const top = topScore("bob", "998", CODE);
       wrapper.append(top);
@@ -187,6 +192,19 @@ describe("score-tools", () => {
       await tick(100);
       // Moving it reports it as added again.
       document.body.append(wrapper);
+      await tick(100);
+
+      expect(copyButtons(top)).toHaveLength(1);
+    });
+
+    it("decorates a top solution added on its own, without a wrapper", async () => {
+      await import("./score-tools.js");
+      await tick();
+      document.body.append(topScore("alice", "999", CODE));
+      await tick(100);
+
+      const top = topScore("bob", "998", CODE);
+      document.body.append(top);
       await tick(100);
 
       expect(copyButtons(top)).toHaveLength(1);
