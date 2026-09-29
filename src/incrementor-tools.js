@@ -282,6 +282,10 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
   }
 
   function moveCursorToLineStart(line) {
+    // No active line (the editor never had focus): no caret to place.
+    if (!line) {
+      return;
+    }
     const selection = window.getSelection();
     const range = document.createRange();
 

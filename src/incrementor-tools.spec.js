@@ -580,11 +580,9 @@ describe("incrementor-tools", () => {
     });
   });
 
-  it("flags the numbers even when no line is active yet", async () => {
+  it("enters increment mode even when no line is active yet", async () => {
     await mountTool();
     setActiveLine();
-    // Placing the caret then throws on the missing line: swallow the error the
-    // listener reports, so this test only looks at what happened before it.
     const errors = [];
     const onError = (event) => {
       event.preventDefault();
@@ -595,9 +593,15 @@ describe("incrementor-tools", () => {
     toggleMode();
     window.removeEventListener("error", onError);
 
+    expect(errors).toEqual([]);
     expect(document.querySelector("[data-type=number]")).not.toBeNull();
     expect(highlighted()).toEqual([]);
-    expect(errors).toHaveLength(1);
+
+    // Once the user clicks into a line, the numbers answer the keys.
+    setActiveLine(0);
+    press("ArrowRight");
+    await tick(0);
+    expect(highlighted()).toEqual(["20"]);
   });
 
   describe("teardown", () => {
