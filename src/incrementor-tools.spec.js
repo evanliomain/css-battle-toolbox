@@ -569,13 +569,36 @@ describe("incrementor-tools", () => {
     it("locks a shift-clicked number, once however often the editor changed", async () => {
       await mountTool();
       toggleMode();
-      // Each change adds another click listener to the same spans.
       await editorChanged();
       await editorChanged();
 
       clickSpan(spans()[1], { shiftKey: true });
 
       expect(spans()[1].classList.contains("locked")).toBe(true);
+    });
+
+    it("answers a click on a number right away, and only in increment mode", async () => {
+      await mountTool();
+      clickSpan(spans()[1]);
+      expect(highlighted()).toEqual([]);
+
+      toggleMode();
+      clickSpan(spans()[1]);
+      expect(highlighted()).toEqual(["20"]);
+
+      toggleMode();
+      clickSpan(spans()[1]);
+      expect(highlighted()).toEqual([]);
+    });
+
+    it("ignores a click beside the numbers", async () => {
+      await mountTool();
+      toggleMode();
+
+      clickSpan(spans()[2]);
+      clickSpan(lines()[0]);
+
+      expect(highlighted()).toEqual(["10"]);
     });
 
     it("ignores a click on a number while no line is active", async () => {
