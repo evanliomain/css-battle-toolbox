@@ -2,7 +2,15 @@
  * @vitest-environment jsdom
  * @vitest-environment-options {"url": "https://cssbattle.dev/play/123"}
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from "vitest";
 
 function stubChrome() {
   return {
@@ -58,6 +66,21 @@ function topScore(author, score, code) {
   return container;
 }
 
+/**
+ * Collects what the page throws — an observer callback, say — so a test can
+ * check nothing did. vitest leaves those errors to a listener of the test's own.
+ */
+function pageErrors() {
+  const errors = [];
+  const listener = (event) => {
+    event.preventDefault();
+    errors.push(event.error);
+  };
+  window.addEventListener("error", listener);
+  onTestFinished(() => window.removeEventListener("error", listener));
+  return errors;
+}
+
 function list() {
   return document.querySelector(".submissions-list");
 }
@@ -106,6 +129,9 @@ describe("score-tools", () => {
       await tick();
 
       const [button] = copyButtons(item);
+      expect(button.innerText).toBe("Copy");
+      // Not a submit button, so a click never submits a form around the list.
+      expect(button.type).toBe("button");
       button.click();
       expect(writeText).toHaveBeenCalledWith("*612.5*");
       // The menu gives up its full width so the button fits on the same row.
@@ -113,15 +139,20 @@ describe("score-tools", () => {
       expect(menu.classList).not.toContain("dropdown-container--full-width");
       expect(menu.style.flexGrow).toBe("1");
       expect(item.style.display).toBe("flex");
+      expect(item.style.gap).toBe("1rem");
+      expect(item.style.justifyContent).toBe("space-between");
+      expect(item.dataset.cbtCopyScore).toBeDefined();
     });
 
     it("decorates submissions added later, once each", async () => {
+      const errors = pageErrors();
       list().append(scoreItem("600"));
       await import("./score-tools.js");
       await tick();
 
       const later = scoreItem("700");
-      list().append(later, document.createTextNode(" "));
+      // A text node reported first must not stop the row after it.
+      list().append(document.createTextNode(" "), later);
       await tick();
       // Moving a row reports it as added again.
       list().append(later);
@@ -130,6 +161,7 @@ describe("score-tools", () => {
 
       expect(copyButtons()).toHaveLength(1);
       expect(copyButtons(later)).toHaveLength(1);
+      expect(errors).toEqual([]);
     });
 
     it("leaves a row without its menu alone, and unmarked", async () => {
@@ -141,6 +173,35 @@ describe("score-tools", () => {
 
       expect(copyButtons()).toEqual([]);
       expect(item.dataset.cbtCopyScore).toBeUndefined();
+    });
+
+    it.each([
+      ["its menu", ".dropdown-container"],
+      ["its score", "p"],
+    ])("still decorates the rows after one without %s", async (_, part) => {
+      const broken = scoreItem("600");
+      broken.querySelector(part).remove();
+      const item = scoreItem("700");
+      list().append(broken, item);
+
+      await import("./score-tools.js");
+      await tick();
+
+      expect(copyButtons(broken)).toEqual([]);
+      expect(copyButtons(item)).toHaveLength(1);
+    });
+
+    it("stops decorating new submissions once the page navigates away", async () => {
+      list().append(scoreItem("600"));
+      await import("./score-tools.js");
+      await tick();
+
+      await navigate("/");
+      const item = scoreItem("600");
+      list().append(item);
+      await tick();
+
+      expect(copyButtons()).toEqual([]);
     });
 
     it("removes its buttons on navigation and adds them back once on return", async () => {
@@ -179,6 +240,7 @@ describe("score-tools", () => {
     });
 
     it("decorates a top solution rendered later anywhere in the page", async () => {
+      const errors = pageErrors();
       await import("./score-tools.js");
       await tick();
       document.body.append(topScore("alice", "999", CODE));
@@ -188,13 +250,15 @@ describe("score-tools", () => {
       const wrapper = document.createElement("section");
       const top = topScore("bob", "998", CODE);
       wrapper.append(top);
-      document.body.append(wrapper, document.createTextNode(" "));
+      // A text node reported first must not stop the wrapper after it.
+      document.body.append(document.createTextNode(" "), wrapper);
       await tick(100);
       // Moving it reports it as added again.
       document.body.append(wrapper);
       await tick(100);
 
       expect(copyButtons(top)).toHaveLength(1);
+      expect(errors).toEqual([]);
     });
 
     it("decorates a top solution added on its own, without a wrapper", async () => {
@@ -210,17 +274,53 @@ describe("score-tools", () => {
       expect(copyButtons(top)).toHaveLength(1);
     });
 
-    it("leaves a top solution without its code alone, and unmarked", async () => {
-      const top = topScore("alice", "999", CODE);
-      top.querySelector(".submissions-list__code").remove();
-      document.body.append(top);
-
+    it("decorates a top solution rendered deep inside the page", async () => {
+      const panel = document.createElement("section");
+      panel.append(document.createElement("div"));
+      document.body.append(topScore("alice", "999", CODE), panel);
       await import("./score-tools.js");
       await tick(100);
 
+      const top = topScore("bob", "998", CODE);
+      panel.firstElementChild.append(top);
+      await tick(100);
+
+      expect(copyButtons(top)).toHaveLength(1);
+    });
+
+    it("removes its button on navigation and adds it back once on return", async () => {
+      const top = topScore("alice", "999", CODE);
+      document.body.append(top);
+      await import("./score-tools.js");
+      await tick(100);
+
+      await navigate("/");
       expect(copyButtons()).toEqual([]);
       expect(top.dataset.cbtCopyScore).toBeUndefined();
+
+      await navigate("/play/123");
+      await tick(100);
+      expect(copyButtons(top)).toHaveLength(1);
     });
+
+    it.each([
+      ["author link", "a"],
+      ["score", ".top-submission__author__score"],
+      ["code", ".submissions-list__code"],
+    ])(
+      "leaves a top solution without its %s alone, and unmarked",
+      async (_, part) => {
+        const top = topScore("alice", "999", CODE);
+        top.querySelector(part).remove();
+        document.body.append(top);
+
+        await import("./score-tools.js");
+        await tick(100);
+
+        expect(copyButtons()).toEqual([]);
+        expect(top.dataset.cbtCopyScore).toBeUndefined();
+      },
+    );
 
     it("adds nothing when the page navigates away while the code is formatted", async () => {
       let format;
@@ -239,5 +339,27 @@ describe("score-tools", () => {
       expect(copyButtons()).toEqual([]);
       expect(top.dataset.cbtCopyScore).toBeUndefined();
     });
+  });
+
+  it("keeps a single Copy button per score when the script is loaded again", async () => {
+    const item = scoreItem("600");
+    list().append(item);
+    const top = topScore("alice", "999", "<div></div>");
+    document.body.append(top);
+    await import("./score-tools.js");
+    await tick(100);
+
+    // What vite's HMR does to a changed content script during `npm start`.
+    await import("./score-tools.js?reload");
+    await tick(100);
+
+    expect(copyButtons(item)).toHaveLength(1);
+    expect(copyButtons(top)).toHaveLength(1);
+    expect(console.debug).toHaveBeenCalledWith(
+      "[cbt] score-tools:scores registered twice, dropping the first mount",
+    );
+    expect(console.debug).toHaveBeenCalledWith(
+      "[cbt] score-tools:top-score registered twice, dropping the first mount",
+    );
   });
 });

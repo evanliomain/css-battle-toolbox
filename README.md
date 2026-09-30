@@ -60,6 +60,14 @@ In order to develop and see changes, you should run and serve the extension loca
 5. Choose `dist` directory as the extension
 6. Modify the code and it should be **reload automatically**.
 
+## Run the tests
+
+1. Run `npm test` to run the unit tests in watch mode
+2. Run `npm run coverage` to check the coverage, it must stay at 100%
+3. Run `npm run mutation` to run the mutation tests with [Stryker](https://stryker-mutator.io/) (needs Node.js 22 or later). The report is in `reports/mutation/mutation-report.html`
+
+The mutation tests run on each pull request and on `master`. They only test again what changed since the last run (plus the static mutants that survived, whose results Stryker cannot keep up to date), and the score is posted on the pull request.
+
 ## Release a new version
 
 1. Set the new version in `package.json` and add its section at the top of `CHANGELOG.md` (`# X.Y.Z`)

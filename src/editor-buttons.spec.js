@@ -22,10 +22,17 @@ function button(label) {
   return buttons().find((b) => label === (b.innerText ?? b.textContent));
 }
 
+/** The buttons options-effect.css hides, which matches on [data-hide="true"]. */
 function hidden() {
   return buttons()
-    .filter((b) => undefined !== b.dataset.hide)
+    .filter((b) => b.matches('[data-hide="true"]'))
     .map((b) => b.innerText ?? b.textContent);
+}
+
+function leaveBattle() {
+  window.history.replaceState({}, "", "/leaderboard");
+  // The SPA router polls the URL every 300ms.
+  return tick(300);
 }
 
 function editor() {
@@ -92,6 +99,64 @@ describe("editor-buttons", () => {
     expect(hidden()).toEqual(["Prettify", "Minify", "a", "b", "c"]);
   });
 
+  it("waits quietly for cssbattle's buttons that have not rendered yet", async () => {
+    renderEditor(["a"]);
+
+    await import("./editor-buttons.js");
+    await tick(1000);
+
+    expect(console.debug).not.toHaveBeenCalled();
+  });
+
+  it("stops looking for a button once it is hidden", async () => {
+    renderEditor(["a", "b", "c", "d"]);
+
+    await import("./editor-buttons.js");
+    await tick(25000);
+
+    expect(console.warn).not.toHaveBeenCalled();
+  });
+
+  it("names the button it gave up waiting for", async () => {
+    renderEditor(["a", "b"]);
+
+    await import("./editor-buttons.js");
+    await tick(20100);
+
+    expect(console.warn.mock.calls).toEqual([
+      ["[cbt] editor-buttons:hide-5 gave up after 20000ms"],
+      ["[cbt] editor-buttons:hide-6 gave up after 20000ms"],
+    ]);
+  });
+
+  it("names itself in the warning when the editor never renders", async () => {
+    document.body.innerHTML = "";
+
+    await import("./editor-buttons.js");
+    await tick(20000);
+
+    expect(console.warn).toHaveBeenCalledWith(
+      "[cbt] editor-buttons gave up after 20000ms",
+    );
+  });
+
+  it("stops waiting for cssbattle's buttons when leaving the battle", async () => {
+    renderEditor(["a"]);
+
+    await import("./editor-buttons.js");
+    await tick();
+    await leaveBattle();
+    document
+      .querySelector(".btn-group")
+      .insertAdjacentHTML(
+        "beforeend",
+        "<button>b</button><button>c</button><button>d</button><button>e</button>",
+      );
+    await tick(100);
+
+    expect(hidden()).toEqual([]);
+  });
+
   it("minifies the code on click", async () => {
     renderEditor([]);
     editor().textContent = "<p>  </p>\n<style>p { margin: 0 }</style>";
@@ -126,9 +191,7 @@ describe("editor-buttons", () => {
     await import("./editor-buttons.js");
     await tick();
 
-    window.history.replaceState({}, "", "/leaderboard");
-    // The SPA router polls the URL every 300ms.
-    await tick(300);
+    await leaveBattle();
 
     expect(buttons().map((b) => b.innerText ?? b.textContent)).toEqual([
       "a",

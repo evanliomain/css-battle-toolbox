@@ -9,10 +9,14 @@ const TEMPLATE = "<style>& { background: red }</style>";
 const USER_CODE = "<p></p><style>p{margin:0}</style>";
 
 function stubChrome() {
+  const options = { strDefaultCode: TEMPLATE };
   return {
     storage: {
       sync: {
-        get: vi.fn(() => Promise.resolve({ strDefaultCode: TEMPLATE })),
+        // Like chrome.storage, only hands back the key asked for.
+        get: vi.fn((key) =>
+          Promise.resolve(key in options ? { [key]: options[key] } : {}),
+        ),
       },
       onChanged: { addListener: vi.fn(), removeListener: vi.fn() },
     },
@@ -55,6 +59,32 @@ describe("reset-tools", () => {
     await tick(600);
 
     expect(editor().textContent).toBe(TEMPLATE);
+  });
+
+  it("waits for the boilerplate to replace the previous battle's code", async () => {
+    // On a client-side navigation the editor still shows the last battle's code.
+    editor().textContent = USER_CODE;
+
+    await import("./reset-tools.js");
+    await tick(500);
+    editor().textContent = BOILERPLATE;
+    await tick(600);
+
+    expect(editor().textContent).toBe(TEMPLATE);
+  });
+
+  it("stops waiting for the boilerplate after 3 seconds", async () => {
+    editor().textContent = USER_CODE;
+
+    await import("./reset-tools.js");
+    await tick(3100);
+    editor().textContent = BOILERPLATE;
+    await tick(600);
+
+    expect(editor().textContent).toBe(BOILERPLATE);
+    expect(console.warn).toHaveBeenCalledWith(
+      "[cbt] reset-tools gave up after 3000ms",
+    );
   });
 
   it("leaves the boilerplate alone while cssbattle has saved code to restore", async () => {
@@ -138,6 +168,16 @@ describe("reset-tools", () => {
     expect(editor().textContent).toBe(BOILERPLATE);
   });
 
+  it("keys a six-character target id on its number", async () => {
+    window.history.replaceState({}, "", "/play/000123");
+    window.localStorage.setItem("lastCode-123", USER_CODE);
+
+    await import("./reset-tools.js");
+    await tick(600);
+
+    expect(editor().textContent).toBe(BOILERPLATE);
+  });
+
   it("keys a short target id on its number", async () => {
     window.history.replaceState({}, "", "/play/007");
     window.localStorage.setItem("lastCode-7", USER_CODE);
@@ -191,5 +231,20 @@ describe("reset-tools", () => {
 
     expect(editor().textContent).toBe(BOILERPLATE);
     expect(chrome.storage.sync.get).not.toHaveBeenCalled();
+  });
+
+  it("leaves no timer behind once the user left the battle mid-settle", async () => {
+    editor().textContent = "";
+
+    await import("./reset-tools.js");
+    await tick(150);
+    editor().textContent = BOILERPLATE;
+    window.history.replaceState({}, "", "/leaderboard");
+    // The URL poll notices the navigation at 300ms, while the reset found at
+    // 200ms still has 200ms to settle.
+    await tick(150);
+
+    // Only the router's own URL poll is left.
+    expect(vi.getTimerCount()).toBe(1);
   });
 });

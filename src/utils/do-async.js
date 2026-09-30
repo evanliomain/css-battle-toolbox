@@ -56,7 +56,14 @@ export function doAsync(cb, options = {}) {
   };
 }
 
-function wait(delay, signal) {
+/**
+ * Resolves after `delay` ms, or as soon as `signal` aborts.
+ *
+ * @param {number} delay
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<void>}
+ */
+export function wait(delay, signal) {
   return new Promise((resolve) => {
     function done() {
       clearTimeout(timer);

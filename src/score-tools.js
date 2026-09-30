@@ -5,7 +5,7 @@ import { prettify } from "./utils/prettify";
 // Marks the rows we already decorated. Both observers below can report the same
 // node more than once — the top-score one watches the whole body subtree — and
 // without this the Copy buttons pile up.
-const DONE = "cbtCopyScore";
+const DONE = "data-cbt-copy-score";
 
 // The submissions list only exists once the player has submitted, which can be
 // minutes into a battle — so these two poll for as long as the page lives
@@ -25,11 +25,8 @@ mount("score-tools:scores", {
     onCleanup(() => removeButtons(buttons));
 
     const observer = new MutationObserver((mutationsList) => {
-      for (const mutation of mutationsList) {
-        // Only "childList" changes matter here (nodes added or removed)
-        if (mutation.type === "childList" && 0 < mutation.addedNodes.length) {
-          addCopyScoreButtons(mutation.addedNodes, buttons);
-        }
+      for (const { addedNodes } of mutationsList) {
+        addCopyScoreButtons(addedNodes, buttons);
       }
     });
     observer.observe(list, { childList: true });
@@ -51,22 +48,19 @@ mount("score-tools:top-score", {
     onCleanup(() => removeButtons(buttons));
 
     const observer = new MutationObserver((mutationsList) => {
-      for (const mutation of mutationsList) {
-        if (mutation.type === "childList" && 0 < mutation.addedNodes.length) {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              // The added node may be the top solution itself, not a wrapper.
-              addCopyTopScoreButtons(
-                [
-                  ...(node.matches(TOP_SCORE) ? [node] : []),
-                  ...node.querySelectorAll(TOP_SCORE),
-                ],
-                buttons,
-                signal,
-              );
-            }
-          });
-        }
+      for (const { addedNodes } of mutationsList) {
+        addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            // The added node may be the top solution itself, not a wrapper.
+            addCopyTopScoreButtons(
+              [node, ...node.querySelectorAll(TOP_SCORE)].filter((n) =>
+                n.matches(TOP_SCORE),
+              ),
+              buttons,
+              signal,
+            );
+          }
+        });
       }
     });
     observer.observe(document.body, { childList: true, subtree: true });
@@ -109,8 +103,9 @@ function addCopyTopScoreButtons(items, buttons, signal) {
     const author = node.querySelector("a");
     const score = node.querySelector("p.top-submission__author__score");
     const code = node.querySelector("p.submissions-list__code");
+    // Always there: TOP_SCORE requires it.
     const host = node.querySelector(".top-submission__author");
-    if (null === author || null === score || null === code || null === host) {
+    if (null === author || null === score || null === code) {
       release(node);
       return;
     }
@@ -147,15 +142,15 @@ function copyButton(message) {
  * decorated. Observer callbacks hand us text nodes too.
  */
 function claim(node) {
-  if (undefined === node.dataset || undefined !== node.dataset[DONE]) {
+  if (undefined === node.dataset || node.hasAttribute(DONE)) {
     return false;
   }
-  node.dataset[DONE] = "";
+  node.toggleAttribute(DONE, true);
   return true;
 }
 
 function release(node) {
-  delete node.dataset[DONE];
+  node.removeAttribute(DONE);
 }
 
 function removeButtons(buttons) {

@@ -247,6 +247,32 @@ describe("minify", () => {
     ["p ~ *>a{color:red", "p ~*>a{color:red"],
     ["p ~ * ~ *{color:red", "p ~* ~*{color:red"],
     ["height: calc(2 * 3px)", "height:calc(2 * 3px"],
+    // Remove html comments
+    ["<p><!-- a comment --></p>", "<p></p>"],
+    // Collapse the spaces between 2 words
+    ["border: solid  red", "border:solid red"],
+    // Trim every leading 0
+    ["margin: 1 00.5", "margin:1 .5"],
+    ["margin: -00.5", "margin:-.5"],
+    // Remove spaces around parentheses
+    ["translate: calc(1px) 1px", "translate:calc(1px)1px"],
+    ["translate: calc(1px );", "translate:calc(1px"],
+    // Remove spaces around /
+    ["font: 9Q /19", "font:9Q/19"],
+    ["font: 9Q/ 19", "font:9Q/19"],
+    // Remove the space before :
+    ["color :red", "color:red"],
+    // Remove spaces around > after & and before *
+    ["<style>& > *{color:red}", "<style>&>*{color:red"],
+    ["& > p{color:red", "&>p{color:red"],
+    // Trim space between a letter and 2 quotes, but only at the end or before them
+    ["font: 14px '';color: red;", "font:14px'';color:red"],
+    ["content: '';color: red;", "content:'';color:red"],
+    // Keep the spaces inside a string
+    ['content: "a ";color: red;', 'content:"a ";color:red'],
+    ["content: 'a ';color: red;", "content:'a ';color:red"],
+    // Trim space between a number with a unit in capitals and a number with dot
+    ["box-shadow: 83PX 0.5PX", "box-shadow:83PX.5PX"],
     [
       `<style>
 p ~   * {

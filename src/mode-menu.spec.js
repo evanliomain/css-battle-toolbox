@@ -44,6 +44,21 @@ function storageListener() {
   return chrome.storage.onChanged.addListener.mock.calls[0][0];
 }
 
+/**
+ * Holds the settings read back instead of resolving it, and returns a getter
+ * for the callback the menu chained on it. Calling that callback directly lets
+ * a test see it throw, where a rejected promise would only surface as an
+ * unhandled rejection.
+ */
+function settingsCallback() {
+  let callback;
+  vi.stubGlobal(
+    "chrome",
+    stubChrome(() => ({ then: (fn) => (callback = fn) })),
+  );
+  return () => callback;
+}
+
 async function leaveBattle() {
   window.history.replaceState({}, "", "/leaderboard");
   await tick(300);
@@ -83,6 +98,29 @@ describe("mode-menu", () => {
     ]);
   });
 
+  it("draws an icon on the menu button and on each entry", async () => {
+    await import("./mode-menu.js");
+    await tick();
+
+    expect(menu().querySelector(".dropdown-btn > svg")).not.toBeNull();
+    expect(
+      document.querySelector("#increment-mode-toggle > svg"),
+    ).not.toBeNull();
+    expect(document.querySelector("#go-to-options > svg")).not.toBeNull();
+  });
+
+  it("names itself in the warning when the editor header never renders", async () => {
+    document.body.innerHTML = "";
+
+    await import("./mode-menu.js");
+    await tick(20000);
+
+    expect(menu()).toBeNull();
+    expect(console.warn).toHaveBeenCalledWith(
+      "[cbt] mode-menu gave up after 20000ms",
+    );
+  });
+
   it("shows Ctrl+Shift+I as the increment shortcut by default", async () => {
     await import("./mode-menu.js");
     await tick();
@@ -104,14 +142,12 @@ describe("mode-menu", () => {
   });
 
   it("keeps the default key when the settings cannot be read", async () => {
-    vi.stubGlobal(
-      "chrome",
-      stubChrome(() => Promise.resolve(undefined)),
-    );
+    const applySettings = settingsCallback();
 
     await import("./mode-menu.js");
     await tick();
 
+    expect(() => applySettings()(undefined)).not.toThrow();
     expect(keyLetter()).toBe("I");
   });
 
@@ -162,6 +198,16 @@ describe("mode-menu", () => {
     expect(checkbox().checked).toBe(false);
   });
 
+  it("closes on a second click on its button", async () => {
+    await import("./mode-menu.js");
+    await tick();
+
+    menu().querySelector(".dropdown-btn").click();
+    menu().querySelector(".dropdown-btn").click();
+
+    expect(checkbox().checked).toBe(false);
+  });
+
   it("keeps the page's own click handlers away from its toggle", async () => {
     await import("./mode-menu.js");
     await tick();
@@ -179,8 +225,19 @@ describe("mode-menu", () => {
     await import("./mode-menu.js");
     await tick();
     menu().remove();
+    // A listener that throws does not throw out of click(): jsdom reports it
+    // on the window instead.
+    const errors = [];
+    const onError = (event) => {
+      errors.push(event.error);
+      event.preventDefault();
+    };
+    window.addEventListener("error", onError);
 
-    expect(() => document.getElementById("outside").click()).not.toThrow();
+    document.getElementById("outside").click();
+
+    window.removeEventListener("error", onError);
+    expect(errors).toEqual([]);
   });
 
   it("removes the menu and its listeners when the battle is left", async () => {
@@ -203,18 +260,13 @@ describe("mode-menu", () => {
   });
 
   it("does not fail when the settings arrive after the battle was left", async () => {
-    let settle;
-    vi.stubGlobal(
-      "chrome",
-      stubChrome(() => new Promise((resolve) => (settle = resolve))),
-    );
+    const applySettings = settingsCallback();
     await import("./mode-menu.js");
     await tick();
 
     await leaveBattle();
-    settle({ strKbdToggleIncrement: "K" });
-    await tick(0);
 
+    expect(() => applySettings()({ strKbdToggleIncrement: "K" })).not.toThrow();
     expect(keyLetter()).toBeUndefined();
   });
 });

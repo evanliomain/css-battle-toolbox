@@ -1,4 +1,5 @@
 import { changeCode } from "./utils/change-code";
+import { wait } from "./utils/do-async";
 import { mount } from "./utils/mount";
 import { targetId } from "./utils/spa-router";
 import { BOILERPLATE, loadSavedCode } from "./utils/saved-code";
@@ -26,7 +27,7 @@ mount("reset-tools", {
       undefined,
   },
   init(refs, onCleanup, signal) {
-    return settle(signal).then(() => {
+    return wait(SETTLE_MS, signal).then(() => {
       if (signal.aborted || hasCssbattleSavedCode()) {
         return;
       }
@@ -61,20 +62,6 @@ function hasCssbattleSavedCode() {
 function levelId() {
   const id = targetId();
   return 6 < id.length ? id : parseInt(id, 10);
-}
-
-function settle(signal) {
-  return new Promise((resolve) => {
-    const timer = setTimeout(resolve, SETTLE_MS);
-    signal.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(timer);
-        resolve();
-      },
-      { once: true },
-    );
-  });
 }
 
 function reset(code) {
