@@ -290,6 +290,9 @@ describe("unit-tools", () => {
       typed.click();
 
       expect(writeText).toHaveBeenCalledWith("9'0deg");
+      expect(document.querySelector("#cbt-snackbar").textContent.trim()).toBe(
+        "9'0deg copied to clipboard",
+      );
     });
 
     it("shows nothing when the angle unit is not at the end", async () => {

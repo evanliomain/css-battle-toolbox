@@ -2,6 +2,7 @@ import { changeCode } from "./utils/change-code";
 import { htmlToElement } from "./utils/html-to-element";
 import { mount } from "./utils/mount";
 import { round } from "./utils/round";
+import { showSnackbar } from "./utils/snackbar";
 
 const UNITS = [
   "px",
@@ -269,9 +270,10 @@ function displayResults(result) {
       <span class="dropdown-menu__item" style="cursor: pointer; padding: 0;"></span>`);
     value.textContent = string;
     value.title = `Click to copy ${string}`;
-    value.addEventListener("click", () =>
-      navigator.clipboard.writeText(string),
-    );
+    value.addEventListener("click", () => {
+      navigator.clipboard.writeText(string);
+      showSnackbar(`${string} copied to clipboard`);
+    });
 
     const offset = htmlToElement(`
       <span style="color: var(--clr-text-lightest-final);"></span>`);

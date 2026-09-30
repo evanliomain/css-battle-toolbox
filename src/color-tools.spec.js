@@ -147,6 +147,26 @@ describe("color-tools", () => {
     );
   });
 
+  it("copies a suggestion in upper case and says so, like the site", async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    renderTargetPanel();
+    await import("./color-tools.js");
+    await tick();
+    type("target", "#ff0000");
+
+    document.querySelector("#color-result button").click();
+
+    expect(writeText).toHaveBeenCalledWith("#F00");
+    expect(document.querySelector("#cbt-snackbar").textContent.trim()).toBe(
+      "Color #F00 copied to clipboard",
+    );
+    delete navigator.clipboard;
+  });
+
   it.each([["#f00"], ["#f00f"], ["#ff0000ff"], [" #FF0000 "]])(
     "reads the target %j like #ff0000",
     async (target) => {
