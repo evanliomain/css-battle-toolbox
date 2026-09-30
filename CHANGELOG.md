@@ -1,3 +1,5 @@
+# 1.2.8
+
 # 1.2.7
 
 - Leaderboard tool: Show player names as plain text, so a name can no longer inject HTML into the battle page
