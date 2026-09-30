@@ -154,6 +154,11 @@ body {
       display: none !important;
     }
   }
+  &.hideRuler {
+    #cbt-ruler {
+      display: none !important;
+    }
+  }
   &.hideNumberOfCharacters {
     .item__header .header__extra-info > .hstack > span:nth-child(n + 2) {
       display: none !important;

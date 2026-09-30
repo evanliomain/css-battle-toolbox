@@ -43,6 +43,7 @@ export default defineManifest(async (env) => ({
         "src/options-effect.js",
         "src/incrementor-tools.js",
         "src/target-tools.js",
+        "src/ruler-tools.js",
         "src/leaderboard-tools.js",
         "src/dom-tools.js",
         "src/mode-menu.js",

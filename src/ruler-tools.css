@@ -1,0 +1,59 @@
+.container__item--target .item__content {
+  position: relative;
+}
+
+/*
+ * Styled after cssbattle's Slide & Compare, but with our own classes: theirs are
+ * hashed and change on each deploy. `--clr-measurement` is only set inside the
+ * output preview, so the target falls back on the site's global red.
+ */
+#cbt-ruler {
+  --cbt-ruler-color: var(--clr-measurement, var(--clr-red));
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.cbt-ruler__line {
+  position: absolute;
+  background: var(--cbt-ruler-color);
+}
+
+.cbt-ruler__line--x {
+  top: 0;
+  bottom: 0;
+  left: var(--x);
+  width: 2px;
+}
+
+.cbt-ruler__line--y {
+  left: 0;
+  right: 0;
+  top: var(--y);
+  height: 2px;
+}
+
+.cbt-ruler__distance {
+  position: absolute;
+  padding: 0.2rem;
+  border-radius: 0.3rem;
+  background: var(--cbt-ruler-color);
+  color: #fff;
+  font-weight: 700;
+}
+
+.cbt-ruler__distance--x {
+  top: 100%;
+  left: var(--x);
+  transform: translate(-50%, 0);
+}
+
+.cbt-ruler__distance--y {
+  top: var(--y);
+  left: 0;
+  transform: translate(-40%, -50%);
+}

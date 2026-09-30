@@ -34,6 +34,7 @@ const OPTIONS_KEYS = [
   "hideNbMinifiedCharacters",
   "hideColorMixer",
   "hideUnitGolf",
+  "hideRuler",
   "hideLeaderboard",
 
   "invertDifference",
