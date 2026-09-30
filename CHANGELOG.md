@@ -1,5 +1,7 @@
 # 1.2.8
 
+- Options: Hide Submit and Hide Top solution work again, now that CssBattle dates its battles like `Sep 30, 2026`
+
 # 1.2.7
 
 - Leaderboard tool: Show player names as plain text, so a name can no longer inject HTML into the battle page

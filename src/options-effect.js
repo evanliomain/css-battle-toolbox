@@ -24,10 +24,10 @@ function applySettings(settings) {
 
 mount("options-effect:today", {
   selectors: {
-    battleDate: '[class^="Header_breadcrumbs"] h2',
+    battleDate: '[class^="Header-module"][class$="breadcrumbs"] h2',
   },
   init({ battleDate }, onCleanup) {
-    if (battleDate.innerText !== today()) {
+    if (battleDate.innerText.trim() !== today()) {
       return;
     }
     document.body.classList.add("today");
@@ -35,11 +35,25 @@ mount("options-effect:today", {
   },
 });
 
+// Spelled out by hand rather than with toLocaleDateString, whose short month
+// names vary between locales and ICU versions ("Sep" vs "Sept").
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** Today, dated like cssbattle renders it: "Sep 30, 2026". */
 function today() {
   const today = new Date();
-  const day = String(today.getDate());
-  const month = String(today.getMonth() + 1);
-  const year = today.getFullYear();
-
-  return `${day}/${month}/${year}`;
+  return `${MONTHS[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
 }
