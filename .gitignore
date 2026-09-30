@@ -27,3 +27,7 @@ css-battle-toolbox.zip
 
 # Test coverage
 coverage
+
+# Mutation testing
+reports
+.stryker-tmp*

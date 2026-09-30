@@ -34,16 +34,15 @@ async function formatCSS(css) {
       .chain(replaceAll(/([^\"])"$/g, '$1 ""'))
       .chain(closeBrackets("(", ")"))
       .chain(closeBrackets())
-      // Add missing semi-colon at the end of the properties
-      .chain(replace(/([^;\}])(\s*})/g, "$1;$2"))
       .chain(replaceAll(/(\S)#/g, "$1 #"))
       .chain(replaceAll(/(\d)\-/g, "$1 -"))
       .chain(replaceAll(/\)\-/g, ") -"))
       .chain(replaceAll(/%(\S)/g, "% $1"))
       .chain(replaceAll(/\/(\S)/g, "/ $1"))
       .chain(replaceAll(/(\S)\//g, "$1 /"))
-      .chain(replaceAll(/(\.\d+)(\.\d+)/g, "$1 $2"))
-      .chain(replaceAll(/(\d+)([a-zA-Z]+)\.(\d)/g, "$1$2 .$3"))
+      .chain(replaceAll(/(\.\d+)(?=\.\d)/g, "$1 "))
+      // Separate a letter and a number with dot: solid.6lh => solid .6lh
+      .chain(replaceAll(/([a-zA-Z])\.(\d)/g, "$1 .$2"))
       // Prettify css with prettier
       .chain(awaitFn(prettifyCss))
       // Add space between hexa color and .

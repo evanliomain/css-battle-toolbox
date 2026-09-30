@@ -17,6 +17,9 @@
 - Leaderboard tool: Players tied on a rank each get their own line, instead of one merged `dan,eve` line
 - Score tool: The top solution gets its Copy button however CssBattle adds it to the page
 - Unit tool: Clicking a result copies it even when what you typed has a quote in it
+- Prettify: Keep the three values of `.5.0.1ch`, the middle `0` was lost
+- Prettify: Separate a decimal glued to a word, `solid.6lh` becomes `solid 0.6lh`
+- Leaderboard tool: A player without avatar or score no longer shows a broken image or `undefined`
 
 # 1.2.6
 

@@ -5,6 +5,8 @@ import manifest from "./manifest.config";
 export default defineConfig({
   plugins: [crx({ manifest })],
   test: {
+    // Only the project specs, not the copies in Stryker sandboxes
+    include: ["src/**/*.spec.{js,ts}"],
     coverage: {
       provider: "v8",
       include: ["src/**/*.{js,ts}"],

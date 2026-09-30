@@ -61,57 +61,43 @@ function integrateLeaderboard(id, refs, onCleanup, signal) {
       if (signal.aborted) {
         return;
       }
-      const tops = [
-        { chars: results.top1, name: results.top1Name, img: results.top1Img },
-        { chars: results.top2, name: results.top2Name, img: results.top2Img },
-        { chars: results.top3, name: results.top3Name, img: results.top3Img },
-        { chars: results.top4, name: results.top4Name, img: results.top4Img },
-        { chars: results.top5, name: results.top5Name, img: results.top5Img },
-        { chars: results.top6, name: results.top6Name, img: results.top6Img },
-        { chars: results.top7, name: results.top7Name, img: results.top7Img },
-        { chars: results.top8, name: results.top8Name, img: results.top8Img },
-        { chars: results.top9, name: results.top9Name, img: results.top9Img },
-        {
-          chars: results.top10,
-          name: results.top10Name,
-          img: results.top10Img,
-        },
-      ];
+      const tops = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => ({
+        chars: results[`top${i}`],
+        name: results[`top${i}Name`],
+        img: results[`top${i}Img`],
+      }));
+      const [selfRank] = results.selfRank;
 
       // Scraped values are other players' text: set them as text and
       // attributes, never parse them as HTML, or a name could inject markup.
       // A player who never played this battle has no rank, and a battle with
       // few players has empty slots: show nothing there rather than "null".
-      if (null !== results.selfRank) {
+      if (undefined !== selfRank) {
         const rank = htmlToElement(`
             <span style="letter-spacing: 0.3px; font-size: var(--font-size-2); font-family: var(--font-base); font-weight: 500; text-align: left; line-height: 1.4; font-style: normal; text-transform: none; word-break: initial; color: var(--clr-text-light);"></span>
             `);
-        rank.textContent = `${results.selfRank}`;
+        rank.textContent = selfRank;
         refs.statsHstack.append(rank);
         onCleanup(() => rank.remove());
       }
 
       const list = document.createElement("ol");
-      list.append(
-        ...tops
-          .flatMap(splitTies)
-          .filter(({ name }) => null !== name)
-          .map(renderTop),
-      );
+      list.append(...tops.flatMap(splitTies).map(renderTop));
       refs.outputContent.append(list);
       onCleanup(() => list.remove());
     })
-    .catch(() => {});
+    .catch((error) =>
+      console.debug("[cbt] leaderboard-tools scraping failed", error),
+    );
 }
 
-// Players tied on a rank share its selectors, so each value is then a list:
-// one entry per player, rather than "dan,eve" in a single one.
+// Players tied on a rank share its selectors, so each value is a list: one
+// entry per player, rather than "dan,eve" in a single one.
 function splitTies({ chars, name, img }) {
-  const [allChars, allImgs] = [[chars].flat(), [img].flat()];
-  return [name].flat().map((player, i) => ({
-    chars: allChars[i],
+  return name.map((player, i) => ({
+    chars: chars[i],
     name: player,
-    img: allImgs[i],
+    img: img[i],
   }));
 }
 
@@ -123,11 +109,16 @@ function renderTop({ chars, name, img }) {
     <span></span>
     </li>`);
   const [charsSpan, nameSpan] = item.querySelectorAll("span");
-  charsSpan.textContent = `${chars}`;
-  nameSpan.textContent = `${name}`;
+  charsSpan.textContent = chars ?? "";
+  nameSpan.textContent = name;
   const avatar = item.querySelector("img");
-  avatar.setAttribute("src", `${img}`);
-  avatar.setAttribute("alt", `${name} avatar`);
+  // A player may have no avatar: no image then, rather than a broken one.
+  if (undefined === img) {
+    avatar.remove();
+  } else {
+    avatar.setAttribute("src", img);
+    avatar.setAttribute("alt", `${name} avatar`);
+  }
   return item;
 }
 
@@ -137,9 +128,9 @@ function renderTop({ chars, name, img }) {
  * @param {string} url URL of the SPA page (same origin).
  * @param {string} waitingSelector The selector to wait for before extracting.
  * @param {Array<{key: string, selector: string}>} selectors What to extract.
- * @param {AbortSignal} [signal] Tears the iframe down early.
+ * @param {AbortSignal} signal Tears the iframe down early.
  * @param {number} [timeoutMs] How long to wait for the selectors to show up.
- * @returns {Promise<Object>} { [key]: string | string[] | null }
+ * @returns {Promise<Object>} { [key]: string[] }, one entry per matching node
  */
 async function scrapeSpaViaIframe(
   url,
@@ -161,15 +152,15 @@ async function scrapeSpaViaIframe(
 
   // A `finally` removes the iframe on every exit path. It used to leak whenever
   // waitForSelector timed out, which the caller then swallowed.
-  signal?.addEventListener("abort", () => iframe.remove(), { once: true });
+  signal.addEventListener("abort", () => iframe.remove());
 
   try {
     // 2) Wait for the initial load
     const loaded = new Promise((resolve, reject) => {
       const onLoad = () => resolve();
       const onError = () => reject(new Error(`Iframe load error for ${url}`));
-      iframe.addEventListener("load", onLoad, { once: true });
-      iframe.addEventListener("error", onError, { once: true });
+      iframe.addEventListener("load", onLoad);
+      iframe.addEventListener("error", onError);
     });
 
     document.body.appendChild(iframe);
@@ -194,7 +185,6 @@ async function scrapeSpaViaIframe(
         function settle(fn, value) {
           clearTimeout(timer);
           obs.disconnect();
-          signal?.removeEventListener("abort", onAbort);
           fn(value);
         }
 
@@ -215,7 +205,7 @@ async function scrapeSpaViaIframe(
 
         const onAbort = () =>
           settle(reject, new Error(`Aborted waiting for: ${selector}`));
-        signal?.addEventListener("abort", onAbort, { once: true });
+        signal.addEventListener("abort", onAbort);
       });
 
     // 4) For slow SPAs, wait for the network to settle (best-effort)
@@ -229,23 +219,18 @@ async function scrapeSpaViaIframe(
     const result = {};
 
     await waitForSelector(waitingSelector);
-    for (const sel of selectors) {
+    for (const { key, selector } of selectors) {
+      let nodes = [];
       try {
-        const nodes = rootDoc.querySelectorAll(sel.selector);
-        if (nodes.length > 1 && !sel.selector.endsWith("img")) {
-          result[sel.key] = Array.from(nodes, (n) => n.textContent.trim());
-        } else if (nodes.length > 1 && sel.selector.endsWith("img")) {
-          result[sel.key] = Array.from(nodes, (n) => n.src);
-        } else if (nodes.length === 1 && !sel.selector.endsWith("img")) {
-          result[sel.key] = nodes[0].textContent.trim();
-        } else if (nodes.length === 1 && sel.selector.endsWith("img")) {
-          result[sel.key] = nodes[0].src;
-        } else {
-          result[sel.key] = null;
-        }
+        nodes = rootDoc.querySelectorAll(selector);
       } catch {
-        result[sel.key] = null;
+        // A selector engine without :has() rejects the self rank selector:
+        // leave that one empty, not the whole leaderboard.
       }
+      result[key] = Array.from(
+        nodes,
+        selector.endsWith("img") ? (n) => n.src : (n) => n.textContent.trim(),
+      );
     }
     return result;
   } finally {
@@ -254,7 +239,7 @@ async function scrapeSpaViaIframe(
 }
 
 function throwIfAborted(signal) {
-  if (signal?.aborted) {
+  if (signal.aborted) {
     throw new Error("Aborted");
   }
 }

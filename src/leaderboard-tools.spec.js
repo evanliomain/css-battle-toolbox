@@ -95,8 +95,16 @@ function listed() {
   return [...document.querySelectorAll(".item__content ol li")].map((li) => ({
     chars: li.querySelectorAll("span")[0].textContent,
     name: li.querySelectorAll("span")[1].textContent,
-    img: li.querySelector("img").getAttribute("src"),
+    img: li.querySelector("img")?.getAttribute("src") ?? null,
   }));
+}
+
+/** Why the scraping failed, as told in the console. */
+function scrapingFailure() {
+  const call = console.debug.mock.calls.find(
+    ([message]) => message === "[cbt] leaderboard-tools scraping failed",
+  );
+  return call?.[1].message;
 }
 
 /**
@@ -106,6 +114,14 @@ function listed() {
 async function leaveBattle() {
   window.history.replaceState({}, "", "/leaderboard");
   await tick(300);
+}
+
+/**
+ * The timers still pending, apart from the router's own URL check: whatever the
+ * scraper would keep alive (a timeout, an animation frame) long after its job.
+ */
+function leftRunning() {
+  return vi.getTimerCount() - 1;
 }
 
 // Fake timers, so the pollers every tool leaves running die with the test.
@@ -137,7 +153,10 @@ describe("leaderboard-tools", () => {
 
     const iframe = scraper();
     expect(iframe.src).toBe("https://cssbattle.dev/leaderboard/target/123");
+    expect(iframe.style.position).toBe("fixed");
     expect(iframe.style.width).toBe("0px");
+    expect(iframe.style.height).toBe("0px");
+    expect(iframe.style.border).toBe("0px");
     expect(iframe.style.opacity).toBe("0");
   });
 
@@ -194,6 +213,53 @@ describe("leaderboard-tools", () => {
 
     expect(listed()).toHaveLength(10);
     expect(scraper()).toBeNull();
+    // Done with the page: no pending timeout, no observer still watching it.
+    expect(leftRunning()).toBe(0);
+    const watch = vi.spyOn(doc, "querySelector");
+    doc.body.append(doc.createElement("p"));
+    await tick(0);
+    expect(watch).not.toHaveBeenCalled();
+  });
+
+  it("trims the whitespace around the scraped values", async () => {
+    await import("./leaderboard-tools.js");
+    await tick(0);
+
+    loadScraper(
+      scraper(),
+      `<div class="leader__info__1">
+        <span class="avatar-link__image"><img src="https://img.test/ana.png"></span>
+        <a class="name-link">
+          ana
+        </a>
+        <span class="leader__meta">
+          101
+        </span>
+      </div>
+      <table>
+        ${["dan", "eve"]
+          .map(
+            (name) => `
+          <tr class="leaderboard__user--4">
+            <td><span class="avatar-link__image"><img src="https://img.test/${name}.png"></span></td>
+            <td><a class="name-link">
+              ${name}
+            </a></td>
+            <td data-column="Meta">
+              104
+            </td>
+          </tr>`,
+          )
+          .join("")}
+      </table>`,
+    );
+    await tick(300);
+
+    expect(listed()).toEqual([
+      { chars: "101", name: "ana", img: "https://img.test/ana.png" },
+      { chars: "104", name: "dan", img: "https://img.test/dan.png" },
+      { chars: "104", name: "eve", img: "https://img.test/eve.png" },
+    ]);
   });
 
   it("lists only the players there are, and no rank for a newcomer", async () => {
@@ -209,6 +275,26 @@ describe("leaderboard-tools", () => {
     expect(listed().map(({ name }) => name)).toEqual(["ana", "bob"]);
     expect(document.body.textContent).not.toContain("null");
     expect(rank()).toBeNull();
+  });
+
+  it("shows a player with no avatar and no score", async () => {
+    await import("./leaderboard-tools.js");
+    await tick(0);
+
+    loadScraper(
+      scraper(),
+      `${podium(1, { chars: 101, name: "ana" })}
+      <div class="leader__info__2"><a class="name-link">bob</a></div>`,
+    );
+    await tick(300);
+
+    expect(listed()).toEqual([
+      { chars: "101", name: "ana", img: "https://img.test/ana.png" },
+      { chars: "", name: "bob", img: null },
+    ]);
+    expect(document.body.textContent).not.toContain("undefined");
+    // No broken image for bob either.
+    expect(document.querySelectorAll(".item__content img")).toHaveLength(1);
   });
 
   it("keeps every match when players tie on the same rank", async () => {
@@ -263,6 +349,9 @@ describe("leaderboard-tools", () => {
     expect(rank()).toBeNull();
     expect(listed()).toEqual([]);
     expect(iframe.isConnected).toBe(false);
+    expect(scrapingFailure()).toBe(
+      "Iframe load error for https://cssbattle.dev/leaderboard/target/123",
+    );
   });
 
   it("shows nothing when the leaderboard frame is out of reach", async () => {
@@ -273,10 +362,16 @@ describe("leaderboard-tools", () => {
     // What a browser returns for a frame of another origin.
     Object.defineProperty(iframe, "contentDocument", { value: null });
     iframe.dispatchEvent(new Event("load"));
-    await tick(300);
+    await tick(0);
 
-    expect(listed()).toEqual([]);
+    // Dropped right away, without waiting for the page to settle first.
     expect(iframe.isConnected).toBe(false);
+    expect(leftRunning()).toBe(0);
+    expect(scrapingFailure()).toBe(
+      "Cannot reach the iframe DOM (check the origin matches)",
+    );
+    await tick(300);
+    expect(listed()).toEqual([]);
   });
 
   it("gives up when the leaderboard never renders", async () => {
@@ -291,6 +386,9 @@ describe("leaderboard-tools", () => {
 
     expect(listed()).toEqual([]);
     expect(iframe.isConnected).toBe(false);
+    expect(scrapingFailure()).toBe(
+      "Timeout waiting for selector: .leader__info__1 .leader__meta",
+    );
   });
 
   it("waits for the second stats box before mounting", async () => {
@@ -307,6 +405,20 @@ describe("leaderboard-tools", () => {
     await tick(100);
 
     expect(scraper()).not.toBeNull();
+    // Waiting is the normal case, not an error worth logging on every retry.
+    expect(console.debug).not.toHaveBeenCalled();
+  });
+
+  it("says in the console when it gives up waiting for the battle page", async () => {
+    document.querySelectorAll(".leaderboard-stats-box")[1].remove();
+
+    await import("./leaderboard-tools.js");
+    await tick(20000);
+
+    expect(scraper()).toBeNull();
+    expect(console.warn).toHaveBeenCalledWith(
+      "[cbt] leaderboard-tools gave up after 20000ms",
+    );
   });
 
   it("stays out of the page when the leaderboard is hidden in the options", async () => {
@@ -366,6 +478,20 @@ describe("leaderboard-tools", () => {
     expect(listed()).toEqual([]);
   });
 
+  it("stops at once when a load lands after the battle is left", async () => {
+    await import("./leaderboard-tools.js");
+    await tick(0);
+    const iframe = scraper();
+
+    await leaveBattle();
+    loadScraper(iframe, "");
+    await tick(0);
+
+    // No settle delay, no waiting for a leaderboard nobody will see.
+    expect(leftRunning()).toBe(0);
+    expect(scrapingFailure()).toBe("Aborted");
+  });
+
   it("drops the scraper when the battle is left while the page settles", async () => {
     await import("./leaderboard-tools.js");
     await tick(150);
@@ -381,6 +507,21 @@ describe("leaderboard-tools", () => {
     expect(listed()).toEqual([]);
   });
 
+  it("does not wait for the leaderboard when the battle is left while the page settles", async () => {
+    await import("./leaderboard-tools.js");
+    await tick(150);
+    const iframe = scraper();
+
+    // The SPA shell is still empty when the router notices the navigation.
+    loadScraper(iframe, "");
+    window.history.replaceState({}, "", "/leaderboard");
+    await tick(150);
+    await tick(300);
+
+    expect(iframe.isConnected).toBe(false);
+    expect(leftRunning()).toBe(0);
+  });
+
   it("stops waiting for the leaderboard when the battle is left", async () => {
     await import("./leaderboard-tools.js");
     await tick(0);
@@ -389,6 +530,11 @@ describe("leaderboard-tools", () => {
     await tick(300);
 
     await leaveBattle();
+    // Not even a timeout left to fire 15 seconds later.
+    expect(leftRunning()).toBe(0);
+    expect(scrapingFailure()).toBe(
+      "Aborted waiting for: .leader__info__1 .leader__meta",
+    );
     doc.body.innerHTML = fullLeaderboard();
     await tick(300);
 
@@ -401,6 +547,17 @@ describe("leaderboard-tools", () => {
     await tick(0);
     const doc = loadScraper(scraper(), "");
     await tick(300);
+    // Not even for a moment: the page must not see the list come and go.
+    const touched = [];
+    const touches = new MutationObserver((records) => touched.push(...records));
+    touches.observe(document.querySelectorAll(".leaderboard-stats-box")[1], {
+      childList: true,
+      subtree: true,
+    });
+    touches.observe(document.querySelector(".item__content"), {
+      childList: true,
+      subtree: true,
+    });
 
     doc.body.innerHTML = fullLeaderboard();
     // Lets the scraper's observer see the leaderboard, then leaves before the
@@ -412,5 +569,8 @@ describe("leaderboard-tools", () => {
 
     expect(rank()).toBeNull();
     expect(listed()).toEqual([]);
+    touched.push(...touches.takeRecords());
+    touches.disconnect();
+    expect(touched).toEqual([]);
   });
 });

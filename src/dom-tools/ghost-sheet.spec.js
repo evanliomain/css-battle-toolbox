@@ -1,5 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { ghostCss, HOVER, OUTLINE_FLAG, OWN } from "./ghost-sheet";
+import { DOM_COLOR } from "../utils/dom-color";
+import {
+  DEPTH,
+  ghostCss,
+  HIDDEN,
+  HOVER,
+  OUTLINE_FLAG,
+  OWN,
+} from "./ghost-sheet";
+
+/** The declarations of the first rule whose selector list ends with `selector`. */
+function rule(selector) {
+  const css = ghostCss();
+  const start = css.indexOf(`${selector} {`);
+  return css.slice(start, css.indexOf("}", start));
+}
+
+const RGB = String.raw`rgb\([^)]+\)`;
 
 describe("the ghost stylesheet", () => {
   it("cuts the label layer off from the played code", () => {
@@ -41,5 +58,56 @@ describe("the ghost stylesheet", () => {
 
   it("keeps everything in a layer, so an !important of the player loses", () => {
     expect(ghostCss().startsWith("@layer cbt {")).toBe(true);
+  });
+
+  it("gives each depth the colour of its level in the panel, one rule a line", () => {
+    const depths = ghostCss()
+      .split("\n")
+      .map((line) =>
+        line.match(/^ {2}\[data-cbt-depth="(\d+)"\] \{ --cbt-color: (.+); \}$/),
+      )
+      .filter(Boolean)
+      .map(([, depth, color]) => [Number(depth), color]);
+
+    expect(depths).toEqual(DOM_COLOR.map((color, depth) => [depth, color]));
+    expect(rule(`[${DEPTH}]`)).toContain(
+      "outline: 3px dotted var(--cbt-color) !important;",
+    );
+  });
+
+  it("paints the box model of the hovered layer like the devtools", () => {
+    const hover = rule(`[${HOVER}]`);
+    // One flat gradient per band, painted from the content box outwards.
+    const bands = [
+      ...hover.matchAll(
+        new RegExp(String.raw`linear-gradient\((${RGB}), \1\)`, "g"),
+      ),
+    ].map(([, color]) => color);
+    const margin = hover.match(
+      new RegExp(
+        String.raw`outline: var\(--cbt-margin, 0px\) solid (${RGB}) !important;`,
+      ),
+    );
+
+    expect(bands).toHaveLength(3);
+    expect(margin).not.toBeNull();
+    // Content, padding, border and margin each get their own colour.
+    expect(new Set([...bands, margin[1]]).size).toBe(4);
+    expect(hover).toContain(
+      "background-clip: content-box, padding-box, border-box !important;",
+    );
+  });
+
+  it("greys out the contour and the label of a layer switched off", () => {
+    const off = rule(`[${HIDDEN}]`).match(
+      new RegExp(String.raw`outline-color: (${RGB}) !important;`),
+    );
+    const label = rule(`cbt-label[${HIDDEN}]`);
+
+    expect(off).not.toBeNull();
+    expect(label).toContain(`  color: ${off[1]} !important;`);
+    expect(label).toContain(`-webkit-text-fill-color: ${off[1]} !important;`);
+    // Grey, so it reads apart from every depth colour.
+    expect(DOM_COLOR).not.toContain(off[1]);
   });
 });
