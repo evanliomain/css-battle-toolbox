@@ -74,6 +74,7 @@ describe("options page", () => {
       stored = {
         hideGrid: true,
         hideHeader: false,
+        hideRuler: false,
         nbBrightnessDifference: "4",
         strDefaultCode: "<p></p>",
         strKbdToggleIncrement: "k",
@@ -135,7 +136,7 @@ describe("options page", () => {
       $("save").click();
 
       const [saved] = chrome.storage.sync.set.mock.calls[0];
-      expect(Object.keys(saved)).toHaveLength(40);
+      expect(Object.keys(saved)).toHaveLength(41);
       expect(saved).toMatchObject({
         hideGrid: true,
         hideHeader: false,
