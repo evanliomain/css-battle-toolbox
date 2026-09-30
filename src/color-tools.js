@@ -1,6 +1,7 @@
 import "./color-tools.css";
 import { htmlToElement } from "./utils/html-to-element";
 import { mount } from "./utils/mount";
+import { showSnackbar } from "./utils/snackbar";
 
 mount("color-tools", {
   selectors: {
@@ -119,22 +120,26 @@ function computeColor() {
     .filter(([color, err, mix]) => err <= 1 + minError)
     .filter((_, index) => index < 10)
     .forEach(([color, err, mix]) => {
-      result.insertAdjacentElement(
-        "beforeend",
-        htmlToElement(`
+      const button = htmlToElement(`
         <button
           type="button"
           class="colors-list__color js-target-color"
           style="width: fit-content; --color: ${mix};"
           data-color="${color}"
-          onclick="navigator.clipboard.writeText(this.dataset.color.toUpperCase())"
           title="Click to copy color ${color}, with error from ${target} is ${err}"
         >
           <span>${color}</span>
           <span>(${err.toFixed(0)})</span>
-        </button>`),
-      );
+        </button>`);
+      button.addEventListener("click", () => copyColor(color.toUpperCase()));
+      result.insertAdjacentElement("beforeend", button);
     });
+}
+
+// Same message as the site shows for the target colors.
+function copyColor(color) {
+  navigator.clipboard.writeText(color);
+  showSnackbar(`Color ${color} copied to clipboard`);
 }
 
 /**
