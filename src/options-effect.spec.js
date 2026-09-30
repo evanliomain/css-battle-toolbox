@@ -8,9 +8,9 @@ function tick(ms) {
   return vi.advanceTimersByTimeAsync(ms);
 }
 
-/** The battle header, dated like cssbattle renders it: d/m/yyyy, no padding. */
+/** The battle header, dated like cssbattle renders it: "Sep 7, 2026". */
 function header(date) {
-  document.body.innerHTML = `<div class="Header_breadcrumbs__x1"><h2></h2></div>`;
+  document.body.innerHTML = `<div class="Header-module__x1__breadcrumbs"><h2></h2></div>`;
   // jsdom does not implement innerText; the tool only reads it back.
   document.querySelector("h2").innerText = date;
 }
@@ -88,7 +88,7 @@ describe("options-effect", () => {
   });
 
   it("flags today's battle", async () => {
-    header("7/9/2026");
+    header("Sep 7, 2026");
 
     await load();
 
@@ -96,7 +96,23 @@ describe("options-effect", () => {
   });
 
   it("does not flag another day's battle", async () => {
-    header("6/9/2026");
+    header("Sep 6, 2026");
+
+    await load();
+
+    expect(document.body.classList.contains("today")).toBe(false);
+  });
+
+  it("reads the date even with stray whitespace around it", async () => {
+    header(" Sep 7, 2026\n");
+
+    await load();
+
+    expect(document.body.classList.contains("today")).toBe(true);
+  });
+
+  it("does not mistake the same day of another month for today", async () => {
+    header("Aug 7, 2026");
 
     await load();
 
@@ -104,7 +120,7 @@ describe("options-effect", () => {
   });
 
   it("drops the flag when leaving the battle", async () => {
-    header("7/9/2026");
+    header("Sep 7, 2026");
     await load();
 
     window.history.pushState(null, "", "/daily");
