@@ -136,7 +136,7 @@ describe("options page", () => {
       $("save").click();
 
       const [saved] = chrome.storage.sync.set.mock.calls[0];
-      expect(Object.keys(saved)).toHaveLength(42);
+      expect(Object.keys(saved)).toHaveLength(43);
       expect(saved).toMatchObject({
         hideGrid: true,
         hideHeader: false,
@@ -169,6 +169,106 @@ describe("options page", () => {
       expect($("status").textContent).toBe("Options saved.");
       await tick(750);
       expect($("status").textContent).toBe("");
+    });
+  });
+
+  describe("output tool groups", () => {
+    const DEBUG = {
+      label: "Debug",
+      tools: {
+        slideAndCompare: false,
+        difference: false,
+        targetOnOutput: true,
+        grid: true,
+        outline: true,
+        background: false,
+      },
+    };
+
+    function cards() {
+      return [...document.querySelectorAll("#groupList .group-card")];
+    }
+
+    function toolsOf(card) {
+      return Object.fromEntries(
+        [...card.querySelectorAll("[data-tool]")].map((input) => [
+          input.dataset.tool,
+          input.checked,
+        ]),
+      );
+    }
+
+    function savedGroups() {
+      $("save").click();
+      return chrome.storage.sync.set.mock.lastCall[0].outputGroups;
+    }
+
+    it("starts without any group", async () => {
+      await open();
+
+      expect(cards()).toHaveLength(0);
+      expect(savedGroups()).toEqual([]);
+    });
+
+    it("shows the stored groups", async () => {
+      stored = { outputGroups: [DEBUG, { label: "Bare" }] };
+
+      await open();
+
+      expect(cards()).toHaveLength(2);
+      expect(cards()[0].querySelector(".group-name").value).toBe("Debug");
+      expect(toolsOf(cards()[0])).toEqual(DEBUG.tools);
+      expect(cards()[1].querySelector(".group-name").value).toBe("Bare");
+      expect(Object.values(toolsOf(cards()[1]))).not.toContain(true);
+    });
+
+    it("adds numbered groups with every tool off, ready to be named", async () => {
+      await open();
+
+      $("addGroup").click();
+      $("addGroup").click();
+
+      expect(cards().map((c) => c.querySelector(".group-name").value)).toEqual([
+        "Group 1",
+        "Group 2",
+      ]);
+      expect(Object.values(toolsOf(cards()[1]))).not.toContain(true);
+      expect(document.activeElement).toBe(
+        cards()[1].querySelector(".group-name"),
+      );
+    });
+
+    it("removes a group", async () => {
+      stored = { outputGroups: [DEBUG, { label: "Other", tools: {} }] };
+      await open();
+
+      cards()[0].querySelector(".group-remove").click();
+
+      expect(cards()).toHaveLength(1);
+      expect(savedGroups().map((group) => group.label)).toEqual(["Other"]);
+    });
+
+    it("saves the groups as edited", async () => {
+      await open();
+      $("addGroup").click();
+      const [card] = cards();
+      card.querySelector(".group-name").value = "  Debug ";
+      ["targetOnOutput", "grid", "outline"].forEach((tool) => {
+        card.querySelector(`[data-tool="${tool}"]`).checked = true;
+      });
+
+      expect(savedGroups()).toEqual([DEBUG]);
+      expect(card.querySelector(".group-name").value).toBe("Debug");
+    });
+
+    it("names a group left without a label after its place", async () => {
+      stored = { outputGroups: [DEBUG, DEBUG] };
+      await open();
+      const name = cards()[1].querySelector(".group-name");
+      name.value = "   ";
+
+      expect(savedGroups()[1].label).toBe("Group 2");
+      expect(name.value).toBe("Group 2");
     });
   });
 

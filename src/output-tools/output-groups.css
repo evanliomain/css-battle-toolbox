@@ -1,0 +1,67 @@
+/*
+ * The column is anchored to the render rather than placed inside it: the diff
+ * tool filters .target-container, and cssbattle's own layout around it is
+ * hashed and changes with each deploy.
+ */
+.target-container {
+  anchor-name: --cbt-output;
+}
+
+/*
+ * The output panel's 1.25rem padding is too narrow for the column, which would
+ * then cover the editor's scrollbar. Widen it by the column's room: the editor,
+ * which takes the space left over, gives it up.
+ */
+.container__item--output:has(#output-groups) {
+  --cbt-groups-room: 40px;
+  width: calc(440px + var(--cbt-groups-room));
+
+  > .item__content {
+    padding-left: calc(1.25rem + var(--cbt-groups-room));
+  }
+}
+
+/*
+ * Fixed rather than absolute, so that no scrolling panel clips the column or
+ * its hints, which open to the left over the editor: on the right they would
+ * end up under the render.
+ */
+#output-groups {
+  position: fixed;
+  position-anchor: --cbt-output;
+  position-visibility: anchors-visible;
+  top: anchor(top);
+  right: anchor(left);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-right: 12px;
+}
+
+/* Under the column's id, to win over hint.css's own display. */
+#output-groups .output-group {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--clr-border-brighter, #3a3f4b);
+  border-radius: 50%;
+  background: var(--clr-btn, #2a2f3a);
+  color: var(--clr-text, #e7e9ee);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--clr-brand);
+  }
+
+  &[aria-pressed="true"] {
+    border-color: var(--clr-brand);
+    background: var(--clr-brand);
+    color: #07080b;
+  }
+}

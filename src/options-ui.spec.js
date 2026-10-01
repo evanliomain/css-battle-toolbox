@@ -305,18 +305,24 @@ describe("options-ui", () => {
     it("hides a section, a matrix head or a subhead left without rows", async () => {
       await open();
       const output = fieldset("ph-output");
-      const subhead = output.querySelector(".subhead");
+      const [groups, subhead] = output.querySelectorAll(".subhead");
 
       filterBy("invert difference");
 
       expect(isShown(output)).toBe(true);
       expect(isShown(output.querySelector(".mx-head"))).toBe(false);
+      expect(isShown(groups)).toBe(false);
       expect(isShown(subhead)).toBe(true);
       expect(isShown(fieldset("ph-layout"))).toBe(false);
 
       filterBy("slide and compare");
 
       expect(isShown(output.querySelector(".mx-head"))).toBe(true);
+      expect(isShown(subhead)).toBe(false);
+
+      filterBy("group");
+
+      expect(isShown(groups)).toBe(true);
       expect(isShown(subhead)).toBe(false);
     });
 

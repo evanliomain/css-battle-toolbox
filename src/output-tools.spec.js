@@ -74,6 +74,13 @@ function renderOutputPanel({
     ${extra}`;
 }
 
+/** Hands a storage change to every listener the tool registered. */
+function storageChange(changes) {
+  chrome.storage.onChanged.addListener.mock.calls.forEach(([listener]) =>
+    listener(changes),
+  );
+}
+
 function $(selector) {
   return document.querySelector(selector);
 }
@@ -477,11 +484,10 @@ describe("output-tools", () => {
       renderOutputPanel({ extra: renderPreview() });
       await mountTool({ x2Difference: true });
 
-      const [onChange] = chrome.storage.onChanged.addListener.mock.calls[0];
-      onChange({ x2Difference: { newValue: false } });
+      storageChange({ x2Difference: { newValue: false } });
       expect(preview().src).toBe(X1);
 
-      onChange({ x2Difference: { newValue: true } });
+      storageChange({ x2Difference: { newValue: true } });
       expect(preview().src).toContain("@2x.png");
     });
 
@@ -490,8 +496,7 @@ describe("output-tools", () => {
       await mountTool({ x2Difference: true });
       const before = preview().src;
 
-      const [onChange] = chrome.storage.onChanged.addListener.mock.calls[0];
-      onChange({ defaultGrid: { newValue: true } });
+      storageChange({ defaultGrid: { newValue: true } });
 
       expect(preview().src).toBe(before);
     });
@@ -515,8 +520,10 @@ describe("output-tools", () => {
       expect(document.body.className).toBe("");
       expect(targetContainer().className).toBe("target-container");
       expect(hstack().querySelectorAll("svg")).toHaveLength(0);
-      expect(chrome.storage.onChanged.removeListener).toHaveBeenCalledWith(
-        chrome.storage.onChanged.addListener.mock.calls[0][0],
+      chrome.storage.onChanged.addListener.mock.calls.forEach(([listener]) =>
+        expect(chrome.storage.onChanged.removeListener).toHaveBeenCalledWith(
+          listener,
+        ),
       );
     });
 

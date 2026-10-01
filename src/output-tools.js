@@ -1,4 +1,6 @@
 import "./output-tools.css";
+import { cssbattleLabels, setChecked } from "./output-tools/inputs";
+import { addGroupButtons, GROUPS_ID } from "./output-tools/output-groups";
 import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
 import { mount } from "./utils/mount";
@@ -10,6 +12,7 @@ const INJECTED_IDS = [
   "output-grid-input",
   "output-outline-input",
   "output-background-input",
+  GROUPS_ID,
 ];
 
 mount("output-tools", {
@@ -38,6 +41,7 @@ mount("output-tools", {
     addGridOption(config, refs, onCleanup);
     addOutlineOption(config, refs, onCleanup);
     addBackgroundOption(config, refs, onCleanup);
+    addGroupButtons(config, refs, onCleanup);
 
     // These three wait on nodes owned by cssbattle that show up later.
     doAsync(useX2Image(onCleanup), {
@@ -89,18 +93,6 @@ function displayOutline(targetContainer) {
 
 function displayBackground(targetContainer) {
   targetContainer.classList.toggle("display-background");
-}
-
-/**
- * cssbattle's own labels in the output header, leaving ours out: until
- * cssbattle renders its checkboxes, a plain lookup would land on our options.
- */
-function cssbattleLabels() {
-  return [
-    ...document.querySelectorAll(
-      ".container__item--output .header__extra-info .hstack label",
-    ),
-  ].filter((label) => null === label.querySelector('[id^="output-"]'));
 }
 
 function unCheckSlideNCompare(config, onCleanup) {
@@ -176,13 +168,6 @@ function displayDiff(config, onCleanup) {
 
     return true;
   };
-}
-
-/** Clicks a checkbox only when it is not already in the wanted state. */
-function setChecked(input, checked) {
-  if (input.checked !== checked) {
-    input.click();
-  }
 }
 
 /**

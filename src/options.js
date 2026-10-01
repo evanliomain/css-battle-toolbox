@@ -78,6 +78,7 @@ const saveOptions = () => {
       return [key, document.getElementById(key).checked];
     }),
   );
+  optionValues.outputGroups = readGroups();
   chrome.storage.sync.set(optionValues, () => {
     // Update status to let user know options were saved.
     const status = document.getElementById("status");
@@ -141,6 +142,7 @@ const restoreOptions = () => {
     }
 
     updateToggkeKeyLetter();
+    renderGroups(items.outputGroups ?? []);
   });
 };
 
@@ -154,6 +156,8 @@ document
   .getElementById("strKbdToggleIncrement")
   .addEventListener("input", updateToggkeKeyLetter);
 
+document.getElementById("addGroup").addEventListener("click", addGroup);
+
 function resetCodeTemplate() {
   document.getElementById("strDefaultCode").value = defaultCodeTemplate;
 }
@@ -162,4 +166,61 @@ function updateToggkeKeyLetter() {
   document.getElementById("toggle-key-letter").innerText = document
     .getElementById("strKbdToggleIncrement")
     .value.toUpperCase();
+}
+
+// Output tool groups: one card per group, built from #groupTemplate. The
+// cards are the only copy of the groups until the next save.
+
+function renderGroups(groups) {
+  document.getElementById("groupList").replaceChildren();
+  groups.forEach(appendGroup);
+}
+
+function addGroup() {
+  const count = document.querySelectorAll("#groupList .group-card").length;
+  const name = appendGroup({ label: groupFallbackLabel(count), tools: {} });
+  name.focus();
+  name.select();
+}
+
+/** @returns {HTMLInputElement} The label field of the new card. */
+function appendGroup(group) {
+  const card = document
+    .getElementById("groupTemplate")
+    .content.firstElementChild.cloneNode(true);
+
+  const name = card.querySelector(".group-name");
+  name.value = group.label;
+  card.querySelectorAll("[data-tool]").forEach((input) => {
+    input.checked = true === group.tools?.[input.dataset.tool];
+  });
+  card
+    .querySelector(".group-remove")
+    .addEventListener("click", () => card.remove());
+
+  document.getElementById("groupList").appendChild(card);
+  return name;
+}
+
+/** Reads the cards back, naming a group left without a label. */
+function readGroups() {
+  return [...document.querySelectorAll("#groupList .group-card")].map(
+    (card, i) => {
+      const name = card.querySelector(".group-name");
+      name.value = name.value.trim() || groupFallbackLabel(i);
+      return {
+        label: name.value,
+        tools: Object.fromEntries(
+          [...card.querySelectorAll("[data-tool]")].map((input) => [
+            input.dataset.tool,
+            input.checked,
+          ]),
+        ),
+      };
+    },
+  );
+}
+
+function groupFallbackLabel(index) {
+  return `Group ${index + 1}`;
 }

@@ -666,6 +666,180 @@
         justify-content: flex-end;
       }
 
+      /* ---------- output tool groups ---------- */
+
+      .groups {
+        display: grid;
+        gap: 12px;
+        padding-bottom: 10px;
+      }
+      #groupList {
+        display: grid;
+        gap: 12px;
+      }
+      #groupList:empty {
+        display: none;
+      }
+      .group-card {
+        display: grid;
+        gap: 12px;
+        padding: 12px 14px;
+        background: var(--clr-box-bg);
+        border: 1px solid var(--clr-border-1);
+        border-radius: var(--radius-box);
+      }
+      .group-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .group-name-field {
+        display: grid;
+        flex: 1;
+        gap: 4px;
+        max-width: 280px;
+      }
+      .group-remove {
+        padding: 7px 11px;
+      }
+      .group-body {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 24px;
+      }
+      .group-tools {
+        display: grid;
+        gap: 2px;
+      }
+      .group-tool {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 8px;
+        margin: 0 -8px;
+        border-radius: var(--pill-border-radius);
+        color: var(--clr-text);
+        font-size: var(--font-size-0);
+      }
+      .group-tool:hover {
+        background: var(--clr-highlight);
+      }
+      @media (max-width: 560px) {
+        .group-body {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* The preview is a 400×300 battle at 40%, its layers lit from the
+         toggles of the same card. */
+      .group-preview {
+        position: relative;
+        width: 160px;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        isolation: isolate;
+        border: 1px solid var(--clr-border-brighter);
+        border-radius: var(--pill-border-radius);
+      }
+      .pv-layer {
+        position: absolute;
+        inset: 0;
+        transition: opacity var(--motion);
+      }
+      .pv-output,
+      .pv-target {
+        background: #7dcb61;
+      }
+      .pv-box {
+        position: absolute;
+        top: 30px;
+        left: 20px;
+        width: 120px;
+        height: 60px;
+        border-radius: 8px;
+        background: #444;
+      }
+      .pv-target .pv-box {
+        top: 36px;
+        left: 26px;
+      }
+      .pv-dot {
+        position: absolute;
+        top: 18px;
+        left: 16px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #fff;
+      }
+      .pv-dot + .pv-dot {
+        left: 80px;
+      }
+      .pv-target,
+      .pv-grid,
+      .pv-slider {
+        opacity: 0;
+      }
+      /* #overlay-grid of output-tools.css, scaled down */
+      .pv-grid {
+        background:
+          repeating-linear-gradient(90deg, #0004 0 1.5px, #0000 0 40px),
+          repeating-linear-gradient(#0004 0 1.5px, #0000 0 40px),
+          repeating-linear-gradient(90deg, #0003 0 1px, #0000 0 20px),
+          repeating-linear-gradient(#0003 0 1px, #0000 0 20px);
+      }
+      .pv-slider {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 2px;
+        margin-left: -1px;
+        background: #fff;
+        transition: opacity var(--motion);
+      }
+
+      .group-card:has([data-tool="targetOnOutput"]:checked) .pv-target {
+        opacity: 0.7;
+      }
+      .group-card:has([data-tool="slideAndCompare"]:checked) .pv-target {
+        opacity: 1;
+        clip-path: inset(0 0 0 50%);
+      }
+      .group-card:has([data-tool="slideAndCompare"]:checked) .pv-slider {
+        opacity: 1;
+      }
+      .group-card:has([data-tool="difference"]:checked) .pv-target {
+        opacity: 1;
+        mix-blend-mode: difference;
+      }
+      .group-card:has([data-tool="grid"]:checked) .pv-grid {
+        opacity: 1;
+      }
+      .pv-ghost :is(.pv-box, .pv-dot) {
+        background: none;
+      }
+      /* One colour per depth, like the outline and background of dom-tools */
+      .group-card:has([data-tool="outline"]:checked) .pv-ghost {
+        .pv-box {
+          outline: 2px dotted #ff3d7f;
+        }
+        .pv-dot {
+          outline: 2px dotted #3da5ff;
+        }
+      }
+      .group-card:has([data-tool="background"]:checked) .pv-ghost {
+        .pv-box {
+          background-image: linear-gradient(#ff3d7f66 0 0);
+        }
+        .pv-dot {
+          background-image: linear-gradient(#3da5ff66 0 0);
+        }
+      }
+
       /* ---------- buttons ---------- */
 
       button {
@@ -992,6 +1166,114 @@
               ></span>
             </div>
           </div>
+
+          <p class="subhead">Groups</p>
+          <div class="rows">
+            <div
+              class="groups opt-item"
+              data-search="groups group preset output tools"
+            >
+              <p class="opt-help">
+                One button per group, left of the output: a click sets every
+                tool above as the group says. <kbd>Ctrl</kbd>&nbsp;<kbd>1</kbd>
+                does the same for the first group, <kbd>Ctrl</kbd>&nbsp;<kbd>2</kbd>
+                for the second, and so on up to the ninth.
+              </p>
+              <div id="groupList"></div>
+              <div>
+                <button type="button" id="addGroup" class="button-secondary">
+                  + Add a group
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <template id="groupTemplate">
+            <div class="group-card">
+              <div class="group-head">
+                <label class="group-name-field">
+                  <span class="opt-label">Label</span>
+                  <input
+                    type="text"
+                    class="group-name"
+                    maxlength="30"
+                    spellcheck="false"
+                  />
+                </label>
+                <button
+                  type="button"
+                  class="group-remove button-secondary"
+                  aria-label="Remove this group"
+                  title="Remove this group"
+                >
+                  ✕
+                </button>
+              </div>
+              <div class="group-body">
+                <div class="group-tools">
+                  <label class="group-tool"
+                    ><span>Slide &amp; compare</span
+                    ><span class="switch"
+                      ><input type="checkbox" data-tool="slideAndCompare" /><span
+                        class="track"
+                      ></span></span
+                  ></label>
+                  <label class="group-tool"
+                    ><span>Difference</span
+                    ><span class="switch"
+                      ><input type="checkbox" data-tool="difference" /><span
+                        class="track"
+                      ></span></span
+                  ></label>
+                  <label class="group-tool"
+                    ><span>Target on output</span
+                    ><span class="switch"
+                      ><input type="checkbox" data-tool="targetOnOutput" /><span
+                        class="track"
+                      ></span></span
+                  ></label>
+                  <label class="group-tool"
+                    ><span>Grid</span
+                    ><span class="switch"
+                      ><input type="checkbox" data-tool="grid" /><span
+                        class="track"
+                      ></span></span
+                  ></label>
+                  <label class="group-tool"
+                    ><span>Outline</span
+                    ><span class="switch"
+                      ><input type="checkbox" data-tool="outline" /><span
+                        class="track"
+                      ></span></span
+                  ></label>
+                  <label class="group-tool"
+                    ><span>Background</span
+                    ><span class="switch"
+                      ><input type="checkbox" data-tool="background" /><span
+                        class="track"
+                      ></span></span
+                  ></label>
+                </div>
+                <!-- A mock output: every layer below is switched on by CSS,
+                     from the toggles of the same card. The ghost repeats the
+                     output's shapes on top, as dom-tools does, so the target
+                     cannot cover their outline. -->
+                <div class="group-preview" aria-hidden="true">
+                  <div class="pv-layer pv-output">
+                    <i class="pv-box"><i class="pv-dot"></i><i class="pv-dot"></i></i>
+                  </div>
+                  <div class="pv-layer pv-target">
+                    <i class="pv-box"><i class="pv-dot"></i><i class="pv-dot"></i></i>
+                  </div>
+                  <div class="pv-layer pv-ghost">
+                    <i class="pv-box"><i class="pv-dot"></i><i class="pv-dot"></i></i>
+                  </div>
+                  <div class="pv-layer pv-grid"></div>
+                  <div class="pv-slider"></div>
+                </div>
+              </div>
+            </div>
+          </template>
 
           <p class="subhead">Difference tool settings</p>
           <div class="rows">
