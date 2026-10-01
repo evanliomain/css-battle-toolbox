@@ -62,7 +62,7 @@ function check() {
  *
  * Deliberately ignores the query and the fragment: the mode menu's own items are
  * `<a href="#">`, so keying on the full href made every click on them look like a
- * navigation and tear all 16 tools down.
+ * navigation and tear all the tools down.
  *
  * @param {string} [href]
  */

@@ -7,6 +7,7 @@ Features :
 - 📐 Display a grid on your code output
 - 👻 Display the target on your code output
 - 📏 Display rulers and the cursor position when hovering the target
+- 🖍️ Autocomplete the target colors in the editor, wherever CSS accepts a color
 - ⛓️ Display your html tags outline/background on your code output
 - 🏆 Display the top 10 leaderboard and your rank
 - 🤏 A tool to find shorter css unit (integration of https://u9kels.csb.app/)

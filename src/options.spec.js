@@ -136,7 +136,7 @@ describe("options page", () => {
       $("save").click();
 
       const [saved] = chrome.storage.sync.set.mock.calls[0];
-      expect(Object.keys(saved)).toHaveLength(41);
+      expect(Object.keys(saved)).toHaveLength(42);
       expect(saved).toMatchObject({
         hideGrid: true,
         hideHeader: false,
