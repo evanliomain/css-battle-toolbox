@@ -1,5 +1,6 @@
 # 1.2.8
 
+- Snippet tool: The editor suggests the target colors, and `transparent`, wherever CSS accepts a color
 - Ruler tool: Hover the target to see rulers and the cursor position, in target pixels
 - Options: Hide Submit and Hide Top solution work again, now that CssBattle dates its battles like `Sep 30, 2026`
 

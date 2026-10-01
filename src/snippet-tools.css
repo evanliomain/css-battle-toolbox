@@ -1,0 +1,18 @@
+/* A swatch of the color in place of CodeMirror's completion icon. */
+.cm-completionIcon-cbt-color {
+  opacity: 1;
+}
+.cm-completionIcon-cbt-color::after {
+  content: "";
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  vertical-align: middle;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgb(128 128 128 / 0.6);
+  background: var(--cbt-swatch);
+}
+.cm-completionIcon-cbt-color-transparent {
+  --cbt-swatch: repeating-conic-gradient(#999 0 25%, #fff 0 50%) 0 0 / 0.4em
+    0.4em;
+}
