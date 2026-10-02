@@ -10,6 +10,7 @@ Features :
 - 🖍️ Autocomplete the target colors in the editor, wherever CSS accepts a color
 - ⛓️ Display your html tags outline/background on your code output
 - 🎚️ Switch all the output tools at once with groups you set up in the options
+- 📷 Screenshot your code output, with the output tools switched on, and the DOM panel below it
 - 🏆 Display the top 10 leaderboard and your rank
 - 🤏 A tool to find shorter css unit (integration of https://u9kels.csb.app/)
 - 🤏🏾 A tool to find shorter css color in hexa (integration of https://48dvyq.csb.app/)

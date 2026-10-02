@@ -530,6 +530,7 @@
       }
       input[type="number"],
       input[type="text"]:not(.keyinput),
+      select,
       textarea {
         background: var(--clr-input);
         color: var(--clr-text);
@@ -1274,6 +1275,44 @@
               </div>
             </div>
           </template>
+
+          <p class="subhead">Screenshot</p>
+          <div class="rows">
+            <label
+              class="opt opt-item"
+              data-search="screenshot capture camera image png button"
+            >
+              <span class="opt-text"
+                ><span class="opt-label">Screenshot button</span
+                ><span class="opt-help"
+                  >A 📷 button left of the output tools: it takes the output,
+                  with the tools switched on, and the DOM panel below it.</span
+                ></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideScreenshot" class="inv" /><span
+                  class="track"
+                ></span
+              ></span>
+            </label>
+            <div
+              class="field opt-item"
+              data-search="screenshot download copy clipboard png"
+            >
+              <label for="strScreenshotAction">
+                <span class="opt-label">On a screenshot</span>
+                <span class="opt-help"
+                  >What to do with the image. Only what is on screen is
+                  taken.</span
+                >
+              </label>
+              <select id="strScreenshotAction">
+                <option value="download">Download a PNG</option>
+                <option value="copy">Copy to the clipboard</option>
+                <option value="both">Both</option>
+              </select>
+            </div>
+          </div>
 
           <p class="subhead">Difference tool settings</p>
           <div class="rows">

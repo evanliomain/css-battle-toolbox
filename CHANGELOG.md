@@ -1,6 +1,7 @@
 # 1.2.8
 
 - Output tool: Set up groups of output tools in the options, then switch them all at once from the buttons left of the output, or with Ctrl+1, Ctrl+2…
+- Screenshot tool: The 📷 button left of the output tools takes the output, with the tools switched on, and the DOM panel below it, to download as a PNG, copy, or both. Taking the tab's image needs the new permission to read your data on all websites, which Chrome asks you to accept on update
 - Snippet tool: The editor suggests the target colors, and `transparent`, wherever CSS accepts a color
 - Ruler tool: Hover the target to see rulers and the cursor position, in target pixels
 - Options: Hide Submit and Hide Top solution work again, now that CssBattle dates its battles like `Sep 30, 2026`

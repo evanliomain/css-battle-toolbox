@@ -1,0 +1,15 @@
+/* The look comes from cssbattle's own .button classes. */
+#output-screenshot:disabled {
+  cursor: progress;
+  opacity: 0.5;
+}
+
+/* Out of the shot: the hint of the button just clicked, and the toast of the
+   previous shot, which may sit over the DOM panel. */
+body.cbt-capturing {
+  #output-screenshot::before,
+  #output-screenshot::after,
+  .Toastify {
+    visibility: hidden !important;
+  }
+}

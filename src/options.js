@@ -13,6 +13,9 @@ const OPTIONS_KEYS = [
   "defaultOutline",
   "defaultBackground",
 
+  "hideScreenshot",
+  "strScreenshotAction",
+
   "hideGlobalStats",
   "hideShareTwitter",
 

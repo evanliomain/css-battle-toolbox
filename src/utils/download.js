@@ -1,4 +1,4 @@
-export async function download(url) {
+export async function download(url, name = `${getFormattedDate()}.png`) {
   const response = await fetch(url);
   const file = await response.blob();
   const options = {
@@ -10,7 +10,7 @@ export async function download(url) {
         },
       },
     ],
-    suggestedName: `${getFormattedDate()}.png`,
+    suggestedName: name,
   };
 
   // Check if the API System Access API is available
@@ -29,7 +29,7 @@ export async function download(url) {
     let tUrl = URL.createObjectURL(file);
     const tmp1 = document.createElement("a");
     tmp1.href = tUrl;
-    tmp1.download = `${getFormattedDate()}.png`;
+    tmp1.download = name;
     document.body.appendChild(tmp1);
     tmp1.click();
     URL.revokeObjectURL(tUrl);
@@ -37,7 +37,7 @@ export async function download(url) {
   }
 }
 
-function getFormattedDate() {
+export function getFormattedDate() {
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, "0");

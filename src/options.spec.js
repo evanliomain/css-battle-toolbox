@@ -91,6 +91,22 @@ describe("options page", () => {
       expect($("toggle-key-letter").innerText).toBe("K");
     });
 
+    it("shows the screenshot button and downloads by default", async () => {
+      await open();
+
+      expect($("hideScreenshot").checked).toBe(false);
+      expect($("strScreenshotAction").value).toBe("download");
+    });
+
+    it("restores the screenshot settings", async () => {
+      stored = { hideScreenshot: true, strScreenshotAction: "both" };
+
+      await open();
+
+      expect($("hideScreenshot").checked).toBe(true);
+      expect($("strScreenshotAction").value).toBe("both");
+    });
+
     it("skips a stored key that has no field on the page", async () => {
       stored = { someRemovedOption: true, hideGrid: true };
 
@@ -136,10 +152,12 @@ describe("options page", () => {
       $("save").click();
 
       const [saved] = chrome.storage.sync.set.mock.calls[0];
-      expect(Object.keys(saved)).toHaveLength(43);
+      expect(Object.keys(saved)).toHaveLength(45);
       expect(saved).toMatchObject({
         hideGrid: true,
         hideHeader: false,
+        hideScreenshot: false,
+        strScreenshotAction: "download",
         nbBrightnessDifference: "7",
         strKbdIncrement: "+",
         strDefaultCode: TEMPLATE,
