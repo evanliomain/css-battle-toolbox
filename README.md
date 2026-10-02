@@ -8,6 +8,7 @@ Features :
 - 👻 Display the target on your code output
 - 📏 Display rulers and the cursor position when hovering the target
 - 🖍️ Autocomplete the target colors in the editor, wherever CSS accepts a color
+- ✂️ Autocomplete only the valid values of the properties used in cssbattle solutions (`background`, `border`, `clip-path`, `rotate`…)
 - ⛓️ Display your html tags outline/background on your code output
 - 🎚️ Switch all the output tools at once with groups you set up in the options
 - 🏆 Display the top 10 leaderboard and your rank
