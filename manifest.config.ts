@@ -22,7 +22,10 @@ export default defineManifest(async (env) => ({
     open_in_tab: true,
   },
   permissions: ["storage"],
-  host_permissions: ["https://cssbattle.dev/*"],
+  // <all_urls> only for the output screenshot: chrome.tabs.captureVisibleTab
+  // asks for it or for activeTab, which a click in the page never grants.
+  host_permissions: ["https://cssbattle.dev/*", "<all_urls>"],
+  background: { service_worker: "src/background.js", type: "module" },
   content_scripts: [
     // A single block matching the whole site, because Chrome only injects
     // content scripts on a real document load. Scoping this to /play/* meant a
@@ -49,6 +52,7 @@ export default defineManifest(async (env) => ({
         "src/dom-tools.js",
         "src/mode-menu.js",
         "src/dowload-tools.js",
+        "src/screenshot-tools.js",
       ],
       matches: ["https://cssbattle.dev/*"],
       run_at: "document_idle",

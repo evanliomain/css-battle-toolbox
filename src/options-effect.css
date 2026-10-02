@@ -45,6 +45,11 @@ body {
       }
     }
   }
+  &.hideScreenshot {
+    #output-screenshot {
+      display: none !important;
+    }
+  }
   &.hideGlobalStats {
     .container__item--output .item__content > :nth-child(2) {
       display: none;

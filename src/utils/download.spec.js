@@ -58,6 +58,16 @@ describe("download", () => {
       expect(writable.close).toHaveBeenCalledOnce();
     });
 
+    it("suggests the name it is given", async () => {
+      stubPicker();
+
+      await download(URL_TO_FETCH, "123-2026-03-07.png");
+
+      expect(window.showSaveFilePicker).toHaveBeenCalledWith(
+        expect.objectContaining({ suggestedName: "123-2026-03-07.png" }),
+      );
+    });
+
     it("logs, without throwing, when the user cancels the picker", async () => {
       const error = new DOMException(
         "The user aborted a request.",
@@ -87,13 +97,13 @@ describe("download", () => {
         },
       );
 
-      await download(URL_TO_FETCH);
+      await download(URL_TO_FETCH, "shot.png");
 
       expect(URL.createObjectURL).toHaveBeenCalledWith(blob);
       expect(clicked).toEqual([
         {
           href: "blob:https://cssbattle.dev/abc",
-          download: "2026-03-07.png",
+          download: "shot.png",
           attached: true,
         },
       ]);
