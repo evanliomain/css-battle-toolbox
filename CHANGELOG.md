@@ -12,6 +12,7 @@
 - Minify: Drop the default values: repeated sides (`margin:1 2 3 2` becomes `margin:1 2 3`), `translate(10px,0)`, `scale(2,2)`, `border:none` becomes `border:0`, `background:red none repeat scroll 0 0` becomes `background:red`, `currentColor` in `border`, `outline` and `box-shadow`, `font-weight:bold` becomes `700`
 - Minify: Pick the shortest angle unit, `360deg` becomes `1turn`, and `:nth-child(2n+1)` becomes `:nth-child(odd)`
 - Minify: Compute `calc()` on constants, `calc(100px - 10px)` becomes `90px`
+- Minify: Drop the `#` of a hex color in `color`, `background-color` and `border-color`, `color:#84271C` becomes `color:84271C`, except where quirks mode reads it otherwise: 4 or 8 digits, 3 digits starting with a digit (`1ea` is `#0001ea`) and exponents like `1e0`
 - Minify: Keep the spaces around `+` and `-` in `calc()`, `min()`, `max()`…, `calc(1px+1em)` was invalid, and drop the ones around `*`
 
 # 1.2.7
