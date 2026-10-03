@@ -3,6 +3,7 @@
  * @vitest-environment-options {"url": "https://cssbattle.dev/play/123"}
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { OPEN_OPTIONS } from "./utils/open-options";
 
 function stubChrome(get = () => Promise.resolve({})) {
   return {
@@ -10,10 +11,7 @@ function stubChrome(get = () => Promise.resolve({})) {
       sync: { get: vi.fn(get) },
       onChanged: { addListener: vi.fn(), removeListener: vi.fn() },
     },
-    runtime: {
-      getURL: (p) => `chrome-extension://test/${p}`,
-      openOptionsPage: vi.fn(),
-    },
+    runtime: { sendMessage: vi.fn() },
   };
 }
 
@@ -165,26 +163,16 @@ describe("mode-menu", () => {
     expect(keyLetter()).toBe("J");
   });
 
-  it("opens the options page", async () => {
+  it("asks the background worker to open the options page", async () => {
     await import("./mode-menu.js");
     await tick();
 
     document.getElementById("go-to-options").click();
 
-    expect(chrome.runtime.openOptionsPage).toHaveBeenCalledOnce();
-  });
-
-  it("opens the options in a new tab where openOptionsPage is missing", async () => {
-    delete chrome.runtime.openOptionsPage;
-    const open = vi.spyOn(window, "open").mockImplementation(() => null);
-    await import("./mode-menu.js");
-    await tick();
-
-    document.getElementById("go-to-options").click();
-
-    expect(open).toHaveBeenCalledWith(
-      "chrome-extension://test/src/options.html",
-    );
+    expect(chrome.runtime.sendMessage).toHaveBeenCalledExactlyOnceWith({
+      type: OPEN_OPTIONS,
+    });
+    expect(window.location.hash).toBe("");
   });
 
   it("opens on a click on its button and closes on a click outside", async () => {

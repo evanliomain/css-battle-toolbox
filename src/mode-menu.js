@@ -1,6 +1,7 @@
 import "./mode-menu.css";
 import { htmlToElement } from "./utils/html-to-element";
 import { mount } from "./utils/mount";
+import { openOptions } from "./utils/open-options";
 
 let toggleKey = "I";
 
@@ -29,13 +30,12 @@ mount("mode-menu", {
     chrome.storage.onChanged.addListener(onStorageChange);
     onCleanup(() => chrome.storage.onChanged.removeListener(onStorageChange));
 
-    menu.querySelector("#go-to-options").addEventListener("click", function () {
-      if (chrome.runtime.openOptionsPage) {
-        chrome.runtime.openOptionsPage();
-      } else {
-        window.open(chrome.runtime.getURL("src/options.html"));
-      }
-    });
+    menu
+      .querySelector("#go-to-options")
+      .addEventListener("click", function (event) {
+        event.preventDefault();
+        openOptions();
+      });
 
     // Closes the menu on an outside click. Lives on `document`, so it has to be
     // unregistered explicitly on teardown.
