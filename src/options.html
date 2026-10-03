@@ -1166,6 +1166,34 @@
                   ></span></span
               ></span>
             </div>
+
+            <div class="mx-row opt-item" data-search="pixel diff match wrong pixels">
+              <span class="opt-text"
+                ><span class="opt-label" id="lbl-pixel-diff">Pixel diff</span
+                ><span class="opt-help"
+                  >Shows in red the pixels the last match found wrong.</span
+                ></span
+              >
+              <span class="cell"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="hidePixelDiff"
+                    class="inv"
+                    aria-labelledby="lbl-pixel-diff col-visible" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+              <span class="cell dep"
+                ><span class="switch"
+                  ><input
+                    type="checkbox"
+                    id="defaultPixelDiff"
+                    aria-labelledby="lbl-pixel-diff col-default" /><span
+                    class="track"
+                  ></span></span
+              ></span>
+            </div>
           </div>
 
           <p class="subhead">Groups</p>
@@ -1251,6 +1279,13 @@
                     ><span>Background</span
                     ><span class="switch"
                       ><input type="checkbox" data-tool="background" /><span
+                        class="track"
+                      ></span></span
+                  ></label>
+                  <label class="group-tool"
+                    ><span>Pixel diff</span
+                    ><span class="switch"
+                      ><input type="checkbox" data-tool="pixelDiff" /><span
                         class="track"
                       ></span></span
                   ></label>
@@ -1516,6 +1551,20 @@
                   type="checkbox"
                   id="hideNbMinifiedCharacters"
                   class="inv" /><span class="track"></span
+              ></span>
+            </label>
+            <label class="opt opt-item" data-search="match score estimate pixel">
+              <span class="opt-text"
+                ><span class="opt-label">Match estimate</span
+                ><span class="opt-help"
+                  >The match and the score your code should get, measured each
+                  time you stop typing.</span
+                ></span
+              >
+              <span class="switch"
+                ><input type="checkbox" id="hideMatch" class="inv" /><span
+                  class="track"
+                ></span
               ></span>
             </label>
             <label class="opt opt-item" data-search="prettify format button">

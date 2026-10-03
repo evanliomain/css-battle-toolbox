@@ -1,0 +1,58 @@
+#cbt-match {
+  padding: 0 0.25em;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+
+  &.is-perfect {
+    color: #3ec46d;
+  }
+  &.is-approximate {
+    font-style: italic;
+  }
+}
+
+/* Out of sight, except for the few frames of its capture. On top of
+   everything then, so nothing of the page gets into the shot. */
+#cbt-probe {
+  position: fixed;
+  z-index: 2147483647;
+  display: flex;
+  align-items: flex-start;
+  pointer-events: none;
+  visibility: hidden;
+
+  &.is-shown {
+    visibility: visible;
+  }
+
+  iframe {
+    width: 400px;
+    height: 300px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    /* Never seen once the document inside is painted, as it paints an opaque
+       backdrop over it: render-probe.js looks for it to tell a capture taken
+       too early. */
+    background: rgb(1 2 3);
+    /* Not the scheme of the document inside: Chrome then paints it an opaque
+       backdrop of its own, as a page has on cssbattle's renderer, and a
+       semi-transparent root background blends with white the same way. */
+    color-scheme: dark;
+  }
+
+  .cbt-probe-swatch {
+    width: 4px;
+    height: 4px;
+    background: #fff;
+
+    > div {
+      height: 100%;
+      background: rgb(0 0 255 / 0.4);
+    }
+  }
+}

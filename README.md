@@ -18,6 +18,7 @@ Features :
 - ± A tool to increase/decrease numbers in editor with keyboard shortcut, even with a multi-selection
 - 📋 A tool to see DOM structure just below your code output
 - 🔢 Print, on the fly, the number of characters your code should be once minified
+- 🎯 Estimate your match and your score each time you stop typing, without submitting, and show the wrong pixels on the output
 - 🦴 Replace default skeleton by a shorter and more helpfull one.
 - 🙈 You can hide any almost any part of the interface, including tools bring with this extension.
 - ☯ You can invert color of the difference tool

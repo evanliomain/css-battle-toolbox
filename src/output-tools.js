@@ -4,7 +4,9 @@ import { addGroupButtons, GROUPS_ID } from "./output-tools/output-groups";
 import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
 import { mount } from "./utils/mount";
+import { MATCH_MEASURED } from "./utils/pixel-match";
 import { removeStale } from "./utils/remove-stale";
+import { oneX } from "./utils/target-image";
 
 const INJECTED_IDS = [
   "overlay-grid",
@@ -12,6 +14,8 @@ const INJECTED_IDS = [
   "output-grid-input",
   "output-outline-input",
   "output-background-input",
+  "overlay-pixel-diff",
+  "output-pixel-diff-input",
   GROUPS_ID,
 ];
 
@@ -41,6 +45,7 @@ mount("output-tools", {
     addGridOption(config, refs, onCleanup);
     addOutlineOption(config, refs, onCleanup);
     addBackgroundOption(config, refs, onCleanup);
+    addPixelDiffOption(config, refs, onCleanup);
     addGroupButtons(config, refs, onCleanup);
 
     // These three wait on nodes owned by cssbattle that show up later.
@@ -62,6 +67,7 @@ mount("output-tools", {
       refs.targetContainer.classList.remove(
         "display-outline",
         "display-background",
+        "display-pixel-diff",
       );
     });
   },
@@ -313,6 +319,49 @@ function addBackgroundOption(config, refs, onCleanup) {
   });
 }
 
+function addPixelDiffOption(config, refs, onCleanup) {
+  // Drawn by match-tools, which measures the match: the wrong pixels of the
+  // last measure, in red.
+  const overlay = htmlToElement(
+    `<canvas id="overlay-pixel-diff" width="400" height="300"></canvas>`,
+  );
+  refs.targetContainer.insertAdjacentElement("beforeend", overlay);
+  onCleanup(() => overlay.remove());
+
+  function onMeasured({ detail }) {
+    overlay.getContext("2d").putImageData(detail.diff, 0, 0);
+  }
+  document.addEventListener(MATCH_MEASURED, onMeasured);
+  onCleanup(() => document.removeEventListener(MATCH_MEASURED, onMeasured));
+
+  addOption({
+    hstack: refs.hstack,
+    onCleanup,
+    id: "output-pixel-diff-input",
+    template: `
+  <label
+    class="hint--bottom-left"
+    aria-label="Show the wrong pixels of the last match"
+    data-hint="Show the wrong pixels of the last match"
+    style="display: flex; align-items: center;"
+  >
+    <input
+      id="output-pixel-diff-input"
+      type="checkbox"
+      value="true"
+      />
+    ${pixelDiffIcon()}
+  </label>
+  `,
+    onInput: (e) =>
+      refs.targetContainer.classList.toggle(
+        "display-pixel-diff",
+        e.target.checked,
+      ),
+    checked: config.defaultPixelDiff ?? false,
+  });
+}
+
 function useX2Image(onCleanup) {
   return () => {
     const img = document.querySelector(
@@ -342,7 +391,7 @@ function applyX2Settings(img, isApply) {
   if (isApply) {
     img.src = img.srcset;
   } else {
-    img.src = img.src.replace(/@2x\.png/, ".png").replace(/%202x$/, "");
+    img.src = oneX(img.src);
   }
 }
 
@@ -442,6 +491,21 @@ function outlineIcon() {
       stroke-dasharray=".2 4"
       stroke-linecap="round"
     />
+  </svg>`;
+}
+function pixelDiffIcon() {
+  return `<svg xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 36 36"
+    width="20"
+  >
+    <g fill="currentColor">
+      <rect x="5" y="5" width="26" height="26" rx="3" fill="transparent" stroke="currentColor" stroke-width="2" />
+      <rect x="10" y="10" width="5" height="5" />
+      <rect x="21" y="10" width="5" height="5" />
+      <rect x="15.5" y="15.5" width="5" height="5" />
+      <rect x="10" y="21" width="5" height="5" />
+      <rect x="21" y="21" width="5" height="5" />
+    </g>
   </svg>`;
 }
 function backgroundIcon() {

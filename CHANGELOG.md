@@ -1,5 +1,7 @@
 # 2.0.0
 
+- Match tool: Each time you stop typing, the badge next to the character count estimates your match and your score, without submitting. The code is rendered like cssbattle renders it, in a 400×300 frame at one pixel per pixel whatever your screen, and compared with the target pixel by pixel. A click on the badge, or the new Pixel diff output tool, shows the wrong pixels in red. Nothing is captured until you type
+- Match tool: The badge shows `≈` when the estimate may differ from cssbattle's: when your code depends on the fonts, which cssbattle renders with its own Linux fonts, or when Chrome blends the colors of your screen outside sRGB. Setting `chrome://flags/#force-color-profile` to sRGB fixes the latter
 - Output tool: Set up groups of output tools in the options, then switch them all at once from the buttons left of the output, or with Ctrl+1, Ctrl+2…
 - Screenshot tool: The 📷 button left of the output tools takes the output, with the tools switched on, and the DOM panel below it, to download as a PNG, copy, or both. Taking the tab's image needs the new permission to read your data on all websites, which Chrome asks you to accept on update
 - Snippet tool: The editor suggests the target colors, and `transparent`, wherever CSS accepts a color

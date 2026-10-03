@@ -5,6 +5,7 @@ const OPTIONS_KEYS = [
   "hideGrid",
   "hideOutline",
   "hideBackground",
+  "hidePixelDiff",
 
   "defaultSlideAndCompare",
   "defaultDifference",
@@ -12,6 +13,7 @@ const OPTIONS_KEYS = [
   "defaultGrid",
   "defaultOutline",
   "defaultBackground",
+  "defaultPixelDiff",
 
   "hideScreenshot",
   "strScreenshotAction",
@@ -35,6 +37,7 @@ const OPTIONS_KEYS = [
   "hideSubmit",
 
   "hideNbMinifiedCharacters",
+  "hideMatch",
   "hideColorMixer",
   "hideUnitGolf",
   "hideRuler",

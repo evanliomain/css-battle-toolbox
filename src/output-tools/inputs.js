@@ -36,5 +36,6 @@ export function toolInputs() {
     grid: document.getElementById("output-grid-input"),
     outline: document.getElementById("output-outline-input"),
     background: document.getElementById("output-background-input"),
+    pixelDiff: document.getElementById("output-pixel-diff-input"),
   };
 }

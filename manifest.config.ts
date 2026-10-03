@@ -43,6 +43,7 @@ export default defineManifest(async (env) => ({
         "src/output-tools.js",
         "src/autoclose-tools.js",
         "src/character-tools.js",
+        "src/match-tools.js",
         "src/options-effect.js",
         "src/incrementor-tools.js",
         "src/target-tools.js",

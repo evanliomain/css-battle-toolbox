@@ -45,6 +45,21 @@ body {
       }
     }
   }
+  &.hidePixelDiff {
+    .container__item--output .item__header .header__extra-info .hstack {
+      > label:has(#output-pixel-diff-input) {
+        display: none !important;
+      }
+    }
+    #overlay-pixel-diff {
+      display: none !important;
+    }
+  }
+  &.hideMatch {
+    #cbt-match {
+      display: none !important;
+    }
+  }
   &.hideScreenshot {
     #output-screenshot {
       display: none !important;
