@@ -60,6 +60,67 @@ describe("background worker", () => {
     });
   });
 
+  describe("two captures a second at most", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("takes the next capture half a second after the previous one", async () => {
+      chrome.tabs.captureVisibleTab.mockResolvedValue(
+        "data:image/png;base64,x",
+      );
+
+      const first = send({ type: CAPTURE_TAB });
+      const second = send({ type: CAPTURE_TAB });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(chrome.tabs.captureVisibleTab).toHaveBeenCalledOnce();
+
+      await vi.advanceTimersByTimeAsync(499);
+      expect(chrome.tabs.captureVisibleTab).toHaveBeenCalledOnce();
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(chrome.tabs.captureVisibleTab).toHaveBeenCalledTimes(2);
+      await expect(first).resolves.toEqual({
+        dataUrl: "data:image/png;base64,x",
+      });
+      await expect(second).resolves.toEqual({
+        dataUrl: "data:image/png;base64,x",
+      });
+    });
+
+    it("takes a capture right away after a pause", async () => {
+      chrome.tabs.captureVisibleTab.mockResolvedValue(
+        "data:image/png;base64,x",
+      );
+
+      await send({ type: CAPTURE_TAB });
+      await vi.advanceTimersByTimeAsync(800);
+      send({ type: CAPTURE_TAB });
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(chrome.tabs.captureVisibleTab).toHaveBeenCalledTimes(2);
+    });
+
+    it("goes on after a failed capture", async () => {
+      chrome.tabs.captureVisibleTab
+        .mockRejectedValueOnce(new Error("Denied"))
+        .mockResolvedValue("data:image/png;base64,x");
+
+      const first = send({ type: CAPTURE_TAB });
+      const second = send({ type: CAPTURE_TAB });
+      await vi.advanceTimersByTimeAsync(500);
+
+      await expect(first).resolves.toEqual({ error: "Denied" });
+      await expect(second).resolves.toEqual({
+        dataUrl: "data:image/png;base64,x",
+      });
+    });
+  });
+
   it("opens the options page", async () => {
     await expect(send({ type: OPEN_OPTIONS })).resolves.toBe(false);
     expect(chrome.runtime.openOptionsPage).toHaveBeenCalledOnce();

@@ -245,6 +245,19 @@ describe("incrementor-tools", () => {
       expect(texts()[0]).toBe("10");
     });
 
+    it("tells the code changed after each increment", async () => {
+      await mountTool();
+      toggleMode();
+      const listener = vi.fn();
+      document.addEventListener("cbt:code-changed", listener);
+
+      press("=");
+      click("#increment-minus");
+
+      expect(listener).toHaveBeenCalledTimes(2);
+      document.removeEventListener("cbt:code-changed", listener);
+    });
+
     it("increments and decrements with = and :", async () => {
       await mountTool();
       toggleMode();

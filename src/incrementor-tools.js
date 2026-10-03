@@ -1,5 +1,6 @@
 import "./incrementor-tools.css";
 import { addModulo, subModulo } from "./utils/add-modulo";
+import { notifyCodeChanged } from "./utils/change-code";
 import { doAsync } from "./utils/do-async";
 import { htmlToElement } from "./utils/html-to-element";
 import { mount } from "./utils/mount";
@@ -391,6 +392,8 @@ function incrementorTool({ container, editor }, onCleanup, signal) {
         highlightElement(span); // Keep the outline after content update
       }
     });
+    // Written straight into the spans: the editor fires no input event.
+    notifyCodeChanged();
   }
 
   function toggleIncrementMode() {
