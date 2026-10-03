@@ -47,6 +47,19 @@ const SIDES = new Set(
   scroll-padding`.split(/\s+/),
 );
 
+// The units a number can be written in an other way with: hashless colors like
+// 10000a are dimensions too, and 1e4a is no color.
+const UNITS = new Set([
+  ...LENGTH_UNITS,
+  ..."% deg grad rad turn s ms hz khz dpi dpcm dppx x fr".split(" "),
+]);
+
+// The properties quirks mode reads a hex color without its # in.
+const HASHLESS = new Set(
+  `color background-color border-color border-top-color border-right-color
+  border-bottom-color border-left-color`.split(/\s+/),
+);
+
 const BORDERS = new Set(
   "border border-top border-right border-bottom border-left outline".split(" "),
 );
@@ -619,8 +632,15 @@ function evaluate(nodes) {
 }
 
 function number(node, ctx, where) {
-  let result = { ...node };
   const unit = node.unit.toLowerCase();
+  // Hashless colors are no numbers: 001122 is not 1122
+  if (
+    ("" !== unit && !UNITS.has(unit)) ||
+    (0 === where.depth && HASHLESS.has(ctx.property))
+  ) {
+    return node;
+  }
+  let result = { ...node };
   let quirky = false;
   // 0px → 0, but in flex a unitless 0 is a flex-shrink, not a flex-basis
   if (
@@ -720,6 +740,10 @@ function byProperty(nodes, ctx) {
   } else if ("box-shadow" === property) {
     value = join(split(value).map(withoutCurrentColor));
   }
+  // After the sides, border-color has both
+  if (HASHLESS.has(property)) {
+    value = value.map(hashless);
+  }
   if (BORDERS.has(property)) {
     // border: none → border: 0, but outline: 0 would compute an other width
     if (
@@ -757,6 +781,22 @@ function sides(nodes) {
     value = value.slice(0, 1);
   }
   return value;
+}
+
+/**
+ * #84271c → 84271c, that quirks mode reads as a color. Not the colors it reads
+ * otherwise: 4 or 8 digits, 3 digits starting with a digit, that it pads with
+ * zeros as a number (1ea is #0001ea), and exponents (1e0 is the number 1).
+ */
+function hashless(node) {
+  if ("hash" !== node.type) {
+    return node;
+  }
+  const hex = node.raw.slice(1);
+  if (!/^(?:[\da-f]{6}|[a-f][\da-f]{2})$/i.test(hex) || /^\d+e\d/i.test(hex)) {
+    return node;
+  }
+  return { type: "ident", raw: hex };
 }
 
 /** currentColor is the default color of borders, outlines and shadows. */
