@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CAPTURE_TAB } from "./utils/capture-tab";
+import { OPEN_OPTIONS } from "./utils/open-options";
 
 describe("background worker", () => {
   let listener;
@@ -7,7 +8,10 @@ describe("background worker", () => {
   beforeEach(async () => {
     vi.resetModules();
     vi.stubGlobal("chrome", {
-      runtime: { onMessage: { addListener: vi.fn() } },
+      runtime: {
+        onMessage: { addListener: vi.fn() },
+        openOptionsPage: vi.fn(),
+      },
       tabs: { captureVisibleTab: vi.fn() },
     });
     await import("./background.js");
@@ -56,11 +60,18 @@ describe("background worker", () => {
     });
   });
 
+  it("opens the options page", async () => {
+    await expect(send({ type: OPEN_OPTIONS })).resolves.toBe(false);
+    expect(chrome.runtime.openOptionsPage).toHaveBeenCalledOnce();
+    expect(chrome.tabs.captureVisibleTab).not.toHaveBeenCalled();
+  });
+
   it.each([[{ type: "other" }], [undefined]])(
     "leaves any other message alone: %o",
     async (message) => {
       await expect(send(message)).resolves.toBe(false);
       expect(chrome.tabs.captureVisibleTab).not.toHaveBeenCalled();
+      expect(chrome.runtime.openOptionsPage).not.toHaveBeenCalled();
     },
   );
 });

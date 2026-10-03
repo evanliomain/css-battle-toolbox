@@ -1,6 +1,12 @@
 import { CAPTURE_TAB } from "./utils/capture-tab";
+import { OPEN_OPTIONS } from "./utils/open-options";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (OPEN_OPTIONS === message?.type) {
+    chrome.runtime.openOptionsPage();
+    return false;
+  }
+
   if (CAPTURE_TAB !== message?.type) {
     return false;
   }
