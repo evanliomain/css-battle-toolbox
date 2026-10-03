@@ -6,6 +6,13 @@
 - Snippet tool: The properties used in cssbattle solutions, such as `background`, `border`, `clip-path`, `font` or `rotate`, only suggest the values valid where you type them, instead of every CSS keyword: gradients and their arguments, the usual angles in degrees, `var()`, `calc()`…
 - Ruler tool: Hover the target to see rulers and the cursor position, in target pixels
 - Options: Hide Submit and Hide Top solution work again, now that CssBattle dates its battles like `Sep 30, 2026`
+- Minify: Drop what the CSS does not need: the unit of a zero length (`0px` becomes `0`), useless signs and zeros (`+5`, `-0`, `01`), the space before `!important`, extra `;` and empty rules, the spaces around `*` in `calc()`, needless quotes (`font-family:"Arial"`, `[a="b"]`), and `font:0 ""` becomes `font:0""`
+- Minify: Write big and small numbers in scientific notation when shorter, `10000px` becomes `1e4px`
+- Minify: Drop `px` where quirks mode reads a number as pixels, `margin:10px 20px` becomes `margin:10 20`, but not in shorthands like `border` nor in functions
+- Minify: Drop the default values: repeated sides (`margin:1 2 3 2` becomes `margin:1 2 3`), `translate(10px,0)`, `scale(2,2)`, `border:none` becomes `border:0`, `background:red none repeat scroll 0 0` becomes `background:red`, `currentColor` in `border`, `outline` and `box-shadow`, `font-weight:bold` becomes `700`
+- Minify: Pick the shortest angle unit, `360deg` becomes `1turn`, and `:nth-child(2n+1)` becomes `:nth-child(odd)`
+- Minify: Compute `calc()` on constants, `calc(100px - 10px)` becomes `90px`
+- Minify: Keep the spaces around `+` and `-` in `calc()`, `min()`, `max()`…, `calc(1px+1em)` was invalid, and drop the ones around `*`
 
 # 1.2.7
 

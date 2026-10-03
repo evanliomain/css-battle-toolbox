@@ -119,7 +119,7 @@ describe("minify", () => {
     padding: calc(120px + var(--b));
   }
 </style>`,
-      "<style>&{padding:calc(120px+var(--b",
+      "<style>&{padding:calc(120px + var(--b",
     ],
     [
       `
@@ -246,7 +246,21 @@ describe("minify", () => {
     ["p ~ *{color:red", "p ~*{color:red"],
     ["p ~ *>a{color:red", "p ~*>a{color:red"],
     ["p ~ * ~ *{color:red", "p ~* ~*{color:red"],
-    ["height: calc(2 * 3px)", "height:calc(2 * 3px"],
+    // Keep the spaces around + and - in math functions: calc(1px+1em) is invalid
+    ["width: calc(0px + 1em)", "width:calc(0px + 1em"],
+    ["width: calc(1em  -  0.5px)", "width:calc(1em - .5px"],
+    ["width: calc(2 * 3 - 1px)", "width:calc(2*3 - 1px"],
+    ["width: calc((1px + 2em) * 2)", "width:calc((1px + 2em)*2"],
+    ["width: calc(var(--a) - 1px)", "width:calc(var(--a) - 1px"],
+    ["width: max(1px, 100% - 2em)", "width:max(1px,100% - 2em"],
+    ["width: calc(1px+1em)", "width:calc(1px+1em"],
+    // Out of math functions, + is no operator
+    ["p:nth-child(2n + 1) + p{color:red", "p:nth-child(2n+1)+p{color:red"],
+    ["margin: 10% -10", "margin:10%-10"],
+    // Fold calc() on constants, and drop px in quirks mode
+    ["<style>*{height: calc(2 * 3px)", "<style>*{height:6"],
+    // Keep the space between a digit and 2 quotes nowhere
+    ['font: 0 "";color: red;', 'font:0"";color:red'],
     // Remove html comments
     ["<p><!-- a comment --></p>", "<p></p>"],
     // Collapse the spaces between 2 words
