@@ -49,6 +49,10 @@ describe("optimizeCss", () => {
       ["padding: 1 2 1 2", "padding:1 2"],
       ["inset: 0 0 0 0", "inset:0"],
       [
+        "margin: calc((1px + 2em) * 2) calc((1px + 2em) * 2)",
+        "margin:calc((1px + 2em)*2",
+      ],
+      [
         "border-radius: 1em 1em 1em 1em / 2em 3em 2em 3em",
         "border-radius:1em/2em 3em",
       ],
@@ -66,6 +70,7 @@ describe("optimizeCss", () => {
       ["background: red none repeat scroll 0 0", "background:red"],
       ["background: none", "background:0"],
       ["background: red left top", "background:red"],
+      ["background: red top left", "background:red"],
       [
         "background: red, blue 0% 0% padding-box border-box",
         "background:red,blue",
@@ -84,6 +89,7 @@ describe("optimizeCss", () => {
       ["rotate: 360deg", "rotate:1turn"],
       ["rotate: 720deg", "rotate:2turn"],
       ["rotate: 0.25turn", "rotate:90deg"],
+      ["rotate: -360deg", "rotate:-1turn"],
       ["transform: rotate(400grad)", "transform:rotate(1turn"],
       // calc() on constants
       ["height: calc(2 * 3px)", "height:6"],
@@ -91,6 +97,7 @@ describe("optimizeCss", () => {
       ["box-shadow: calc(100px - 10px) 0", "box-shadow:90px 0"],
       ["width: calc((1px + 2px) * 3)", "width:9"],
       ["width: calc(calc(2px * 3) / 4)", "width:1.5"],
+      ["width: calc(-1 * -10px)", "width:10"],
       ["width: calc(50% * 2)", "width:100%"],
       ["transform: translate(calc(2 * 3px), 0)", "transform:translate(6px"],
       ["width: min(calc(2 * 3px), 10%)", "width:min(6px,10%"],
@@ -129,6 +136,9 @@ describe("optimizeCss", () => {
       "width: calc(1px / 0)",
       "width: calc(2px*3px)",
       "z-index: calc(3 / 2)",
+      "width: calc(1px 2px)",
+      "width: calc(1px + a)",
+      "width: calc(1px +)",
       // Quotes that are needed
       'font-family: "serif"',
       'font-family: "1a"',
@@ -148,6 +158,7 @@ describe("optimizeCss", () => {
       "background: linear-gradient(red, blue) 0 0/50%",
       "transform: translate(0, 10px)",
       "transform: scale(2, 3)",
+      "font: bold large serif",
       "background: url(a.png) 0 0",
     ])("%s", (css) => {
       const code = `<style>*{${css}}`;
@@ -164,6 +175,22 @@ describe("optimizeCss", () => {
       ["<style>*{}p{color:red}", "<style>p{color:red"],
       ["<style>*{*{}}p{color:red}", "<style>p{color:red"],
       ["<style>*{margin:0}*{", "<style>*{margin:0"],
+      // A } closing nothing
+      ["<style>*{margin:0}}p{margin:0", "<style>*{margin:0}}p{margin:0"],
+      // A ; or a quote in a string
+      [
+        '<style>*{content:"a\\";b";margin:10px',
+        '<style>*{content:"a\\";b";margin:10',
+      ],
+      // Unclosed functions and parentheses
+      [
+        "<style>*{transform:translate(10px, 0",
+        "<style>*{transform:translate(10px",
+      ],
+      [
+        "<style>*{margin:0px calc((1px + 2em",
+        "<style>*{margin:0 calc((1px + 2em",
+      ],
       ["<style>div > p{color:red}", "<style>div >p{color:red"],
       ["<style>p ~ *{color:red}", "<style>p ~*{color:red"],
       ['<style>[a="b"]{color:red}', "<style>[a=b]{color:red"],
@@ -210,6 +237,14 @@ describe("optimizeCss", () => {
 
     it("leaves a declaration it does not understand", () => {
       const code = "<style>*{grid-template-columns:[a] 10px;color:red\\9";
+      expect(optimizeCss(code)).toEqual(code);
+    });
+
+    it.each([
+      "<style>*{margin:10px/* a; b */;padding:0",
+      "<style>*{margin:10px/* a",
+      "<style>*{margin:10px /* a */ 10px",
+    ])("leaves a declaration with a comment: %s", (code) => {
       expect(optimizeCss(code)).toEqual(code);
     });
 

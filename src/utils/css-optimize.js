@@ -191,8 +191,13 @@ function optimizeSelector(selector) {
 
 function optimizeDeclaration(text) {
   const declaration = /^(\s*)([-\w]+)\s*:([\s\S]*)$/.exec(text);
-  // Custom properties have no type to know what is safe to change.
-  if (null === declaration || declaration[2].startsWith("--")) {
+  // Custom properties have no type to know what is safe to change, and a
+  // comment is no token.
+  if (
+    null === declaration ||
+    declaration[2].startsWith("--") ||
+    text.includes("/*")
+  ) {
     return text;
   }
   const [, lead, property, rest] = declaration;
