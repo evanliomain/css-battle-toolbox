@@ -1,3 +1,4 @@
+import { fetchImage } from "./fetch-image";
 import { HEIGHT, WIDTH } from "./pixel-match";
 
 /** Only the current target is kept: a battle never needs two. */
@@ -16,9 +17,11 @@ export function oneX(src) {
 /**
  * The pixels of the target, in 1x.
  *
- * Fetched, not loaded in an `Image`: drawn from a content script, an image of
- * the page taints the canvas as cross-origin, and its pixels can no longer be
- * read. A bitmap made from the fetched bytes never does.
+ * Downloaded, not loaded in an `Image`: drawn from a content script, an image
+ * of the page taints the canvas as cross-origin, and its pixels can no longer
+ * be read. A bitmap made from the downloaded bytes never does. The download
+ * goes through the background worker: the daily targets are on another origin
+ * that allows no CORS.
  *
  * @param {string} src The `src` of the target image
  * @returns {Promise<ImageData>}
@@ -28,11 +31,7 @@ export async function targetImageData(src) {
   if (cache?.url === url) {
     return cache.data;
   }
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`The target could not be loaded: ${response.status}`);
-  }
-  const bitmap = await createImageBitmap(await response.blob());
+  const bitmap = await createImageBitmap(await fetchImage(url));
 
   const context = new OffscreenCanvas(WIDTH, HEIGHT).getContext("2d", {
     willReadFrequently: true,

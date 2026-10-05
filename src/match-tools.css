@@ -1,3 +1,24 @@
+#cbt-match-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  /* Side by side, never one over the other nor over two lines. */
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  /* Off, only the switch shows. */
+  &:not(.is-on) :is(#cbt-match, #cbt-match-pixels) {
+    display: none;
+  }
+}
+
+/* The look comes from cssbattle's own .button classes. */
+#cbt-match-switch {
+  margin: 0;
+  padding: 4px;
+  line-height: 0;
+}
+
 #cbt-match {
   padding: 0 0.25em;
   border: 0;
@@ -10,49 +31,21 @@
   &.is-perfect {
     color: #3ec46d;
   }
-  &.is-approximate {
-    font-style: italic;
+  /* Always an estimate. */
+  font-style: italic;
+}
+
+#cbt-match-pixels {
+  font-variant-numeric: tabular-nums;
+
+  &[hidden] {
+    display: none;
   }
 }
 
-/* Out of sight, except for the few frames of its capture. On top of
-   everything then, so nothing of the page gets into the shot. */
-#cbt-probe {
-  position: fixed;
-  z-index: 2147483647;
-  display: flex;
-  align-items: flex-start;
-  pointer-events: none;
-  visibility: hidden;
-
-  &.is-shown {
-    visibility: visible;
-  }
-
-  iframe {
-    width: 400px;
-    height: 300px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    /* Never seen once the document inside is painted, as it paints an opaque
-       backdrop over it: render-probe.js looks for it to tell a capture taken
-       too early. */
-    background: rgb(1 2 3);
-    /* Not the scheme of the document inside: Chrome then paints it an opaque
-       backdrop of its own, as a page has on cssbattle's renderer, and a
-       semi-transparent root background blends with white the same way. */
-    color-scheme: dark;
-  }
-
-  .cbt-probe-swatch {
-    width: 4px;
-    height: 4px;
-    background: #fff;
-
-    > div {
-      height: 100%;
-      background: rgb(0 0 255 / 0.4);
-    }
-  }
+/* The editor header has no stacking level of its own: the code below was
+   drawn over the long hints of the tool. */
+[class^="Editor-module"] > .item__header:has(#cbt-match-tool) {
+  position: relative;
+  z-index: 5;
 }

@@ -56,7 +56,7 @@ body {
     }
   }
   &.hideMatch {
-    #cbt-match {
+    #cbt-match-tool {
       display: none !important;
     }
   }

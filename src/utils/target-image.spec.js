@@ -22,14 +22,18 @@ describe("targetImageData", () => {
   beforeEach(() => {
     bitmaps = [];
     contexts = [];
+    // The background worker answers with the image as a data URL.
+    vi.stubGlobal("chrome", {
+      runtime: {
+        sendMessage: vi.fn(({ url }) =>
+          Promise.resolve({ dataUrl: `data:${url}` }),
+        ),
+      },
+    });
     vi.stubGlobal(
       "fetch",
       vi.fn((url) =>
-        Promise.resolve({
-          ok: true,
-          status: 200,
-          blob: () => Promise.resolve(`blob of ${url}`),
-        }),
+        Promise.resolve({ blob: () => Promise.resolve(`blob of ${url}`) }),
       ),
     );
     vi.stubGlobal(
@@ -69,9 +73,13 @@ describe("targetImageData", () => {
   it("reads the pixels of the 1x image, at 400×300", async () => {
     const data = await targetImageData("/targets/12@2x.png");
 
-    expect(fetch).toHaveBeenCalledWith("/targets/12.png");
+    // Downloaded by the background worker, which no CORS rule stops.
+    expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({
+      type: "cbt:fetch-image",
+      url: "/targets/12.png",
+    });
     expect(bitmaps).toHaveLength(1);
-    expect(bitmaps[0].blob).toBe("blob of /targets/12.png");
+    expect(bitmaps[0].blob).toBe("blob of data:/targets/12.png");
     const [context] = contexts;
     expect(context.type).toBe("2d");
     expect(context.canvas.size).toEqual([400, 300]);
@@ -109,7 +117,7 @@ describe("targetImageData", () => {
     const second = await targetImageData("/targets/12@2x.png");
 
     expect(second).toBe(first);
-    expect(fetch).toHaveBeenCalledOnce();
+    expect(chrome.runtime.sendMessage).toHaveBeenCalledOnce();
   });
 
   it("keeps only the last target", async () => {
@@ -117,22 +125,18 @@ describe("targetImageData", () => {
     await targetImageData("/targets/13.png");
     await targetImageData("/targets/12.png");
 
-    expect(fetch.mock.calls.map(([url]) => url)).toEqual([
-      "/targets/12.png",
-      "/targets/13.png",
-      "/targets/12.png",
-    ]);
+    expect(
+      chrome.runtime.sendMessage.mock.calls.map(([{ url }]) => url),
+    ).toEqual(["/targets/12.png", "/targets/13.png", "/targets/12.png"]);
   });
 
-  it("fails on an HTTP error, and keeps nothing", async () => {
-    fetch.mockResolvedValueOnce({ ok: false, status: 404 });
+  it("fails when the image cannot be downloaded, and keeps nothing", async () => {
+    chrome.runtime.sendMessage.mockResolvedValueOnce({ error: "offline" });
 
-    await expect(targetImageData("/targets/12.png")).rejects.toThrow(
-      "The target could not be loaded: 404",
-    );
+    await expect(targetImageData("/targets/12.png")).rejects.toThrow("offline");
     expect(createImageBitmap).not.toHaveBeenCalled();
 
     await targetImageData("/targets/12.png");
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(chrome.runtime.sendMessage).toHaveBeenCalledTimes(2);
   });
 });
