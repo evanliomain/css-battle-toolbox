@@ -30,18 +30,17 @@
   padding: 0.4rem 1.25rem;
   font-family: ClashGrotesk;
 
-  display: flex;
+  /* At the foot of the editor, right above its big buttons, and only in
+     increment mode. It used to sit over the editor header, which the match
+     tool now raises above the code. */
+  display: none;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-
-  position: absolute;
-  inset: 0 0 auto 0;
-  z-index: -1;
 }
 
 .container__item--editor:has(.content-highlighted) .incrementor-panel {
-  z-index: 0;
+  display: flex;
 }
 
 .button--incr {

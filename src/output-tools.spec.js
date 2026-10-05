@@ -9,6 +9,7 @@ const OPTION_IDS = [
   "output-grid-input",
   "output-outline-input",
   "output-background-input",
+  "output-pixel-diff-input",
 ];
 
 const ALL_ON = {
@@ -16,6 +17,7 @@ const ALL_ON = {
   defaultGrid: true,
   defaultOutline: true,
   defaultBackground: true,
+  defaultPixelDiff: true,
   defaultSlideAndCompare: true,
   defaultDifference: true,
 };
@@ -148,7 +150,7 @@ describe("output-tools", () => {
   });
 
   describe("mounting", () => {
-    it("appends the four options after cssbattle's own", async () => {
+    it("appends the five options after cssbattle's own", async () => {
       renderOutputPanel();
       await mountTool();
 
@@ -360,6 +362,61 @@ describe("output-tools", () => {
       option("output-outline-input").click();
       option("output-background-input").click();
       expect(targetContainer().className).toBe("target-container");
+    });
+  });
+
+  describe("Pixel diff", () => {
+    function overlay() {
+      return $("#overlay-pixel-diff");
+    }
+
+    it("lays a 400×300 canvas over the output, shown by its option", async () => {
+      renderOutputPanel();
+      await mountTool();
+
+      expect(overlay().width).toBe(400);
+      expect(overlay().height).toBe(300);
+      expect(targetContainer().lastElementChild).toBe(overlay());
+
+      option("output-pixel-diff-input").click();
+      expect(targetContainer().classList.contains("display-pixel-diff")).toBe(
+        true,
+      );
+
+      option("output-pixel-diff-input").click();
+      expect(targetContainer().classList.contains("display-pixel-diff")).toBe(
+        false,
+      );
+    });
+
+    it("draws the wrong pixels of each match measured", async () => {
+      renderOutputPanel();
+      const context = { putImageData: vi.fn() };
+      vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
+        context,
+      );
+      await mountTool();
+      const diff = { kind: "diff" };
+
+      document.dispatchEvent(
+        new CustomEvent("cbt:match-measured", { detail: { diff } }),
+      );
+
+      expect(context.putImageData).toHaveBeenCalledWith(diff, 0, 0);
+    });
+
+    it("stops drawing once the battle is left", async () => {
+      renderOutputPanel();
+      await mountTool();
+      const removed = vi.spyOn(document, "removeEventListener");
+
+      await leave();
+
+      expect(overlay()).toBeNull();
+      expect(removed).toHaveBeenCalledWith(
+        "cbt:match-measured",
+        expect.any(Function),
+      );
     });
   });
 

@@ -31,8 +31,9 @@ mount("reset-tools", {
       if (signal.aborted || hasCssbattleSavedCode()) {
         return;
       }
-      // Puts back the code the extension saved, or else a simpler template
-      changeCode(reset);
+      // Puts back the code the extension saved, or else a simpler template.
+      // Not an edit of the user's: no match measured for it.
+      changeCode(reset, { notify: false });
     });
   },
 });

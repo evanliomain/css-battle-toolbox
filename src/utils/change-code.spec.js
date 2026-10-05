@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { changeCode } from "./change-code";
+import { CODE_CHANGED, changeCode } from "./change-code";
 
 function editor() {
   return document.querySelector("[contenteditable]");
@@ -46,10 +46,27 @@ describe("changeCode", () => {
   });
 
   it("leaves the code untouched when the callback returns false", async () => {
+    const listener = vi.fn();
+    document.addEventListener(CODE_CHANGED, listener);
+
     changeCode(() => false);
     await settle();
 
     expect(editor().textContent).toBe("<p></p>");
+    expect(listener).not.toHaveBeenCalled();
+    document.removeEventListener(CODE_CHANGED, listener);
+  });
+
+  it("tells the code changed once it is written", async () => {
+    const listener = vi.fn(() => editor().textContent);
+    document.addEventListener(CODE_CHANGED, listener);
+
+    changeCode((code) => code + "<i></i>");
+    await settle();
+
+    expect(listener).toHaveBeenCalledOnce();
+    expect(listener).toHaveReturnedWith("<p></p><i></i>");
+    document.removeEventListener(CODE_CHANGED, listener);
   });
 
   it("writes an empty code, which is not false", async () => {

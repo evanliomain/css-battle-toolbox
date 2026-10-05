@@ -21,7 +21,10 @@ export default defineManifest(async (env) => ({
     page: "src/options.html",
     open_in_tab: true,
   },
-  permissions: ["storage"],
+  // debugger: the match renders the code in a page no one sees, as
+  // cssbattle's renderer does, and shoots it there, never on the battle page.
+  // tabGroups: that page is a background tab, folded in a collapsed group.
+  permissions: ["storage", "debugger", "tabGroups"],
   // <all_urls> only for the output screenshot: chrome.tabs.captureVisibleTab
   // asks for it or for activeTab, which a click in the page never grants.
   host_permissions: ["https://cssbattle.dev/*", "<all_urls>"],
@@ -43,6 +46,7 @@ export default defineManifest(async (env) => ({
         "src/output-tools.js",
         "src/autoclose-tools.js",
         "src/character-tools.js",
+        "src/match-tools.js",
         "src/options-effect.js",
         "src/incrementor-tools.js",
         "src/target-tools.js",

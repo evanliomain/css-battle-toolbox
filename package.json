@@ -29,6 +29,7 @@
     "vitest": "^4.1.11"
   },
   "dependencies": {
+    "pixelmatch": "^7.2.0",
     "taninsam": "^1.17.0"
   }
 }

@@ -1,0 +1,51 @@
+#cbt-match-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  /* Side by side, never one over the other nor over two lines. */
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  /* Off, only the switch shows. */
+  &:not(.is-on) :is(#cbt-match, #cbt-match-pixels) {
+    display: none;
+  }
+}
+
+/* The look comes from cssbattle's own .button classes. */
+#cbt-match-switch {
+  margin: 0;
+  padding: 4px;
+  line-height: 0;
+}
+
+#cbt-match {
+  padding: 0 0.25em;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+
+  &.is-perfect {
+    color: #3ec46d;
+  }
+  /* Always an estimate. */
+  font-style: italic;
+}
+
+#cbt-match-pixels {
+  font-variant-numeric: tabular-nums;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+/* The editor header has no stacking level of its own: the code below was
+   drawn over the long hints of the tool. */
+[class^="Editor-module"] > .item__header:has(#cbt-match-tool) {
+  position: relative;
+  z-index: 5;
+}

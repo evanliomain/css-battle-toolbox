@@ -1,5 +1,8 @@
 # 2.0.0
 
+- Match tool: For a solution stuck at 99.9%, switch the match estimate on, left of the character count: each time you stop typing, the badge estimates your match, to five decimals so every wrong pixel shows, and your score, without submitting, daily targets included. A click on the badge, or the new Pixel diff output tool, shows the wrong pixels in red. Nothing is rendered until you type
+- Match tool: The code is rendered as cssbattle renders it, at 400×300 and one pixel per pixel whatever your screen, in a background tab folded in a collapsed tab group: nothing moves on the battle page. That needs the new permission to use the debugger, which Chrome asks you to accept on update, and Chrome shows its "started debugging this browser" banner while the switch is on. The switch is off by default
+- Match tool: The estimate is always approximate (`≈`): cssbattle's renderer may differ from your computer's, all the more with code that depends on the fonts
 - Output tool: Set up groups of output tools in the options, then switch them all at once from the buttons left of the output, or with Ctrl+1, Ctrl+2…
 - Screenshot tool: The 📷 button left of the output tools takes the output, with the tools switched on, and the DOM panel below it, to download as a PNG, copy, or both. Taking the tab's image needs the new permission to read your data on all websites, which Chrome asks you to accept on update
 - Snippet tool: The editor suggests the target colors, and `transparent`, wherever CSS accepts a color

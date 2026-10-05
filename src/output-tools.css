@@ -34,6 +34,17 @@ body {
   z-index: 50;
 }
 
+#overlay-pixel-diff {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: none;
+  pointer-events: none;
+}
+.target-container.display-pixel-diff #overlay-pixel-diff {
+  display: block;
+}
+
 #overlay-grid {
   position: absolute;
   inset: 0;

@@ -61,6 +61,18 @@ describe("reset-tools", () => {
     expect(editor().textContent).toBe(TEMPLATE);
   });
 
+  it("does not tell the match tool, as the user typed nothing", async () => {
+    const listener = vi.fn();
+    document.addEventListener("cbt:code-changed", listener);
+
+    await import("./reset-tools.js");
+    await tick(600);
+
+    expect(editor().textContent).toBe(TEMPLATE);
+    expect(listener).not.toHaveBeenCalled();
+    document.removeEventListener("cbt:code-changed", listener);
+  });
+
   it("waits for the boilerplate to replace the previous battle's code", async () => {
     // On a client-side navigation the editor still shows the last battle's code.
     editor().textContent = USER_CODE;
