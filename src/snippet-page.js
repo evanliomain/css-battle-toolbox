@@ -3,6 +3,7 @@
  * view hangs off a DOM property, which a content script's isolated world
  * cannot see. No `chrome.*` here.
  */
+import { findView, keepFacet } from "./utils/cm-view";
 import { colorSlotAt } from "./utils/css-color-slot";
 import { propertyValuesAt } from "./utils/css-property-values";
 import { isPlayPage } from "./utils/spa-router";
@@ -11,7 +12,6 @@ import { ATTACH_EVENT, swatchType, targetColors } from "./utils/snippet";
 /** The word being typed: a hex color, or a color keyword. */
 const WORD = /#?[\w-]*$/;
 
-const hooked = new WeakSet();
 const patched = new WeakSet();
 /** The site's completion sources, each muted where ours take over. */
 const muted = new WeakMap();
@@ -27,36 +27,14 @@ document.addEventListener(ATTACH_EVENT, attach);
 attach();
 
 function attach() {
-  // Same lookup as CodeMirror's own EditorView.findFromDOM.
-  const view = document.querySelector(".cm-content")?.cmView?.rootView?.view;
+  const view = findView();
   if (!view) {
     console.debug("[cbt] snippet tool: no CodeMirror view found");
     return;
   }
-  if (hooked.has(view)) {
-    return;
-  }
-  hooked.add(view);
-
   // The site bundles CodeMirror: reach its classes through the view.
-  const { languageData } = view.state.constructor;
   muteSiteCompletions(view.state.constructor);
-  const { appendConfig } = view.constructor.scrollIntoView(0).constructor;
-  const dispatch = view.dispatch;
-  const ensureAttached = () => {
-    if (!view.state.facet(languageData).includes(provider)) {
-      dispatch.call(view, {
-        effects: appendConfig.of(languageData.of(provider)),
-      });
-    }
-  };
-  // The site's React wrapper reconfigures the editor whenever one of its props
-  // changes, which drops any extension added from outside: add it back.
-  view.dispatch = function (...args) {
-    dispatch.apply(this, args);
-    ensureAttached();
-  };
-  ensureAttached();
+  keepFacet(view, view.state.constructor.languageData, provider);
 }
 
 /**

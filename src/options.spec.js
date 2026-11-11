@@ -152,11 +152,12 @@ describe("options page", () => {
       $("save").click();
 
       const [saved] = chrome.storage.sync.set.mock.calls[0];
-      expect(Object.keys(saved)).toHaveLength(45);
+      expect(Object.keys(saved)).toHaveLength(46);
       expect(saved).toMatchObject({
         hideGrid: true,
         hideHeader: false,
         hideScreenshot: false,
+        hideClipPath: false,
         strScreenshotAction: "download",
         nbBrightnessDifference: "7",
         strKbdIncrement: "+",

@@ -48,6 +48,7 @@ export default defineManifest(async (env) => ({
         "src/target-tools.js",
         "src/ruler-tools.js",
         "src/snippet-tools.js",
+        "src/clip-path-tools.js",
         "src/leaderboard-tools.js",
         "src/dom-tools.js",
         "src/mode-menu.js",

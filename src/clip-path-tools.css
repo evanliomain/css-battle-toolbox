@@ -1,0 +1,156 @@
+/*
+ * The points of the clip-path under the caret, drawn over the render. Only the
+ * handles take the pointer: the rest lets clicks through to the output tools.
+ */
+#cbt-clip-path {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Above the DOM tool's outlines. */
+  z-index: 11;
+  pointer-events: none;
+
+  svg {
+    display: block;
+    overflow: visible;
+  }
+}
+
+.cbt-clip-path__box {
+  fill: none;
+  stroke: var(--clr-brand, #f9e7a7);
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.cbt-clip-path__outline {
+  fill: color-mix(in srgb, var(--clr-brand, #f9e7a7) 15%, transparent);
+  stroke: var(--clr-brand, #f9e7a7);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.cbt-clip-path__line {
+  stroke: var(--clr-brand, #f9e7a7);
+  stroke-dasharray: 2 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.cbt-clip-path__handle {
+  pointer-events: all;
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  cursor: move;
+}
+
+.cbt-clip-path__handle--ew {
+  cursor: ew-resize;
+}
+
+.cbt-clip-path__handle--ns {
+  cursor: ns-resize;
+}
+
+.cbt-clip-path__handle--locked {
+  fill: #888;
+  cursor: not-allowed;
+}
+
+.cbt-clip-path__handle--mid {
+  fill: var(--clr-brand, #f9e7a7);
+  opacity: 0.6;
+  cursor: copy;
+}
+
+.cbt-clip-path__handle--control {
+  fill: var(--clr-brand, #f9e7a7);
+}
+
+.cbt-clip-path__handle--center,
+.cbt-clip-path__handle--radius {
+  fill: var(--clr-brand, #f9e7a7);
+}
+
+/* The ready-made shapes, below the output. */
+#cbt-clip-path-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem 1.25rem;
+  background-color: var(--clr-inner-header-highlight);
+  color: var(--clr-text);
+  font-size: 0.85em;
+}
+
+.cbt-clip-path__added {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+
+  &[hidden] {
+    display: none;
+  }
+
+  > span {
+    margin-right: 0.25rem;
+  }
+}
+
+.cbt-clip-path__command {
+  padding: 0.1rem 0.4rem;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-family: monospace;
+  border: 1px solid
+    color-mix(in srgb, var(--clr-brand, #f9e7a7) 40%, transparent);
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--clr-brand, #f9e7a7);
+  }
+
+  &[aria-pressed="true"] {
+    background-color: var(--clr-brand, #f9e7a7);
+    color: #000;
+  }
+}
+
+/* A row per kind of shape, scrolled rather than wrapped on a narrow output. */
+.cbt-clip-path__presets {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+}
+
+.cbt-clip-path__preset {
+  display: grid;
+  flex: none;
+  place-items: center;
+  padding: 2px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+
+  path {
+    fill: var(--clr-brand, #f9e7a7);
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--clr-brand, #f9e7a7);
+  }
+}
+
+body.hideClipPath {
+  #cbt-clip-path,
+  #cbt-clip-path-bar {
+    display: none;
+  }
+}

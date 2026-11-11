@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Every tool is its own content-script entry, but they all share utils/mount.js.
 // A throw at import time in any of them means that tool never runs at all — and
-// a throw inside the shared chunk takes all nineteen down together, which reads
+// a throw inside the shared chunk takes all twenty down together, which reads
 // as "the extension is not active".
 const TOOLS = [
   "./unit-tools.js",
@@ -23,6 +23,7 @@ const TOOLS = [
   "./target-tools.js",
   "./ruler-tools.js",
   "./snippet-tools.js",
+  "./clip-path-tools.js",
   "./leaderboard-tools.js",
   "./dom-tools.js",
   "./mode-menu.js",

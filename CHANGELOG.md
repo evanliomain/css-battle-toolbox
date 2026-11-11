@@ -1,3 +1,7 @@
+# 2.1.0
+
+- Clip-path tool: With the caret in a `clip-path` value, drag the points of its shape right on the element in the output, as on Clippy, and the code follows. It works with `polygon()`, `circle()`, `ellipse()`, `inset()`, `rect()`, `xywh()` and `shape()`: add a point from the middle of a side, with the command of your choice in a `shape()`, remove one with a double press, or start from a ready-made shape
+
 # 2.0.0
 
 - Output tool: Set up groups of output tools in the options, then switch them all at once from the buttons left of the output, or with Ctrl+1, Ctrl+2…
