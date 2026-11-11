@@ -1,5 +1,6 @@
 import "./snippet-tools.css";
 import pageScript from "./snippet-page.js?script&module";
+import { injectPageScript } from "./utils/inject-page-script";
 import { mount } from "./utils/mount";
 import {
   ATTACH_EVENT,
@@ -30,23 +31,9 @@ mount("snippet-tools", {
     document.head.append(swatches);
     onCleanup(() => swatches.remove());
 
-    injectPageScript();
+    // The completions must be added from the page's own JS world.
+    injectPageScript(SCRIPT_ID, pageScript);
     // Each battle gets a new editor, which the page script must reach again.
     document.dispatchEvent(new CustomEvent(ATTACH_EVENT));
   },
 });
-
-/**
- * The completions must be added from the page's own JS world, where
- * CodeMirror lives. Injected once: the script outlives SPA navigations.
- */
-function injectPageScript() {
-  if (document.getElementById(SCRIPT_ID)) {
-    return;
-  }
-  const script = document.createElement("script");
-  script.id = SCRIPT_ID;
-  script.type = "module";
-  script.src = chrome.runtime.getURL(pageScript);
-  document.head.append(script);
-}

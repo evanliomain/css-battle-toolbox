@@ -39,6 +39,7 @@ const OPTIONS_KEYS = [
   "hideUnitGolf",
   "hideRuler",
   "hideSnippet",
+  "hideClipPath",
   "hideLeaderboard",
 
   "invertDifference",
