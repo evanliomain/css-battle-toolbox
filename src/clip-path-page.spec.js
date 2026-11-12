@@ -217,9 +217,7 @@ describe("clip-path-page", () => {
     it("draws the shape over the element", async () => {
       await load(RULE("polygon(50% |0,100% 100%,0 100%)"));
 
-      expect(document.querySelector(".target-container").lastChild).toBe(
-        overlay(),
-      );
+      expect(document.body.lastChild).toBe(overlay());
       expect(handleIds()).toEqual(["v0", "v1", "v2", "m0", "m1", "m2"]);
       expect(overlay().querySelector("g").getAttribute("transform")).toBe(
         "translate(10 20) translate(0 0)",
@@ -325,7 +323,21 @@ describe("clip-path-page", () => {
       expect(bar()).not.toBeNull();
     });
 
-    it("moves to the new render container", async () => {
+    it("stands over the render, out of its panel", async () => {
+      await load(RULE("circle(|)"));
+      const container = document.querySelector(".target-container");
+      vi.spyOn(container, "getBoundingClientRect").mockReturnValue({
+        left: 60,
+        top: 110,
+      });
+
+      flush();
+
+      expect(container.contains(overlay())).toBe(false);
+      expect(overlay().style.translate).toBe("60px 110px");
+    });
+
+    it("follows the new render container", async () => {
       await load(RULE("circle(|)"));
       const container = document.querySelector(".target-container");
       const next = container.cloneNode(true);
@@ -333,10 +345,14 @@ describe("clip-path-page", () => {
       Object.defineProperty(next.querySelector("iframe"), "clientWidth", {
         value: 400,
       });
+      vi.spyOn(next, "getBoundingClientRect").mockReturnValue({
+        left: 5,
+        top: 7,
+      });
 
       flush();
 
-      expect(overlay().parentElement).toBe(next);
+      expect(overlay().style.translate).toBe("5px 7px");
     });
 
     it("goes away when the caret leaves the value", async () => {
@@ -578,6 +594,87 @@ describe("clip-path-page", () => {
       commands().click();
 
       expect(pressed()).toEqual(["line"]);
+    });
+  });
+
+  describe("edit toggle", () => {
+    function toggle() {
+      return bar().querySelector("[data-toggle]");
+    }
+
+    it("is on at first", async () => {
+      await load(RULE("circle(|)"));
+
+      expect(toggle().getAttribute("role")).toBe("switch");
+      expect(toggle().getAttribute("aria-checked")).toBe("true");
+      expect(overlay()).not.toBeNull();
+    });
+
+    it("explains itself with the site's tooltips", async () => {
+      await load(RULE("circle(|)"));
+
+      expect(toggle().dataset.hint).toBe("Edit the shape on the output");
+      expect(toggle().classList).toContain("hint--bottom-left");
+      expect(toggle().hasAttribute("title")).toBe(false);
+    });
+
+    it("switches from its knob too", async () => {
+      await load(RULE("circle(|)"));
+
+      toggle().querySelector(".cbt-clip-path__knob").click();
+      flush();
+
+      expect(overlay()).toBeNull();
+    });
+
+    it("takes the shape off the output, the bar staying", async () => {
+      await load(RULE("circle(|)"));
+
+      toggle().click();
+      flush();
+
+      expect(overlay()).toBeNull();
+      expect(toggle().getAttribute("aria-checked")).toBe("false");
+      expect(status()).toBe("circle()");
+      expect(frames).toHaveLength(1);
+    });
+
+    it("draws the shape again once back on", async () => {
+      await load(RULE("circle(|)"));
+
+      toggle().click();
+      flush();
+      toggle().click();
+      flush();
+
+      expect(handleIds()).toEqual(["c", "r"]);
+      expect(toggle().getAttribute("aria-checked")).toBe("true");
+    });
+
+    it("stays off in the next battle", async () => {
+      await load(RULE("circle(|)"));
+      toggle().click();
+      flush();
+      document.dispatchEvent(new CustomEvent("cbt-clip-path-detach"));
+
+      const next = createView("");
+      renderPage(next);
+      document.dispatchEvent(new CustomEvent("cbt-clip-path-attach"));
+      setCode(next, RULE("circle(|)"));
+      flush();
+
+      expect(overlay()).toBeNull();
+      expect(toggle().getAttribute("aria-checked")).toBe("false");
+    });
+
+    it("leaves the ready-made shapes at hand", async () => {
+      const view = await load(RULE("|"));
+      toggle().click();
+      flush();
+
+      bar().querySelector('[aria-label="Circle"]').click();
+
+      expect(value(view)).toBe("circle(50%)");
     });
   });
 

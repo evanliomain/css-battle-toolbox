@@ -55,6 +55,12 @@ let drag = null;
 let lastPress = { id: "", time: -Infinity };
 /** The command a new point of a shape() comes with, picked in the bar. */
 let added = "line";
+/**
+ * Whether the shape is drawn over the output. Turned off, the output shows as
+ * it is, the difference with the target too, while the numbers are tuned in
+ * the code. Kept from a battle to the next.
+ */
+let editing = true;
 
 document.addEventListener(ATTACH_EVENT, attach);
 document.addEventListener(DETACH_EVENT, detach);
@@ -164,12 +170,6 @@ function current() {
 // ——— Drawing ———
 
 function render(state) {
-  if (!overlay?.isConnected || overlay.parentElement !== state.container) {
-    overlay?.remove();
-    overlay = createOverlay();
-    state.container.append(overlay);
-    drawn = "";
-  }
   if (!bar?.isConnected) {
     bar?.remove();
     bar = createBar();
@@ -187,7 +187,24 @@ function render(state) {
     .join(" · ");
 
   showAdded(shape?.name);
+  bar
+    .querySelector("[data-toggle]")
+    .setAttribute("aria-checked", String(editing));
 
+  if (!editing) {
+    removeOverlay();
+    return;
+  }
+  if (!overlay?.isConnected) {
+    overlay?.remove();
+    overlay = createOverlay();
+    document.body.append(overlay);
+    drawn = "";
+  }
+  // Out of the output's panel, which would cut the points beyond the render,
+  // and of the filter the difference puts on the render: pinned over it.
+  const { left, top } = state.container.getBoundingClientRect();
+  overlay.style.translate = `${left}px ${top}px`;
   const markup = svg(state);
   if (markup !== drawn) {
     overlay.innerHTML = markup;
@@ -196,10 +213,14 @@ function render(state) {
 }
 
 function hide() {
-  overlay?.remove();
+  removeOverlay();
   bar?.remove();
-  overlay = null;
   bar = null;
+}
+
+function removeOverlay() {
+  overlay?.remove();
+  overlay = null;
   drawn = "";
   drag = null;
 }
@@ -249,7 +270,7 @@ function createOverlay() {
 function createBar() {
   const element = document.createElement("div");
   element.id = BAR_ID;
-  element.innerHTML = `<span class="cbt-clip-path__status"></span><div class="cbt-clip-path__added" role="group" aria-label="New point" hidden><span>New point</span>${ADDED_COMMANDS.map(
+  element.innerHTML = `<div class="cbt-clip-path__header"><span class="cbt-clip-path__status"></span><button type="button" class="cbt-clip-path__toggle hint--bottom-left" role="switch" data-toggle aria-checked="true" aria-label="Edit the shape on the output" data-hint="Edit the shape on the output"><span class="cbt-clip-path__knob"></span></button></div><div class="cbt-clip-path__added" role="group" aria-label="New point" hidden><span>New point</span>${ADDED_COMMANDS.map(
     ({ name, label, title }) =>
       `<button type="button" class="cbt-clip-path__command" data-add="${name}" title="${title}" aria-pressed="false">${label}</button>`,
   ).join("")}</div>${PRESET_GROUPS.map(
@@ -260,6 +281,11 @@ function createBar() {
   ).join("")}`;
   element.addEventListener("mousedown", (event) => event.preventDefault());
   element.addEventListener("click", (event) => {
+    if (event.target.closest("[data-toggle]")) {
+      editing = !editing;
+      schedule();
+      return;
+    }
     const command = event.target.closest("[data-add]");
     if (command) {
       added = command.dataset.add;
