@@ -3,11 +3,12 @@
  * handles take the pointer: the rest lets clicks through to the output tools.
  */
 #cbt-clip-path {
-  position: absolute;
+  /* Moved over the render on every frame, from the top left of the window. */
+  position: fixed;
   top: 0;
   left: 0;
-  /* Above the DOM tool's outlines. */
-  z-index: 11;
+  /* Above the DOM tool's outlines, and the panels around the output. */
+  z-index: 1000;
   pointer-events: none;
 
   svg {
@@ -82,6 +83,53 @@
   background-color: var(--clr-inner-header-highlight);
   color: var(--clr-text);
   font-size: 0.85em;
+}
+
+.cbt-clip-path__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* Draws the shape over the output, or leaves the output as it is. */
+.cbt-clip-path__toggle {
+  position: relative;
+  flex: none;
+  width: 28px;
+  height: 16px;
+  padding: 0;
+  background-color: color-mix(in srgb, var(--clr-text, #fff) 25%, transparent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  /* Not a pseudo-element: hint.css draws the tooltip with both. */
+  .cbt-clip-path__knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: translate 0.15s;
+  }
+
+  &[aria-checked="true"] {
+    background-color: var(--clr-brand, #f9e7a7);
+
+    .cbt-clip-path__knob {
+      background-color: #000;
+      translate: 12px 0;
+    }
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--clr-brand, #f9e7a7);
+    outline-offset: 2px;
+  }
 }
 
 .cbt-clip-path__added {

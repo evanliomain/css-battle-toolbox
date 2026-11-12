@@ -1,3 +1,8 @@
+# 2.1.1
+
+- Clip-path tool: A switch at the top right of the bar of ready-made shapes takes the shape off the output, to see it, or its difference with the target, as it is while tuning the numbers in the code
+- Clip-path tool: The points beyond the output show and drag too, over the panels around it, and keep their colors when the difference is shown
+
 # 2.1.0
 
 - Clip-path tool: With the caret in a `clip-path` value, drag the points of its shape right on the element in the output, as on Clippy, and the code follows. It works with `polygon()`, `circle()`, `ellipse()`, `inset()`, `rect()`, `xywh()` and `shape()`: add a point from the middle of a side, with the command of your choice in a `shape()`, remove one with a double press, or start from a ready-made shape
