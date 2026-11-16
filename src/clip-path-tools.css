@@ -17,6 +17,16 @@
   }
 }
 
+/*
+ * The brand's pale yellow fades on a light output: a dark rim keeps the lines
+ * in sight on any background.
+ */
+.cbt-clip-path__box,
+.cbt-clip-path__outline,
+.cbt-clip-path__line {
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
+}
+
 .cbt-clip-path__box {
   fill: none;
   stroke: var(--clr-brand, #f9e7a7);
@@ -59,9 +69,9 @@
   cursor: not-allowed;
 }
 
+/* Smaller than the points, but as plain: faded, they vanish on a light output. */
 .cbt-clip-path__handle--mid {
   fill: var(--clr-brand, #f9e7a7);
-  opacity: 0.6;
   cursor: copy;
 }
 

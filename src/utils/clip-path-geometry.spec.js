@@ -31,6 +31,14 @@ describe("unitFactor", () => {
   it("knows no other unit", () => {
     expect(unitFactor("foo", "x", box)).toBeNull();
   });
+
+  it("takes the units the render resolved", () => {
+    const resolved = { ...box, units: { lh: 18 } };
+
+    expect(unitFactor("lh", "y", resolved)).toBe(18);
+    expect(unitFactor("ch", "y", resolved)).toBeNull();
+    expect(toPx(number(2, "lh"), "y", resolved)).toBe(36);
+  });
 });
 
 describe("basisLength", () => {

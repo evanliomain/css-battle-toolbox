@@ -226,6 +226,39 @@ describe("clip-path-page", () => {
         "M 100 0 L 200 100 L 0 100 Z",
       );
       expect(overlay().querySelector("svg").getAttribute("width")).toBe("400");
+      // In pixels of the render, out of the group: round whatever the scale.
+      expect(overlay().querySelector("g [data-handle]")).toBeNull();
+      const v0 = document.querySelector('[data-handle="v0"]');
+      expect([v0.getAttribute("cx"), v0.getAttribute("cy")]).toEqual([
+        "110",
+        "20",
+      ]);
+    });
+
+    it("draws the points in units only the render knows", async () => {
+      const view = createView("");
+      const iframe = renderPage(view);
+      const renderWin = iframe.contentWindow;
+      const own = renderWin.getComputedStyle;
+      // jsdom computes no length: 1lh is 18px on the probe.
+      vi.spyOn(renderWin, "getComputedStyle").mockImplementation((el) =>
+        "CBT-PROBE" === el.tagName
+          ? {
+              // Live, as a computed style is.
+              get marginLeft() {
+                return `${parseFloat(el.style.marginLeft) * 18}px`;
+              },
+            }
+          : own(el),
+      );
+      await import("./clip-path-page.js");
+      setCode(view, RULE("polygon(0 |2lh,100% 0,1lh 100%)"));
+      flush();
+
+      expect(handleIds()).toEqual(["v0", "v1", "v2", "m0", "m1", "m2"]);
+      expect(overlay().querySelector("path").getAttribute("d")).toBe(
+        "M 0 36 L 200 0 L 18 100 Z",
+      );
     });
 
     it("shows the ready-made shapes below the output", async () => {

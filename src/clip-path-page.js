@@ -17,6 +17,8 @@ import {
   findElement,
   measure,
   targetAt,
+  toRender,
+  unitSizes,
   viewportFrame,
 } from "./utils/clip-path-target";
 import {
@@ -26,6 +28,7 @@ import {
   RENDER,
   RENDER_CONTAINER,
 } from "./utils/clip-path-tool";
+import { unitFactor } from "./utils/clip-path-geometry";
 import { isPlayPage } from "./utils/spa-router";
 import { clipPathAt } from "./utils/clip-path-value";
 
@@ -154,6 +157,11 @@ function current() {
     rootFontSize: place.rootFontSize,
     viewport: { width, height },
   };
+  // The units only the render knows, like `lh`, measured on the element.
+  const units = [...value.text.matchAll(/[\d.]([a-z]+)/gi)]
+    .map(([, unit]) => unit.toLowerCase())
+    .filter((unit) => null === unitFactor(unit, "x", box));
+  box.units = unitSizes(found.element ?? renderDoc.documentElement, units);
   return {
     value,
     parsed,
@@ -229,30 +237,27 @@ function removeOverlay() {
 function svg({ place, layout, width, height }) {
   const { box } = place;
   const n = (value) => Number(value.toFixed(2));
-  const transform = [
-    `translate(${n(place.x)} ${n(place.y)})`,
-    place.transform,
-    `translate(${n(box.x)} ${n(box.y)})`,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const transform = `${place.transform} translate(${n(box.x)} ${n(box.y)})`;
   const lines = layout.lines
     .map(
       ([a, b]) =>
         `<line class="cbt-clip-path__line" x1="${n(a.x)}" y1="${n(a.y)}" x2="${n(b.x)}" y2="${n(b.y)}"/>`,
     )
     .join("");
+  // In pixels of the render, out of the transforms: round and of the same
+  // size, however the element is scaled or skewed.
   const handles = layout.handles
     .map(({ id, kind, x, y, free }) => {
       const move =
         free.x && free.y ? "move" : free.x ? "ew" : free.y ? "ns" : "locked";
-      return `<circle class="cbt-clip-path__handle cbt-clip-path__handle--${kind} cbt-clip-path__handle--${move}" data-handle="${id}" cx="${n(x)}" cy="${n(y)}" r="${"mid" === kind ? 4 : 5}"/>`;
+      const at = toRender(place, { x, y });
+      return `<circle class="cbt-clip-path__handle cbt-clip-path__handle--${kind} cbt-clip-path__handle--${move}" data-handle="${id}" cx="${n(at.x)}" cy="${n(at.y)}" r="${"mid" === kind ? 4 : 5}"/>`;
     })
     .join("");
   const path = layout.path
     ? `<path class="cbt-clip-path__outline" d="${layout.path}"/>`
     : "";
-  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><g transform="${transform}"><rect class="cbt-clip-path__box" width="${n(box.width)}" height="${n(box.height)}"/>${path}${lines}${handles}</g></svg>`;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><g transform="${transform}"><rect class="cbt-clip-path__box" width="${n(box.width)}" height="${n(box.height)}"/>${path}${lines}</g>${handles}</svg>`;
 }
 
 function createOverlay() {
