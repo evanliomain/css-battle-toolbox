@@ -6,6 +6,8 @@ import {
   findElement,
   measure,
   targetAt,
+  toRender,
+  unitSizes,
   viewportFrame,
 } from "./clip-path-target";
 
@@ -165,12 +167,24 @@ function withParent(child, parentStyle) {
 
 describe("measure", () => {
   const rect = { x: 10, y: 20, width: 100, height: 50 };
+  /** Where the corners of the reference box land in the render. */
+  const corners = (frame) => {
+    const { width, height } = frame.box;
+    return [
+      [0, 0],
+      [width, 0],
+      [width, height],
+      [0, height],
+    ].map(([x, y]) => {
+      const at = toRender(frame, { x, y });
+      return [Number(at.x.toFixed(6)) + 0, Number(at.y.toFixed(6)) + 0];
+    });
+  };
 
   it("reads the client rect of an element without transform", () => {
     expect(measure(element({ rect }), null)).toEqual({
-      x: 10,
-      y: 20,
-      transform: "",
+      transform: "translate(10 20)",
+      matrix: { a: 1, b: 0, c: 0, d: 1, e: 10, f: 20 },
       box: { x: 0, y: 0, width: 100, height: 50 },
       fontSize: 10,
       rootFontSize: 20,
@@ -206,104 +220,209 @@ describe("measure", () => {
     });
   });
 
-  it("lays out a transformed element from its offsets", () => {
-    const parent = { offsetLeft: 5, offsetTop: 6, clientLeft: 1, clientTop: 2 };
+  it("turns a rotated element in its client rect", () => {
+    // 80×40, turned a quarter around its center (140, 70).
     const el = element({
-      rect,
-      style: { rotate: "30deg" },
-      offset: {
-        offsetLeft: 10,
-        offsetTop: 20,
-        offsetWidth: 80,
-        offsetHeight: 40,
-        offsetParent: { ...parent, offsetParent: null },
-      },
+      rect: { x: 120, y: 30, width: 40, height: 80 },
+      style: { rotate: "90deg" },
+      offset: { offsetWidth: 80, offsetHeight: 40 },
     });
 
-    expect(measure(el, null)).toMatchObject({
-      x: 16,
-      y: 28,
-      transform: "translate(50 25) rotate(30) translate(-50 -25)",
-      box: { width: 80, height: 40 },
-    });
+    const frame = measure(el, null);
+    expect(frame.transform).toBe("matrix(0 1 -1 0 160 30)");
+    expect(corners(frame)).toEqual([
+      [160, 30],
+      [160, 110],
+      [120, 110],
+      [120, 30],
+    ]);
   });
 
   it("applies the transforms in the order of CSS", () => {
+    // Scaled twice as wide, then turned a quarter: 80 tall.
     const el = element({
-      rect,
+      rect: { x: 0, y: 0, width: 40, height: 80 },
       style: {
         translate: "10px 20px",
-        rotate: "45deg",
-        scale: "2",
+        rotate: "0.25turn",
+        scale: "2 1",
         transform: "matrix(1, 0, 0, 1, 5, 6)",
       },
-      offset: {
-        offsetLeft: 0,
-        offsetTop: 0,
-        offsetWidth: 80,
-        offsetHeight: 40,
-        offsetParent: null,
-      },
+      offset: { offsetWidth: 40, offsetHeight: 40 },
     });
 
-    expect(measure(el, null).transform).toBe(
-      "translate(50 25) translate(10 20) rotate(45) scale(2 2) matrix(1 0 0 1 5 6) translate(-50 -25)",
-    );
+    expect(corners(measure(el, null))).toEqual([
+      [40, 0],
+      [40, 80],
+      [0, 80],
+      [0, 0],
+    ]);
   });
 
-  it("reads the transforms written in short", () => {
+  it("reads the rotations, scales and skews written in every way", () => {
     const transform = (style) =>
       measure(
         element({
           rect,
           style,
-          offset: { offsetLeft: 0, offsetTop: 0, offsetParent: null },
+          offset: { offsetWidth: 100, offsetHeight: 50 },
         }),
         null,
       ).transform;
 
-    expect(transform({ translate: "10px" })).toBe(
-      "translate(50 25) translate(10 0) translate(-50 -25)",
+    expect(transform({ rotate: "z 180deg" })).toBe("matrix(-1 0 0 -1 110 70)");
+    expect(transform({ rotate: "0 0 1 3.14159265rad" })).toBe(
+      "matrix(-1 0 0 -1 110 70)",
     );
-    expect(transform({ scale: "2 3" })).toBe(
-      "translate(50 25) scale(2 3) translate(-50 -25)",
+    expect(transform({ rotate: "200grad" })).toBe("matrix(-1 0 0 -1 110 70)");
+    expect(transform({ scale: "-1" })).toBe("matrix(-1 0 0 -1 110 70)");
+    expect(transform({ transform: "matrix(1, 0, 1, 1, 0, 0)" })).toBe(
+      "matrix(1 0 1 1 10 20)",
     );
+    // Moves only: the client rect has them.
+    expect(transform({ translate: "10px 20%" })).toBe("translate(10 20)");
     // 3D: left out.
-    expect(transform({ rotate: "x 30deg" })).toBe("");
-    expect(transform({ transform: "matrix3d(1)" })).toBe("");
+    expect(transform({ rotate: "x 30deg" })).toBe("translate(10 20)");
+    expect(transform({ transform: "matrix3d(1)" })).toBe("translate(10 20)");
+    // Inline boxes do not take transforms.
+    expect(transform({ rotate: "90deg", display: "inline" })).toBe(
+      "translate(10 20)",
+    );
   });
 
-  it("measures an element transformed by an ancestor from its offsets", () => {
+  it("applies the transforms of the ancestors after its own", () => {
+    // Stretched twice as wide by itself, then turned a quarter by its parent.
     const el = withParent(
       element({
-        rect,
-        offset: {
-          offsetLeft: 3,
-          offsetTop: 4,
-          offsetWidth: 80,
-          offsetHeight: 40,
-          offsetParent: null,
-        },
+        rect: { x: 0, y: 0, width: 40, height: 80 },
+        style: { scale: "2 1" },
+        offset: { offsetWidth: 40, offsetHeight: 40 },
       }),
-      { transform: "matrix(1, 0, 0, 1, 0, 0)" },
+      { rotate: "90deg" },
     );
 
-    expect(measure(el, null)).toMatchObject({ x: 3, y: 4, transform: "" });
+    expect(corners(measure(el, null))).toEqual([
+      [40, 0],
+      [40, 80],
+      [0, 80],
+      [0, 0],
+    ]);
   });
 
-  it("reads the client rect of a transformed SVG element", () => {
-    const el = element({ rect, style: { rotate: "30deg" } });
+  it("mirrors an element in a mirrored ancestor", () => {
+    const el = withParent(
+      element({ rect, offset: { offsetWidth: 100, offsetHeight: 50 } }),
+      { scale: "-1 1" },
+    );
 
-    expect(measure(el, null)).toMatchObject({ x: 10, y: 20 });
+    expect(corners(measure(el, null))).toEqual([
+      [110, 20],
+      [10, 20],
+      [10, 70],
+      [110, 70],
+    ]);
+  });
+
+  it("sizes a transformed SVG element from its client rect", () => {
+    const el = element({ rect, style: { scale: "-1 1" } });
+
+    expect(measure(el, null).box).toMatchObject({ width: 100, height: 50 });
+  });
+});
+
+describe("unitSizes", () => {
+  /** The font style of each probe. */
+  let fonts;
+
+  afterEach(() => {
+    document.documentElement.innerHTML = "<head></head><body></body>";
+    vi.restoreAllMocks();
+  });
+
+  /** jsdom computes no length: the margin is read as the render would. */
+  function resolving(sizes) {
+    fonts = [];
+    const own = window.getComputedStyle;
+    vi.spyOn(window, "getComputedStyle").mockImplementation((el) => {
+      const style = own(el);
+      if ("CBT-PROBE" !== el.tagName) {
+        return style;
+      }
+      fonts.push(el.style.getPropertyValue("font-style"));
+      return {
+        get marginLeft() {
+          // jsdom drops a unit it does not know, as the render would.
+          const [, value, unit] = /^([\d.]+)([a-z]+)$/.exec(
+            el.style.marginLeft,
+          ) ?? [, 0, "px"];
+          return `${value * (sizes[unit] ?? 1)}px`;
+        },
+      };
+    });
+  }
+
+  it("resolves the units on a probe with the element's font", () => {
+    resolving({ lh: 18, ch: 8.5 });
+    const p = document.createElement("p");
+    p.style.font = "italic 20px serif";
+    document.body.append(p);
+
+    expect(unitSizes(p, ["lh", "ch", "lh"])).toEqual({ lh: 18, ch: 8.5 });
+    expect(fonts).toEqual(["italic"]);
+    // Gone at once.
+    expect(document.querySelector("cbt-probe")).toBeNull();
+  });
+
+  it("leaves out the units the render does not know, and containers'", () => {
+    resolving({ lh: 18, cqw: 4 });
+
+    expect(unitSizes(document.body, ["foo", "cqw", "lh"])).toEqual({ lh: 18 });
+  });
+
+  it("measures again only when the element or its font changes", () => {
+    resolving({ lh: 18 });
+    const p = document.createElement("p");
+    document.body.append(p);
+    const append = vi.spyOn(document.documentElement, "append");
+
+    unitSizes(p, ["lh"]);
+    unitSizes(p, ["lh"]);
+    expect(append).toHaveBeenCalledTimes(1);
+
+    p.style.fontStyle = "italic";
+    unitSizes(p, ["lh"]);
+    expect(append).toHaveBeenCalledTimes(2);
+
+    const other = document.createElement("p");
+    document.body.append(other);
+    unitSizes(other, ["lh"]);
+    expect(append).toHaveBeenCalledTimes(3);
+  });
+
+  it("asks nothing for no unit", () => {
+    const spy = vi.spyOn(document, "createElement");
+
+    expect(unitSizes(document.body, [])).toEqual({});
+    expect(spy).not.toHaveBeenCalled();
+  });
+});
+
+describe("toRender", () => {
+  it("places a point of the reference box", () => {
+    const frame = {
+      matrix: { a: 0, b: 1, c: -1, d: 0, e: 100, f: 10 },
+      box: { x: 5, y: 0, width: 10, height: 10 },
+    };
+
+    expect(toRender(frame, { x: 1, y: 2 })).toEqual({ x: 98, y: 16 });
   });
 });
 
 describe("viewportFrame", () => {
   it("covers the whole render", () => {
     expect(viewportFrame(400, 300)).toEqual({
-      x: 0,
-      y: 0,
-      transform: "",
+      transform: "translate(0 0)",
+      matrix: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
       box: { x: 0, y: 0, width: 400, height: 300 },
       fontSize: 16,
       rootFontSize: 16,

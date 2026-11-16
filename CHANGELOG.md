@@ -1,3 +1,9 @@
+# 2.1.2
+
+- Clip-path tool: The points written in `lh`, `ch`, `ex`, `cap` and the other units only the output knows show and drag too, instead of leaving the shape without them
+- Clip-path tool: The shape follows the rotations, scales and skews of the element's parents, as a `scale:-1 1` on the `body` or a `rotate` on the `html`
+- Clip-path tool: The shape stands out on light outputs too, and its points stay round and of the same size whatever the element's scale
+
 # 2.1.1
 
 - Clip-path tool: A switch at the top right of the bar of ready-made shapes takes the shape off the output, to see it, or its difference with the target, as it is while tuning the numbers in the code

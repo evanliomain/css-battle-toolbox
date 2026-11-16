@@ -10,6 +10,8 @@
  * @property {number} fontSize for `em`
  * @property {number} rootFontSize for `rem`
  * @property {{ width: number, height: number }} viewport for `vw`, `vh`…
+ * @property {Record<string, number>} [units] the pixels of the other units the
+ *   render resolved on the element, like `lh`, `ch` or `ex`
  */
 
 /**
@@ -71,7 +73,7 @@ export function unitFactor(unit, basis, box) {
     case "rem":
       return box.rootFontSize;
     default:
-      return null;
+      return box.units?.[unit] ?? null;
   }
 }
 
