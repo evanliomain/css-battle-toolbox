@@ -45,6 +45,7 @@ describe("border-shape", () => {
     ["two boxes in a row", "border-shape:circle() border-box padding-box ", []],
     ["none", "border-shape:none ", []],
     ["a comma", "border-shape:circle(),", []],
+    ["url()", "border-shape:url(", []],
   ])("offers what goes with %s", (_, declaration, labels) => {
     expect(labelsAfter(declaration)).toEqual(labels);
   });
