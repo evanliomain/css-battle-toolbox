@@ -444,6 +444,16 @@ describe("clip-path-page", () => {
       expect(overlay()).toBeNull();
     });
 
+    it("draws nothing from a frame asked before the battle left", async () => {
+      const view = await load(RULE("circle(|)"));
+      view.dispatch({});
+
+      document.dispatchEvent(new CustomEvent("cbt-clip-path-detach"));
+      flush();
+
+      expect(overlay()).toBeNull();
+    });
+
     it("asks for a single frame at a time", async () => {
       const view = await load(RULE("circle(|)"));
 
@@ -537,6 +547,16 @@ describe("clip-path-page", () => {
 
       expect(event.defaultPrevented).toBe(false);
       expect(value(view)).toBe("polygon(10px 0,1px 1px,2px 2px)");
+    });
+
+    it("writes nothing once the tool is switched off mid-drag", async () => {
+      const view = await load(RULE("polygon(50% 0,100% 100%,0 |100%)"));
+      pointer("pointerdown", "v0");
+
+      document.body.classList.add("hideClipPath");
+      pointer("pointermove", null, { x: 20, y: 30 });
+
+      expect(value(view)).toBe("polygon(50% 0,100% 100%,0 100%)");
     });
 
     it("stops when the point is gone", async () => {
@@ -1041,6 +1061,27 @@ describe("clip-path-page", () => {
       flush();
 
       expect(highlights()["cbt-point-1"]).toEqual(["1px"]);
+    });
+
+    it("leaves out a value CodeMirror cannot place", async () => {
+      const view = createView("");
+      const domAtPos = view.domAtPos.bind(view);
+      // The first point's x, out of the DOM CodeMirror drew.
+      view.domAtPos = (pos) => {
+        if (pos === view.doc.indexOf("1px")) {
+          throw new RangeError("Trying to find position for a widget");
+        }
+        return domAtPos(pos);
+      };
+      renderPage(view);
+      await import("./clip-path-page.js");
+      setCode(view, RULE("polygon(|1px 2px,3px 4px)"));
+      flush();
+
+      expect(highlights()).toEqual({
+        "cbt-point-0": ["2px"],
+        "cbt-point-1": ["3px", "4px"],
+      });
     });
 
     it("keeps its highlights while nothing changes", async () => {
