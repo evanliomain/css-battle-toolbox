@@ -27,6 +27,11 @@
   filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
 }
 
+/* The other shape of a border-shape, while the caret stands in one. */
+.cbt-clip-path__idle {
+  opacity: 0.5;
+}
+
 .cbt-clip-path__box {
   fill: none;
   stroke: var(--clr-brand, #f9e7a7);
@@ -47,9 +52,10 @@
   vector-effect: non-scaling-stroke;
 }
 
+/* Each point in its own color, that of its values in the code. */
 .cbt-clip-path__handle {
   pointer-events: all;
-  fill: #fff;
+  fill: var(--cbt-point, #fff);
   stroke: #000;
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
@@ -64,24 +70,20 @@
   cursor: ns-resize;
 }
 
+/* Still in its color, to find its values, but faded: it cannot move. */
 .cbt-clip-path__handle--locked {
-  fill: #888;
+  fill-opacity: 0.4;
+  stroke-dasharray: 2 2;
   cursor: not-allowed;
 }
 
-/* Smaller than the points, but as plain: faded, they vanish on a light output. */
+/*
+ * Smaller than the points, and plain white: a new point has no values yet,
+ * and the brand's yellow would pass for a point's color.
+ */
 .cbt-clip-path__handle--mid {
-  fill: var(--clr-brand, #f9e7a7);
+  fill: #fff;
   cursor: copy;
-}
-
-.cbt-clip-path__handle--control {
-  fill: var(--clr-brand, #f9e7a7);
-}
-
-.cbt-clip-path__handle--center,
-.cbt-clip-path__handle--radius {
-  fill: var(--clr-brand, #f9e7a7);
 }
 
 /* The ready-made shapes, below the output. */

@@ -24,6 +24,41 @@ const POSITION = [...POSITIONS, ...N];
 const COMMANDS = words("move line hline vline curve smooth arc close");
 const ARC = words("of cw ccw large small rotate");
 
+describe("border-shape", () => {
+  const BORDER_BOXES = [...BOXES, "half-border-box"];
+
+  it("offers the shapes and none, never url()", () => {
+    expect(labelsAfter("border-shape:")).toEqual([...SHAPES, "none"]);
+  });
+
+  it.each([
+    ["a shape", "border-shape:circle() ", [...SHAPES, ...BORDER_BOXES]],
+    ["a shape and its box", "border-shape:circle() padding-box ", SHAPES],
+    ["two shapes", "border-shape:circle() circle() ", BORDER_BOXES],
+    ["two shapes and a box", "border-shape:circle() inset() content-box ", []],
+    [
+      "two shapes and their boxes",
+      "border-shape:circle() border-box inset() padding-box ",
+      [],
+    ],
+    ["a box first", "border-shape:border-box ", []],
+    ["two boxes in a row", "border-shape:circle() border-box padding-box ", []],
+    ["none", "border-shape:none ", []],
+    ["a comma", "border-shape:circle(),", []],
+  ])("offers what goes with %s", (_, declaration, labels) => {
+    expect(labelsAfter(declaration)).toEqual(labels);
+  });
+
+  it("follows the rules of clip-path in a shape", () => {
+    expect(labelsAfter("border-shape:circle() polygon(")).toEqual([
+      "nonzero",
+      "evenodd",
+      "round",
+      ...N,
+    ]);
+  });
+});
+
 describe("clip-path", () => {
   it("offers the shapes, none and the boxes, never url()", () => {
     expect(labelsAfter("clip-path:")).toEqual([...SHAPES, "none", ...BOXES]);

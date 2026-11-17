@@ -206,6 +206,12 @@ describe("measure", () => {
 
     expect(box("border-box")).toEqual({ x: 0, y: 0, width: 100, height: 50 });
     expect(box("padding-box")).toEqual({ x: 4, y: 1, width: 94, height: 46 });
+    expect(box("half-border-box")).toEqual({
+      x: 2,
+      y: 0.5,
+      width: 97,
+      height: 48,
+    });
     expect(box("content-box")).toEqual({
       x: 24,
       y: 11,

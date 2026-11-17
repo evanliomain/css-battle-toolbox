@@ -41,6 +41,8 @@ import { format, KEYWORDS, toPx } from "./clip-path-geometry";
  * @property {{ x: boolean, y: boolean }} free which axes it can move along
  * @property {{ x: string, y: string }} units what it writes
  * @property {(point: Point, options?: WriteOptions) => Change[]} write
+ * @property {{ from: number, to: number }[]} spans the values it reads in the
+ *   text, numbers and keywords, to color them as the handle
  */
 
 /**
@@ -323,10 +325,15 @@ function isIdent(node, ...names) {
   );
 }
 
+/**
+ * @param {object} [extra] more of the handle, and `nodes`: the values it
+ *   reads, left out ones as `null`
+ */
 function handle(ctx, id, kind, x, y, free, units, writer, extra = {}) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) {
     return;
   }
+  const { nodes = [], ...rest } = extra;
   ctx.layout.handles.push({
     id,
     kind,
@@ -335,8 +342,16 @@ function handle(ctx, id, kind, x, y, free, units, writer, extra = {}) {
     free,
     units,
     write: writer,
-    ...extra,
+    spans: spansOf(nodes),
+    ...rest,
   });
+}
+
+/** Where the values written stand in the text, numbers and keywords. */
+function spansOf(nodes) {
+  return nodes
+    .filter((node) => "number" === node?.type || "ident" === node?.type)
+    .map(({ from, to }) => ({ from, to }));
 }
 
 function units(sx, sy) {
@@ -361,6 +376,8 @@ function pathData(commands) {
  * @property {Scalar} x
  * @property {Scalar} y
  * @property {boolean} free
+ * @property {{ x: boolean, y: boolean }} axes which values it moves: a single
+ *   value moves alone, the other one staying `center` as written
  */
 
 /** @returns {Position} */
@@ -381,13 +398,27 @@ function position(nodes, ctx, optional = false) {
   // Left out, it can only be added where the shape says so.
   const free =
     nodes.length <= 2 && (optional || nodes.length > 0) && x.free && y.free;
-  return { nodes, x, y, free };
+  // `top` or `bottom` alone is the y, `center` alone both, any other value
+  // alone the x.
+  const single = 1 === nodes.length && !isIdent(nodes[0], "center");
+  const vertical = single && null === a;
+  const axes = { x: free && !vertical, y: free && (!single || vertical) };
+  return { nodes, x, y, free, axes };
 }
 
 /** Rewrites a whole position as `x y`, or adds it with `prefix`. */
 function writePosition(pos, point, ctx, options, insertAt, prefix) {
   if (!pos.free) {
     return [];
+  }
+  if (pos.axes.x !== pos.axes.y) {
+    // Kept alone: the other value would cost bytes, and pin what `center`
+    // keeps in the middle of every element the rule styles. A length alone
+    // is an x: the y goes after `center`.
+    const s = pos.axes.x ? pos.x : pos.y;
+    const text = write(s, point[s.basis], ctx, options);
+    const { from, to } = s.node;
+    return [replace(ctx, from, to, pos.axes.x ? text : `center ${text}`)];
   }
   const text = `${write(pos.x, point.x, ctx, options)} ${write(pos.y, point.y, ctx, options)}`;
   if (0 === pos.nodes.length) {
@@ -430,7 +461,7 @@ function polygon(fn, ctx) {
       { x: x.free, y: y.free },
       units(x, y),
       writer,
-      { remove },
+      { remove, nodes: [x.node, y.node] },
     );
   });
 
@@ -523,9 +554,10 @@ function radial(fn, ctx, count) {
     "center",
     cx,
     cy,
-    { x: center.free, y: center.free },
+    center.axes,
     units(center.x, center.y),
     centerWriter,
+    { nodes: center.nodes },
   );
 
   /** Writes the radii, all of them when they were left out. */
@@ -554,6 +586,7 @@ function radial(fn, ctx, count) {
       { x: r[0].free, y: r[0].free },
       units(r[0], r[0]),
       radiusWriter(0, (point) => Math.hypot(point.x - cx, point.y - cy)),
+      { nodes: [r[0].node] },
     );
     return;
   }
@@ -566,6 +599,7 @@ function radial(fn, ctx, count) {
     { x: r[0].free, y: false },
     units(r[0], r[1]),
     radiusWriter(0, (point) => Math.abs(point.x - cx)),
+    { nodes: [r[0].node] },
   );
   handle(
     ctx,
@@ -576,6 +610,7 @@ function radial(fn, ctx, count) {
     { x: false, y: r[1].free },
     units(r[0], r[1]),
     radiusWriter(1, (point) => Math.abs(point.y - cy)),
+    { nodes: [r[1].node] },
   );
 }
 
@@ -609,6 +644,7 @@ function edges(ctx, { top, right, bottom, left }, writers) {
     { x: false, y: t.free },
     t.units,
     t.write,
+    { nodes: t.nodes },
   );
   handle(
     ctx,
@@ -619,6 +655,7 @@ function edges(ctx, { top, right, bottom, left }, writers) {
     { x: r.free, y: false },
     r.units,
     r.write,
+    { nodes: r.nodes },
   );
   handle(
     ctx,
@@ -629,6 +666,7 @@ function edges(ctx, { top, right, bottom, left }, writers) {
     { x: false, y: b.free },
     b.units,
     b.write,
+    { nodes: b.nodes },
   );
   handle(
     ctx,
@@ -639,6 +677,7 @@ function edges(ctx, { top, right, bottom, left }, writers) {
     { x: l.free, y: false },
     l.units,
     l.write,
+    { nodes: l.nodes },
   );
 }
 
@@ -657,7 +696,12 @@ function inset(fn, ctx) {
   const at = [(px) => px, (px) => width - px, (px) => height - px, (px) => px];
   const writers = s.map((side, index) => {
     const free = side.free && values.length <= 4;
-    return { free, units: { x: side.unit, y: side.unit }, write: writeSide };
+    return {
+      free,
+      units: { x: side.unit, y: side.unit },
+      write: writeSide,
+      nodes: [side.node],
+    };
 
     function writeSide(point, options) {
       if (!free) {
@@ -766,6 +810,7 @@ function rect(fn, ctx) {
   const writers = s.map((side, i) => ({
     free: side.free,
     units: { x: side.unit, y: side.unit },
+    nodes: [side.node],
     write: (point, options) =>
       writeAll(new Map([[i, "y" === side.basis ? point.y : point.x]]), options),
   }));
@@ -824,6 +869,7 @@ function xywh(fn, ctx) {
         ]),
         options,
       ),
+    { nodes: [x.node, y.node] },
   );
   handle(
     ctx,
@@ -841,6 +887,7 @@ function xywh(fn, ctx) {
         ]),
         options,
       ),
+    { nodes: [w.node, h.node] },
   );
 }
 
@@ -881,12 +928,13 @@ function shape(fn, ctx) {
     "vertex",
     start.x.px,
     start.y.px,
-    { x: start.free, y: start.free },
+    start.axes,
     units(start.x, start.y),
     (target, options) => [
       ...writePosition(start, target, ctx, options),
       ...keep(0)(movedPosition(start, target, ctx, options), options),
     ],
+    { nodes: start.nodes },
   );
 
   let current = { x: start.x.px, y: start.y.px };
@@ -955,12 +1003,9 @@ function written(s, px, ctx, options) {
 
 /** Where a position stands once moved to `target`. */
 function movedPosition(pos, target, ctx, options) {
-  if (!pos.free) {
-    return { x: pos.x.px, y: pos.y.px };
-  }
   return {
-    x: written(pos.x, target.x, ctx, options),
-    y: written(pos.y, target.y, ctx, options),
+    x: pos.axes.x ? written(pos.x, target.x, ctx, options) : pos.x.px,
+    y: pos.axes.y ? written(pos.y, target.y, ctx, options) : pos.y.px,
   };
 }
 
@@ -968,7 +1013,8 @@ function movedPosition(pos, target, ctx, options) {
  * A point of a command, the end or a control point: a position if absolute,
  * else a pair of lengths from `anchor`.
  *
- * @returns {Point & { free: boolean, units: object, write: Function,
+ * @returns {Point & { free: boolean, axes: { x: boolean, y: boolean },
+ *   units: object, write: Function,
  *   moved: Function, rebase: Function }} `moved` tells where `write` puts
  *   it, `rebase` rewrites it to stay where it is from another anchor
  */
@@ -979,7 +1025,9 @@ function point(ctx, nodes, absolute, anchor) {
       x: pos.x.px,
       y: pos.y.px,
       free: pos.free,
+      axes: pos.axes,
       units: units(pos.x, pos.y),
+      nodes: pos.nodes,
       write: (target, options) => writePosition(pos, target, ctx, options),
       moved: (target, options) => movedPosition(pos, target, ctx, options),
       rebase: () => [],
@@ -990,6 +1038,7 @@ function point(ctx, nodes, absolute, anchor) {
   const y = scalar(dy, "y", ctx);
   const free = 2 === nodes.length && x.free && y.free;
   const at = { x: anchor.x + x.px, y: anchor.y + y.px };
+  const axes = { x: free, y: free };
   const writeFrom = (base, target, options) =>
     free
       ? [
@@ -1000,7 +1049,9 @@ function point(ctx, nodes, absolute, anchor) {
   return {
     ...at,
     free,
+    axes,
     units: units(x, y),
+    nodes: [dx, dy],
     write: (target, options) => writeFrom(anchor, target, options),
     moved: (target, options) =>
       free
@@ -1014,7 +1065,9 @@ function point(ctx, nodes, absolute, anchor) {
 }
 
 function addPoint(ctx, id, kind, p) {
-  handle(ctx, id, kind, p.x, p.y, { x: p.free, y: p.free }, p.units, p.write);
+  handle(ctx, id, kind, p.x, p.y, p.axes, p.units, p.write, {
+    nodes: p.nodes,
+  });
 }
 
 /**
@@ -1045,14 +1098,14 @@ function vertex(step, end, free) {
       ...end.write(target, options),
       ...keep(k + 1)(end.moved(target, options), options),
     ],
-    { remove },
+    { remove, nodes: end.nodes },
   );
 }
 
 /** move and line: `to <position>` or `by <x> <y>`. */
 function endPoint(step, nodes) {
   const end = point(step.ctx, nodes, step.absolute, step.from);
-  vertex(step, end, { x: end.free, y: end.free });
+  vertex(step, end, end.axes);
   return end;
 }
 
@@ -1073,6 +1126,7 @@ function axisLine(step, node = null, axis) {
     {
       ...end,
       units: units(s, s),
+      nodes: [node],
       write: (target, options) =>
         writeScalar(s, target[axis] - origin(from), ctx, options),
       moved: (target, options) => ({
