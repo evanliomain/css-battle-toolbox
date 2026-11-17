@@ -1,6 +1,6 @@
 /**
- * The values of clip-path and offset: the basic shapes, and the paths an
- * element moves along.
+ * The values of clip-path, border-shape and offset: the basic shapes, and the
+ * paths an element moves along.
  */
 
 import {
@@ -20,6 +20,8 @@ export const SHAPES = words(`
 const GEOMETRY_BOXES = words(`
   border-box padding-box content-box margin-box fill-box stroke-box view-box
 `);
+/** The boxes of border-shape: those of clip-path, and half-border-box. */
+const BORDER_BOXES = [...GEOMETRY_BOXES, "half-border-box"];
 /** The boxes of offset-path: those of clip-path, but margin-box. */
 const COORD_BOXES = words(`
   border-box padding-box content-box fill-box stroke-box view-box
@@ -58,6 +60,41 @@ function clipPathRoot({ tokens }) {
     ...(hasShape ? [] : SHAPES),
     ...(0 === tokens.length ? ["none"] : []),
     ...(hasBox ? [] : GEOMETRY_BOXES),
+  ];
+}
+
+// border-shape: none | [ <basic-shape> <geometry-box>? ]{1,2}
+
+/** @param {Frame[]} stack */
+export function borderShape(stack) {
+  const [root, shape] = stack;
+  if (1 === stack.length) {
+    return borderShapeRoot(root);
+  }
+  return BASIC_SHAPES[shape.name]?.(shape) ?? [];
+}
+
+/**
+ * A shape, its box after it, then a second shape, the inner one, and its
+ * box.
+ */
+function borderShapeRoot({ tokens }) {
+  if (0 === tokens.length) {
+    return [...SHAPES, "none"];
+  }
+  // A box first, two boxes in a row, `none`, a comma: nothing to add.
+  const valid = tokens.every(
+    (token, i) =>
+      SHAPES.includes(token) ||
+      (BORDER_BOXES.includes(token) && SHAPES.includes(tokens[i - 1])),
+  );
+  const shapes = tokens.filter((token) => SHAPES.includes(token)).length;
+  if (!valid || shapes > 2) {
+    return [];
+  }
+  return [
+    ...(shapes < 2 ? SHAPES : []),
+    ...(SHAPES.includes(tokens.at(-1)) ? BORDER_BOXES : []),
   ];
 }
 

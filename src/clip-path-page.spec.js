@@ -3,6 +3,7 @@
  * @vitest-environment-options {"url": "https://cssbattle.dev/play/123"}
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { POINT_COLORS } from "./utils/point-colors";
 
 /**
  * Just enough of CodeMirror for the page script: the classes it reaches
@@ -23,9 +24,27 @@ function createView(doc, head = 0) {
     head = head;
     log = [];
     focus = vi.fn();
+    viewport = { from: 0, to: Infinity };
+    /**
+     * The editor's text, as a single text node: drawn again once the code
+     * changes, as CodeMirror does.
+     */
+    domAtPos(pos) {
+      const content = document.querySelector(".cm-content");
+      if (content.textContent !== this.doc) {
+        content.textContent = this.doc;
+      }
+      return { node: content.firstChild, offset: pos };
+    }
+    /** The same document until the code changes, as CodeMirror's. */
+    text = { code: doc, toString: () => doc };
     get state() {
+      if (this.text.code !== this.doc) {
+        const code = this.doc;
+        this.text = { code, toString: () => code };
+      }
       return {
-        doc: { toString: () => this.doc },
+        doc: this.text,
         selection: { main: { head: this.head } },
         facet: () => this.listeners,
       };
@@ -770,6 +789,292 @@ describe("clip-path-page", () => {
       bar().dispatchEvent(press);
 
       expect(press.defaultPrevented).toBe(true);
+    });
+  });
+
+  describe("border-shape", () => {
+    const BORDER = (value) =>
+      `<div></div><style>div{border-shape:${value}}</style>`;
+    /** A 10px border and 20px of padding, 200×100 in all. */
+    const BOXED = {
+      render: `<div style="border:10px solid;padding:20px"></div>`,
+    };
+
+    function borderShape(view) {
+      return /border-shape:([^;}"]*)/.exec(view.doc)[1];
+    }
+
+    function groups() {
+      return [...overlay().querySelectorAll("g")].map((g) => ({
+        part: g.dataset.part,
+        idle: g.classList.contains("cbt-clip-path__idle"),
+        transform: g.getAttribute("transform"),
+        width: g.querySelector("rect").getAttribute("width"),
+      }));
+    }
+
+    it("strokes a single shape halfway through the border", async () => {
+      await load(BORDER("circle(|50%)"), BOXED);
+
+      expect(status()).toBe("circle() stroked");
+      expect(groups()).toEqual([
+        {
+          part: "0",
+          idle: false,
+          transform: "translate(10 20) translate(5 5)",
+          width: "190",
+        },
+      ]);
+      expect(handleIds()).toEqual(["c", "r"]);
+    });
+
+    it("draws two shapes, on the border box and the padding box", async () => {
+      await load(BORDER("inset(0) inset(|1px)"), BOXED);
+
+      expect(status()).toBe("inset() outside, inset() inside");
+      expect(groups()).toEqual([
+        {
+          part: "0",
+          idle: true,
+          transform: "translate(10 20) translate(0 0)",
+          width: "200",
+        },
+        {
+          part: "1",
+          idle: false,
+          transform: "translate(10 20) translate(10 10)",
+          width: "180",
+        },
+      ]);
+      expect(handleIds()).toEqual([
+        "t",
+        "r",
+        "b",
+        "l",
+        "1:t",
+        "1:r",
+        "1:b",
+        "1:l",
+      ]);
+    });
+
+    it("draws each shape in the box written after it", async () => {
+      await load(BORDER("inset(|0) content-box"), BOXED);
+
+      expect(groups()[0].transform).toBe("translate(10 20) translate(30 30)");
+    });
+
+    it("draws the shape the caret stands in on top, the other faded", async () => {
+      await load(BORDER("inset(0) circle(|1px)"));
+
+      expect(groups().map(({ part, idle }) => [part, idle])).toEqual([
+        ["0", true],
+        ["1", false],
+      ]);
+      expect(handleIds()).toEqual(["t", "r", "b", "l", "1:c", "1:r"]);
+
+      setCode(
+        document.querySelector(".cm-content").cmView.rootView.view,
+        BORDER("inset(|0) circle(1px)"),
+      );
+      flush();
+      expect(groups().map(({ part, idle }) => [part, idle])).toEqual([
+        ["1", true],
+        ["0", false],
+      ]);
+      expect(handleIds()).toEqual(["1:c", "1:r", "t", "r", "b", "l"]);
+    });
+
+    it("moves the points of the inner shape", async () => {
+      const view = await load(
+        BORDER("polygon(0 0,100% 0,0 100%) polygon(|0 0,9px 0,0 9px)"),
+      );
+
+      pointer("pointerdown", "1:v1", { x: 9, y: 0 });
+      pointer("pointermove", null, { x: 20, y: 5 });
+
+      expect(borderShape(view)).toBe(
+        "polygon(0 0,100% 0,0 100%) polygon(0 0,20px 5px,0 9px)",
+      );
+    });
+
+    it("adds a point to the inner shape, then drags it", async () => {
+      const view = await load(BORDER("circle(0) polygon(|0 0,10px 0,0 10px)"));
+
+      pointer("pointerdown", "1:m0", { x: 5, y: 0 });
+      expect(borderShape(view)).toBe(
+        "circle(0) polygon(0 0,5px 0,10px 0,0 10px)",
+      );
+      flush();
+      pointer("pointermove", null, { x: 5, y: 3 });
+
+      expect(borderShape(view)).toBe(
+        "circle(0) polygon(0 0,5px 3px,10px 0,0 10px)",
+      );
+    });
+
+    it("shows a path() without points to drag", async () => {
+      await load(BORDER("path('M0 0') circle(|)"));
+
+      expect(status()).toBe("path() outside, circle() inside");
+      expect(handleIds()).toEqual(["1:c", "1:r"]);
+    });
+
+    it("replaces the shape the caret stands in", async () => {
+      const view = await load(BORDER("circle(1px) polygon(|0 0)"));
+
+      bar().querySelector('[aria-label="Inset"]').click();
+
+      expect(borderShape(view)).toBe("circle(1px) inset(15%)");
+    });
+
+    it("fills an empty value", async () => {
+      const view = await load(BORDER("|"));
+
+      expect(status()).toBe("Pick a shape");
+      bar().querySelector('[aria-label="Circle"]').click();
+
+      expect(borderShape(view)).toBe("circle(50%)");
+    });
+
+    it("has an option of its own", async () => {
+      document.body.classList.add("hideClipPath");
+      await load(BORDER("circle(|)"));
+      expect(overlay()).not.toBeNull();
+
+      document.body.classList.add("hideBorderShape");
+      document.querySelector(".cm-content").cmView.rootView.view.dispatch({});
+      flush();
+      expect(overlay()).toBeNull();
+    });
+  });
+
+  describe("colors", () => {
+    class Highlight {
+      constructor(...ranges) {
+        this.ranges = ranges;
+      }
+    }
+
+    beforeEach(() => {
+      vi.stubGlobal("CSS", { highlights: new Map() });
+      vi.stubGlobal("Highlight", Highlight);
+    });
+
+    function toggle() {
+      return bar().querySelector("[data-toggle]");
+    }
+
+    function colorOf(id) {
+      return document
+        .querySelector(`[data-handle="${id}"]`)
+        .style.getPropertyValue("--cbt-point");
+    }
+
+    /** The text colored in the code, by highlight. */
+    function highlights() {
+      return Object.fromEntries(
+        [...CSS.highlights].map(([name, { ranges }]) => [
+          name,
+          ranges.map(String),
+        ]),
+      );
+    }
+
+    it("gives each point its own color, none to the new ones", async () => {
+      await load(RULE("polygon(50% |0,100% 100%,0 100%)"));
+
+      expect(["v0", "v1", "v2"].map(colorOf)).toEqual(POINT_COLORS.slice(0, 3));
+      expect(colorOf("m0")).toBe("");
+    });
+
+    it("goes round the colors past the last one", async () => {
+      const points = Array.from({ length: 31 }, (_, i) => `${i}px 0`);
+      await load(RULE(`polygon(|${points.join(",")})`));
+
+      expect(
+        new Set(points.slice(0, 30).map((_, i) => colorOf(`v${i}`))).size,
+      ).toBe(30);
+      expect(colorOf("v30")).toBe(colorOf("v0"));
+    });
+
+    it("goes on from a shape of a border-shape to the next", async () => {
+      await load(
+        "<div></div><style>div{border-shape:circle(|1px) inset(2px)}</style>",
+      );
+
+      expect(["c", "r", "1:t", "1:r"].map(colorOf)).toEqual(
+        POINT_COLORS.slice(0, 4),
+      );
+    });
+
+    it("colors the values of each point in the code alike", async () => {
+      await load(RULE("polygon(50% |0,100% 1px,0 100%)"));
+
+      expect(highlights()).toEqual({
+        "cbt-point-0": ["50%", "0"],
+        "cbt-point-1": ["100%", "1px"],
+        "cbt-point-2": ["0", "100%"],
+      });
+      const style = document.getElementById("cbt-point-colors").textContent;
+      expect(style.split("\n")).toHaveLength(30);
+      expect(style).toContain(
+        "::highlight(cbt-point-0) { color: hsl(0 90% 64%); background-color: color-mix(in srgb, hsl(0 90% 64%) 22%, transparent); }",
+      );
+    });
+
+    it("colors the values once changed", async () => {
+      const view = await load(RULE("polygon(50% 0,100% 100%,0 |100%)"));
+
+      pointer("pointerdown", "v0");
+      pointer("pointermove", null, { x: 20, y: 30 });
+      flush();
+
+      expect(highlights()["cbt-point-0"]).toEqual(["10%", "30%"]);
+      expect(value(view)).toBe("polygon(10% 30%,100% 100%,0 100%)");
+    });
+
+    it("colors the lines CodeMirror draws again", async () => {
+      await load(RULE("circle(|1px)"));
+      document.querySelector(".cm-content").textContent = "";
+
+      flush();
+
+      expect(highlights()["cbt-point-1"]).toEqual(["1px"]);
+    });
+
+    it("keeps its highlights while nothing changes", async () => {
+      await load(RULE("circle(|1px)"));
+      const before = CSS.highlights.get("cbt-point-1");
+
+      flush();
+
+      expect(CSS.highlights.get("cbt-point-1")).toBe(before);
+    });
+
+    it("leaves out the values of the lines not drawn", async () => {
+      const view = createView("");
+      // Up to the first point.
+      view.viewport = { from: 0, to: 60 };
+      renderPage(view);
+      await import("./clip-path-page.js");
+      setCode(view, RULE("polygon(|1px 2px,3px 4px)"));
+      flush();
+
+      expect(highlights()).toEqual({ "cbt-point-0": ["1px", "2px"] });
+    });
+
+    it("takes the colors off with the shape", async () => {
+      const view = await load(RULE("circle(|1px)"));
+      toggle().click();
+      flush();
+      expect(highlights()).toEqual({});
+
+      toggle().click();
+      flush();
+      setCode(view, `${RULE("circle(1px)")}|`);
+      flush();
+      expect(highlights()).toEqual({});
     });
   });
 });

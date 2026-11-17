@@ -240,6 +240,22 @@ describe("layoutShape", () => {
       );
     });
 
+    it("moves a center written alone along its axis only", () => {
+      const value = "circle(10px at 20px)";
+      expect(handle(value, "c").free).toEqual({ x: true, y: false });
+      expect(drag(value, "c", { x: 50, y: 25 })).toBe("circle(10px at 50px)");
+      expect(drag("circle(at left)", "c", { x: 50, y: 25 })).toBe(
+        "circle(at 25%)",
+      );
+      expect(handle("circle(at bottom)", "c").free).toEqual({
+        x: false,
+        y: true,
+      });
+      expect(drag("circle(at bottom)", "c", { x: 50, y: 25 })).toBe(
+        "circle(at center 25%)",
+      );
+    });
+
     it("adds the center", () => {
       expect(drag("circle(10%)", "c", { x: 50, y: 25 })).toBe(
         "circle(10% at 25% 25%)",
@@ -511,6 +527,19 @@ describe("layoutShape", () => {
   });
 
   describe("shape()", () => {
+    it("moves a point written with its x alone along x only", () => {
+      const value = "shape(from 69Q,arc to 94pt of 1Q";
+
+      expect(handle(value, "from").free).toEqual({ x: true, y: false });
+      expect(handle(value, "p0").free).toEqual({ x: true, y: false });
+      expect(drag(value, "p0", { x: 128, y: 10 })).toBe(
+        "shape(from 69Q,arc to 96pt of 1Q",
+      );
+      expect(drag(value, "from", { x: 40, y: 10 })).toBe(
+        "shape(from 42q,arc to 94pt of 1Q",
+      );
+    });
+
     it("draws its points", () => {
       const value =
         "shape(evenodd from 0 0, line to 100% 0, line by 0 50%, hline to center, vline by 10px, hline by -10px, vline to top, close)";
@@ -905,6 +934,80 @@ describe("layoutShape", () => {
         x: false,
         y: false,
       });
+    });
+  });
+});
+
+describe("the values each handle reads", () => {
+  /** The text of the values each handle reads, by handle. */
+  function read(value) {
+    return Object.fromEntries(
+      layout(value).handles.map(({ id, spans }) => [
+        id,
+        spans.map(({ from, to }) => value.slice(from, to)),
+      ]),
+    );
+  }
+
+  it("are the coordinates of a polygon's point, none for a new one", () => {
+    expect(read("polygon(50% 0,100% 1px,0 100%)")).toEqual({
+      v0: ["50%", "0"],
+      v1: ["100%", "1px"],
+      v2: ["0", "100%"],
+      m0: [],
+      m1: [],
+      m2: [],
+    });
+  });
+
+  it("are the center and the radii of a circle or an ellipse", () => {
+    expect(read("circle(10px at left 20%)")).toEqual({
+      c: ["left", "20%"],
+      r: ["10px"],
+    });
+    expect(read("ellipse(1px 2px)")).toEqual({
+      c: [],
+      rx: ["1px"],
+      ry: ["2px"],
+    });
+  });
+
+  it("are the sides of an inset(), one for the sides that share it", () => {
+    expect(read("inset(1px 2px)")).toEqual({
+      t: ["1px"],
+      r: ["2px"],
+      b: ["1px"],
+      l: ["2px"],
+    });
+  });
+
+  it("are the sides of a rect(), auto included", () => {
+    expect(read("rect(1px auto 3px 4px)")).toEqual({
+      t: ["1px"],
+      r: ["auto"],
+      b: ["3px"],
+      l: ["4px"],
+    });
+  });
+
+  it("are the corner and the size of an xywh()", () => {
+    expect(read("xywh(1px 2px 3px 4px)")).toEqual({
+      tl: ["1px", "2px"],
+      br: ["3px", "4px"],
+    });
+  });
+
+  it("are the points of a shape(), its control points included", () => {
+    const value =
+      "shape(from 0 1px,line to 2px 3px,hline by 4px,curve to 5px 6px with 7px 8px from end,arc to 9px 10px of 1px)";
+
+    expect(read(value)).toMatchObject({
+      from: ["0", "1px"],
+      p0: ["2px", "3px"],
+      p1: ["4px"],
+      p2: ["5px", "6px"],
+      "c2.0": ["7px", "8px"],
+      p3: ["9px", "10px"],
     });
   });
 });

@@ -1,3 +1,10 @@
+# 2.2.0
+
+- Border-shape tool: With the caret in a `border-shape` value, drag the points of its shapes right on the element in the output, as for a `clip-path`. A single shape, stroked along the border, is drawn halfway through it; two shapes, the outer and the inner edges of the border, are drawn on the border box and the padding box, or on the box written after each. The shape the caret stands in comes on top, the other one fades. The ready-made shapes replace the shape the caret stands in, and the tool can be hidden in the options on its own
+- Clip-path and border-shape tools: Each point takes its own color, out of 30, and its values in the code take the same, to tell at once which numbers move which point. The points that cannot move keep their color, faded
+- Clip-path and border-shape tools: A position written with a single value, like `to 94pt` or `at left`, keeps a single value once dragged, along its axis: the other one stays `center`, which follows each element the rule styles, instead of a length added that moved the shape on all but one
+- Snippet tool: `border-shape` only suggests the values valid where you type them: up to two shapes, each followed by its box, `half-border-box` included
+
 # 2.1.2
 
 - Clip-path tool: The points written in `lh`, `ch`, `ex`, `cap` and the other units only the output knows show and drag too, instead of leaving the shape without them

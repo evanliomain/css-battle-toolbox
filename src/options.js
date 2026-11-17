@@ -40,6 +40,7 @@ const OPTIONS_KEYS = [
   "hideRuler",
   "hideSnippet",
   "hideClipPath",
+  "hideBorderShape",
   "hideLeaderboard",
 
   "invertDifference",

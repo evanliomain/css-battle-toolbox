@@ -1,6 +1,6 @@
 /**
- * Finds the element a clip-path applies to in the render, and measures its
- * reference box, so the clip-path tool draws its handles on it.
+ * Finds the element a clip-path or border-shape applies to in the render, and
+ * measures its reference box, so the clip-path tool draws its handles on it.
  */
 
 /**
@@ -183,6 +183,8 @@ export function measure(element, keyword) {
   const [top, right, bottom, left] = {
     "margin-box": sides("margin").map((margin) => -margin),
     "padding-box": border,
+    // Halfway through the border: where border-shape strokes a single shape.
+    "half-border-box": border.map((width) => width / 2),
     "content-box": border.map((width, i) => width + padding[i]),
   }[keyword] ?? [0, 0, 0, 0];
 

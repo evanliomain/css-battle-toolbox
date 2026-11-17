@@ -8,8 +8,9 @@ Features :
 - 👻 Display the target on your code output
 - 📏 Display rulers and the cursor position when hovering the target
 - 🖍️ Autocomplete the target colors in the editor, wherever CSS accepts a color
-- ✂️ Autocomplete only the valid values of the properties used in cssbattle solutions (`background`, `border`, `clip-path`, `rotate`…)
-- 🔷 Edit a `clip-path` with the mouse, right on your code output: drag the points of `polygon()`, `circle()`, `ellipse()`, `inset()`, `rect()`, `xywh()` and `shape()`, add or remove polygon points, or start from a ready-made shape (like https://bennettfeely.com/clippy/)
+- ✂️ Autocomplete only the valid values of the properties used in cssbattle solutions (`background`, `border`, `clip-path`, `border-shape`, `rotate`…)
+- 🔷 Edit a `clip-path` with the mouse, right on your code output: drag the points of `polygon()`, `circle()`, `ellipse()`, `inset()`, `rect()`, `xywh()` and `shape()`, each point in its own color, as its values in the code, add or remove polygon points, or start from a ready-made shape (like https://bennettfeely.com/clippy/)
+- 🔶 Edit a `border-shape` the same way: drag the points of the shape stroked along the border, or of the outer and inner shapes the border fills, each in its own reference box
 - ⛓️ Display your html tags outline/background on your code output
 - 🎚️ Switch all the output tools at once with groups you set up in the options
 - 📷 Screenshot your code output, with the output tools switched on, and the DOM panel below it

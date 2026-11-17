@@ -29,7 +29,7 @@ import {
   words,
 } from "./css-values-grammar";
 import { background, borderImage, boxReflect, mask } from "./css-values-image";
-import { clipPath, offset } from "./css-values-shape";
+import { borderShape, clipPath, offset } from "./css-values-shape";
 
 /** @typedef {import("./css-declaration").Frame} Frame */
 /** @typedef {import("./css-values-grammar").Value} Value */
@@ -286,6 +286,7 @@ const bySide = (prefix, suffix, grammar) =>
 const PROPERTIES = new Map([
   ["clip-path", clipPath],
   ["-webkit-clip-path", clipPath],
+  ["border-shape", borderShape],
   ["offset", offset],
   ["background", background],
   ["mask", mask],
