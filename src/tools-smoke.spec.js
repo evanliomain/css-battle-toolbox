@@ -24,6 +24,7 @@ const TOOLS = [
   "./ruler-tools.js",
   "./snippet-tools.js",
   "./clip-path-tools.js",
+  "./border-image-tools.js",
   "./leaderboard-tools.js",
   "./dom-tools.js",
   "./mode-menu.js",

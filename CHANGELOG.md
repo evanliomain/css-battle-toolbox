@@ -1,3 +1,7 @@
+# 2.3.0
+
+- Border-image tool: With the caret in a `border-image` value, see its nine pieces numbered around the element in the output, and in a panel opening under the output, the image cut by its slices next to the element and its widths, then each piece laid out as in the border, telling in plain words how it is resized, stretched or tiled and why it is missing. Drag the slices, widths and outsets, play the pieces to their place one by one, switch a repeat or `fill`, and press a piece to see it alone
+
 # 2.2.0
 
 - Border-shape tool: With the caret in a `border-shape` value, drag the points of its shapes right on the element in the output, as for a `clip-path`. A single shape, stroked along the border, is drawn halfway through it; two shapes, the outer and the inner edges of the border, are drawn on the border box and the padding box, or on the box written after each. The shape the caret stands in comes on top, the other one fades. The ready-made shapes replace the shape the caret stands in, and the tool can be hidden in the options on its own
