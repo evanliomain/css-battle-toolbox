@@ -1,0 +1,1047 @@
+/*
+ * The nine pieces of the border-image under the caret, drawn over the render.
+ * Only the lines and their handles take the pointer: the rest lets clicks
+ * through to the output tools.
+ */
+#cbt-border-image {
+  /* Moved over the render on every frame, from the top left of the window. */
+  position: fixed;
+  top: 0;
+  left: 0;
+  /* Above the DOM tool's outlines, and the panels around the output. */
+  z-index: 1000;
+  pointer-events: none;
+
+  svg {
+    display: block;
+    overflow: visible;
+  }
+}
+
+/* The border box, only when outsets grow the area beyond it. */
+.cbt-border-image__box {
+  fill: none;
+  stroke: var(--clr-brand, #f9e7a7);
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The nine pieces: a thin frame, lit when hovered or alone. */
+.cbt-border-image__piece {
+  fill: transparent;
+  stroke: rgb(255 255 255 / 0.5);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8));
+}
+
+/* A piece the render leaves out. */
+.cbt-border-image__piece--empty {
+  stroke-dasharray: 2 3;
+  stroke: rgb(255 255 255 / 0.3);
+}
+
+.cbt-border-image__piece--hovered,
+.cbt-border-image__piece--isolated {
+  fill: color-mix(in srgb, var(--clr-brand, #f9e7a7) 30%, transparent);
+  stroke: var(--clr-brand, #f9e7a7);
+  stroke-width: 2;
+}
+
+/* What is not the piece shown alone. */
+.cbt-border-image__dim {
+  fill: rgb(0 0 0 / 0.6);
+  pointer-events: none;
+}
+
+.cbt-border-image__number {
+  fill: #fff;
+  font-family: monospace;
+  font-weight: bold;
+  text-anchor: middle;
+  dominant-baseline: central;
+  paint-order: stroke;
+  stroke: rgb(0 0 0 / 0.8);
+  stroke-width: 3px;
+  pointer-events: none;
+}
+
+.cbt-border-image__number--empty {
+  opacity: 0.45;
+}
+
+/* Where the tiles of the piece shown alone meet. */
+.cbt-border-image__tile {
+  stroke: #fff;
+  stroke-dasharray: 3 2;
+  vector-effect: non-scaling-stroke;
+}
+
+/*
+ * A line that drags: unseen until hovered or dragged, its handle always in
+ * sight, in the color of its values in the code.
+ */
+.cbt-border-image__line {
+  stroke: var(--cbt-line, #fff);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.9));
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.cbt-border-image__edge--outset .cbt-border-image__line {
+  stroke-dasharray: 5 3;
+}
+
+.cbt-border-image__edge:hover .cbt-border-image__line,
+.cbt-border-image__edge--active .cbt-border-image__line {
+  opacity: 1;
+}
+
+/* The slices are what the image is about: always in sight. */
+.cbt-border-image__slices .cbt-border-image__line {
+  opacity: 0.9;
+}
+
+/* Wide and unseen: takes the pointer around a line. */
+.cbt-border-image__hit {
+  stroke: transparent;
+  stroke-width: 10;
+  vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+}
+
+.cbt-border-image__handle {
+  fill: var(--cbt-line, #fff);
+  stroke: #000;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  pointer-events: all;
+}
+
+.cbt-border-image__edge--ns
+  :is(.cbt-border-image__hit, .cbt-border-image__handle) {
+  cursor: ns-resize;
+}
+
+.cbt-border-image__edge--ew
+  :is(.cbt-border-image__hit, .cbt-border-image__handle) {
+  cursor: ew-resize;
+}
+
+/* Still in its color, to find its values, but faded: it cannot move. */
+.cbt-border-image__edge--locked {
+  opacity: 0.4;
+
+  :is(.cbt-border-image__hit, .cbt-border-image__handle) {
+    cursor: not-allowed;
+  }
+}
+
+/* The image, painted as large as the render paints it, then scaled. */
+.cbt-border-image__image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  background-image: var(--cbt-source);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* A copy of the element, clipped to a piece: the render paints it. */
+.cbt-border-image__frame {
+  position: relative;
+  overflow: hidden;
+  background: repeating-conic-gradient(#666 0 25%, #999 0 50%) 0 0 / 10px 10px;
+}
+
+.cbt-border-image__at {
+  position: absolute;
+}
+
+.cbt-border-image__clone {
+  transform-origin: 0 0;
+}
+
+/* A piece on its way, scaled from its size in the image. */
+.cbt-border-image__mover {
+  position: absolute;
+  /* From the stage's top left, not below the image before it. */
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+
+  .cbt-border-image__frame {
+    overflow: visible;
+    background: none;
+  }
+}
+
+/* The copies of a tile, cut at the ends of their edge. */
+.cbt-border-image__clip {
+  position: absolute;
+  overflow: hidden;
+}
+
+/* Draws the pieces over the output, or leaves the output as it is. */
+.cbt-border-image__toggle {
+  position: relative;
+  flex: none;
+  width: 28px;
+  height: 16px;
+  padding: 0;
+  background-color: color-mix(in srgb, var(--clr-text, #fff) 25%, transparent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  /* Not a pseudo-element: hint.css draws the tooltip with both. */
+  .cbt-border-image__knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: translate 0.15s;
+  }
+
+  &[aria-checked="true"] {
+    background-color: var(--clr-brand, #f9e7a7);
+
+    .cbt-border-image__knob {
+      background-color: #000;
+      translate: 12px 0;
+    }
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--clr-brand, #f9e7a7);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * The panel, under the bar: cssbattle's own sidebar classes give it
+ * its look and its slide, without the dark layer under theirs.
+ */
+#cbt-border-image-sidebar {
+  --cbt-bg: var(--clr-sidebar-bg, #171d23);
+  --cbt-text: var(--clr-text, #cbd1e1);
+  --cbt-soft: var(--clr-text-light, #a0b3c6);
+  --cbt-muted: var(--clr-text-lightest-final, #6b7b8e);
+  --cbt-rule: var(--clr-border-brighter, #323f4a);
+  --cbt-rule-soft: var(--clr-border-1, #20262e);
+  --cbt-brand: var(--clr-brand, #ffdf00);
+  --cbt-sunk: #11161b;
+  --cbt-pill: rgb(255 255 255 / 0.1);
+  --cbt-warn: #ffc46b;
+  --cbt-slice: hsl(0 90% 64%);
+  --cbt-slice-text: hsl(0 90% 72%);
+  --cbt-width: hsl(138 90% 80%);
+
+  /*
+   * From the bottom, at once and slowing down: cssbattle's curve, made for
+   * its side panels, waits then jumps.
+   */
+  &:not(.sidebar-container--visible) .sidebar {
+    transform: translateY(100%);
+  }
+
+  .sidebar {
+    transition:
+      transform 0.45s cubic-bezier(0.33, 1, 0.68, 1),
+      opacity 0.15s,
+      visibility 0.15s;
+  }
+
+  &.sidebar-container--visible .sidebar {
+    transform: none;
+  }
+
+  .sidebar {
+    /* Under the output, right of the code: the page script sets both. */
+    top: var(--cbt-top, 60px);
+    right: 0;
+    bottom: 0;
+    /* Right of the code, but never pushed off a narrow screen. */
+    left: min(var(--cbt-left, 100vw), 100vw - min(30rem, 100vw));
+    width: auto;
+    min-width: min(30rem, 100vw);
+    max-width: none;
+    height: auto;
+    border-top: 1px solid var(--cbt-rule);
+    border-left: 1px solid var(--cbt-rule);
+    /* Over the target and its tools, under the overlay of the output. */
+    z-index: 900;
+    font-family: var(--font-base, sans-serif);
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--cbt-text);
+  }
+
+  /* Above the panel, on the right: on its left, it would mask the code. */
+  .sidebar__close {
+    top: auto;
+    right: 12px;
+    bottom: calc(100% + 6px);
+    left: auto;
+    padding: 0;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .item__header {
+    position: relative;
+    flex-wrap: wrap;
+    gap: 12px;
+    min-height: 48px;
+  }
+
+  .header__extra-info {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+  }
+
+  [hidden] {
+    display: none;
+  }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  code,
+  kbd {
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  code {
+    color: var(--cbt-text);
+  }
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* The elements a rule styles, in the header. */
+.cbt-border-image__elements {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--cbt-bg);
+  border-radius: 40px;
+
+  &:empty {
+    display: none;
+  }
+
+  button {
+    height: 26px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 40px;
+    background: transparent;
+    color: var(--cbt-soft);
+    font:
+      500 12px "IBM Plex Mono",
+      monospace;
+
+    &[aria-pressed="true"] {
+      background: var(--cbt-brand);
+      color: var(--cbt-bg);
+      font-weight: 600;
+    }
+  }
+}
+
+/* A piece shown alone on the output: a chip in the header, not to push the figures down. */
+.cbt-border-image__alone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 4px 0 12px;
+  border-radius: 40px;
+  background: var(--cbt-brand);
+  color: #171d23;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &:empty {
+    display: none;
+  }
+
+  button {
+    height: 24px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 40px;
+    background: #171d23;
+    color: #fff;
+    font-size: 12px;
+  }
+}
+
+.cbt-border-image__content {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.cbt-border-image__empty {
+  margin: 0;
+  color: var(--cbt-soft);
+}
+
+.cbt-border-image__hint,
+.cbt-border-image__keys {
+  margin: 0;
+  color: var(--cbt-soft);
+  font-size: 13px;
+}
+
+/* What changes the result: an icon by the title, the details on hover. */
+.cbt-border-image__notices {
+  display: flex;
+
+  &:empty {
+    display: none;
+  }
+
+  &:hover,
+  &:focus-within {
+    .cbt-border-image__notices-pop {
+      display: flex;
+    }
+  }
+}
+
+.cbt-border-image__notices-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgb(255 170 40 / 0.45);
+  border-radius: 50%;
+  background: rgb(255 170 40 / 0.1);
+  color: var(--cbt-warn);
+
+  svg {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.6;
+  }
+}
+
+/* Under the whole header, over the figures. */
+.cbt-border-image__notices-pop {
+  position: absolute;
+  top: calc(100% - 6px);
+  right: 16px;
+  left: 16px;
+  z-index: 1;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid rgb(255 170 40 / 0.45);
+  border-radius: 10px;
+  /* Opaque: the figures are under it. */
+  background:
+    linear-gradient(rgb(255 170 40 / 0.1), rgb(255 170 40 / 0.1)), var(--cbt-bg);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+
+  /* A bridge from the icon, so the pointer can reach the details. */
+  &::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    left: 0;
+    height: 16px;
+  }
+}
+
+.cbt-border-image__notices-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--cbt-warn);
+  font-weight: 600;
+
+  svg {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.6;
+  }
+}
+
+.cbt-border-image__notice {
+  display: flex;
+  flex-direction: column;
+  padding-left: 24px;
+
+  b {
+    font-weight: 600;
+  }
+
+  span {
+    color: var(--cbt-soft);
+    font-size: 13px;
+  }
+}
+
+/* The image, then the element, side by side. */
+.cbt-border-image__stage {
+  position: relative;
+  margin: 0 auto;
+}
+
+.cbt-border-image__figure {
+  position: absolute;
+  top: 0;
+  margin: 0;
+
+  > svg {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+  }
+
+  .cbt-border-image__piece {
+    stroke: transparent;
+    filter: none;
+    pointer-events: all;
+    cursor: pointer;
+  }
+
+  .cbt-border-image__piece--hovered,
+  .cbt-border-image__piece--isolated {
+    stroke: var(--cbt-brand);
+  }
+
+  .cbt-border-image__piece--isolated {
+    fill: transparent;
+  }
+
+  .cbt-border-image__handle {
+    stroke: var(--cbt-bg);
+    stroke-width: 2;
+  }
+
+  figcaption {
+    position: absolute;
+    bottom: 0;
+    color: var(--cbt-soft);
+    font:
+      12px "IBM Plex Mono",
+      monospace;
+  }
+}
+
+/* The element's page. */
+.cbt-border-image__paper {
+  background: repeating-conic-gradient(#2a313a 0 25%, #232a32 0 50%) 0 0 / 8px
+    8px;
+}
+
+.cbt-border-image__paper {
+  position: absolute;
+  background: #fff;
+}
+
+.cbt-border-image__figure .cbt-border-image__frame {
+  background: none;
+}
+
+/* The element, faint while the pieces come to it. */
+.cbt-border-image__at--ghost {
+  opacity: 0.12;
+}
+
+/* The widths, and the outsets, of the element: always in sight, dashed. */
+.cbt-border-image__guides {
+  .cbt-border-image__line {
+    opacity: 0.9;
+    stroke-dasharray: 4 3;
+  }
+
+  .cbt-border-image__piece {
+    pointer-events: all;
+  }
+}
+
+/* A value of a line, by its line, in its color. */
+.cbt-border-image__chip {
+  position: absolute;
+  z-index: 1;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--cbt-slice);
+  color: var(--cbt-sunk);
+  font:
+    600 11px/13px "IBM Plex Mono",
+    monospace;
+  white-space: nowrap;
+  text-align: center;
+  pointer-events: none;
+
+  small {
+    display: block;
+    font-size: 10px;
+    line-height: 11px;
+    font-weight: 500;
+    opacity: 0.8;
+  }
+}
+
+.cbt-border-image__chip--x {
+  transform: translateX(-50%);
+}
+
+.cbt-border-image__chip--y {
+  transform: translateY(-50%);
+}
+
+.cbt-border-image__chip--width {
+  background: var(--cbt-width);
+}
+
+.cbt-border-image__chip--outset {
+  background: hsl(275 90% 72%);
+}
+
+.cbt-border-image__dim-w,
+.cbt-border-image__dim-h {
+  position: absolute;
+  color: var(--cbt-muted);
+  font:
+    10px "IBM Plex Mono",
+    monospace;
+  text-align: center;
+}
+
+.cbt-border-image__dim-h {
+  writing-mode: vertical-rl;
+}
+
+.cbt-border-image__arrow {
+  position: absolute;
+  fill: none;
+  stroke: var(--cbt-soft);
+  stroke-width: 1.8;
+}
+
+.cbt-border-image__arrow--playing {
+  stroke: var(--cbt-brand);
+}
+
+/* The pieces on their way, from the image to the element. */
+.cbt-border-image__flight {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Where a piece left the image. */
+.cbt-border-image__taken {
+  position: absolute;
+  background: rgb(17 22 27 / 0.72);
+}
+
+.cbt-border-image__keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+
+  b {
+    color: var(--cbt-slice-text);
+    font-weight: 600;
+  }
+
+  .cbt-border-image__width-key {
+    color: var(--cbt-width);
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  kbd {
+    padding: 1px 6px;
+    border: 1px solid var(--cbt-rule);
+    border-radius: 4px;
+    background: var(--cbt-sunk);
+    color: var(--cbt-text);
+    font-size: 11px;
+  }
+}
+
+/* Top right of the panel, out of the way of the figures. */
+.cbt-border-image__player {
+  display: flex;
+  margin-left: auto;
+}
+
+.cbt-border-image__play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 40px;
+  background: var(--cbt-pill);
+  color: #fff;
+  font-weight: 600;
+
+  svg {
+    fill: var(--cbt-brand);
+  }
+
+  &[aria-pressed="true"] {
+    border-color: var(--cbt-brand);
+    background: rgb(255 223 0 / 0.12);
+  }
+}
+
+.cbt-border-image__heading {
+  display: flex;
+  align-items: baseline;
+
+  h4 {
+    flex-grow: 1;
+  }
+
+  span {
+    color: var(--cbt-muted);
+    font-size: 12px;
+  }
+}
+
+/*
+ * The nine pieces where they land: the corners in the corners, the edges
+ * between them, the middle in the middle, cut by the red lines of the image.
+ */
+.cbt-border-image__panel {
+  container-type: inline-size;
+}
+
+.cbt-border-image__rows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--cbt-rule);
+  border-radius: 10px;
+}
+
+.cbt-border-image__row {
+  display: grid;
+  grid-template-areas:
+    "badge cut to landed . eye"
+    "about about about about about action";
+  grid-template-columns: auto auto auto auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-color: rgb(255 92 92 / 0.45);
+  border-style: dashed;
+  border-width: 0 1px 1px 0;
+
+  &:nth-child(3n) {
+    border-right-width: 0;
+  }
+
+  &:nth-child(n + 7) {
+    border-bottom-width: 0;
+  }
+
+  /* The middle, inside the border. */
+  &:nth-child(5):not(.cbt-border-image__row--lit) {
+    background: var(--cbt-sunk);
+  }
+
+  > .cbt-border-image__badge {
+    grid-area: badge;
+  }
+
+  > .cbt-border-image__thumb--cut {
+    grid-area: cut;
+  }
+
+  > .cbt-border-image__to {
+    grid-area: to;
+  }
+
+  > .cbt-border-image__thumb--landed {
+    grid-area: landed;
+  }
+
+  > .cbt-border-image__about {
+    grid-area: about;
+    align-self: end;
+  }
+
+  > .cbt-border-image__repeat,
+  > .cbt-border-image__fill {
+    grid-area: action;
+    align-self: end;
+  }
+
+  > .cbt-border-image__eye {
+    grid-area: eye;
+  }
+}
+
+/* Too narrow for three columns: a row each. */
+@container (width < 720px) {
+  .cbt-border-image__rows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cbt-border-image__row {
+    grid-template-areas: "badge cut to landed about action eye";
+    grid-template-columns: auto auto auto auto 1fr auto auto;
+    padding: 6px 10px;
+    border-width: 0 0 1px;
+    border-style: solid;
+    border-color: var(--cbt-rule-soft);
+
+    &:nth-child(5):not(.cbt-border-image__row--lit) {
+      background: none;
+    }
+
+    &:last-child {
+      border-bottom-width: 0;
+    }
+
+    > .cbt-border-image__about,
+    > .cbt-border-image__repeat,
+    > .cbt-border-image__fill {
+      align-self: center;
+    }
+  }
+}
+
+.cbt-border-image__row--lit {
+  background: rgb(255 223 0 / 0.12);
+  box-shadow: inset 3px 0 0 var(--cbt-brand);
+}
+
+.cbt-border-image__row--later {
+  opacity: 0.45;
+}
+
+.cbt-border-image__badge {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background: var(--cbt-pill);
+  font:
+    600 11px/20px "IBM Plex Mono",
+    monospace;
+  text-align: center;
+
+  .cbt-border-image__row--lit & {
+    background: var(--cbt-brand);
+    color: var(--cbt-bg);
+  }
+}
+
+.cbt-border-image__badge--done {
+  background: rgb(140 250 170 / 0.16);
+  color: var(--cbt-width);
+}
+
+.cbt-border-image__thumb {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 44px;
+}
+
+.cbt-border-image__thumb--cut .cbt-border-image__frame {
+  box-shadow: 0 0 0 1px var(--cbt-slice);
+}
+
+.cbt-border-image__landed {
+  position: relative;
+  box-shadow: 0 0 0 1px var(--cbt-width);
+  background: repeating-conic-gradient(#2a313a 0 25%, #232a32 0 50%) 0 0 / 8px
+    8px;
+
+  .cbt-border-image__frame {
+    display: block;
+    background: none;
+  }
+}
+
+/* Where the tiles of an edge meet. */
+.cbt-border-image__seam {
+  position: absolute;
+  border: 0 dashed rgb(255 255 255 / 0.9);
+}
+
+.cbt-border-image__seam--x {
+  top: 0;
+  bottom: 0;
+  border-left-width: 1px;
+}
+
+.cbt-border-image__seam--y {
+  left: 0;
+  right: 0;
+  border-top-width: 1px;
+}
+
+.cbt-border-image__to {
+  flex: none;
+  fill: none;
+  stroke: var(--cbt-muted);
+  stroke-width: 1.6;
+}
+
+/* The place of a piece the render leaves out. */
+.cbt-border-image__missing {
+  display: block;
+  width: 40px;
+  height: 24px;
+  border: 1px dashed var(--cbt-rule);
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0 4px,
+    var(--cbt-rule-soft) 0 5px
+  );
+}
+
+.cbt-border-image__about {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.cbt-border-image__name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cbt-border-image__what {
+  color: var(--cbt-soft);
+  font-size: 12px;
+}
+
+.cbt-border-image__what--warning {
+  color: var(--cbt-warn);
+}
+
+.cbt-border-image__sizes {
+  color: var(--cbt-muted);
+  font:
+    11px "IBM Plex Mono",
+    monospace;
+}
+
+.cbt-border-image__repeat,
+.cbt-border-image__fill {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 40px;
+  font:
+    600 12px "IBM Plex Mono",
+    monospace;
+}
+
+.cbt-border-image__repeat {
+  border: 1px solid var(--cbt-rule);
+  background: var(--cbt-sunk);
+  color: #ffb071;
+
+  svg {
+    fill: none;
+    stroke: var(--cbt-soft);
+    stroke-width: 1.4;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: #ffb071;
+  }
+}
+
+.cbt-border-image__fill {
+  padding: 0 10px;
+  border: 0;
+  background: var(--cbt-brand);
+  color: #171d23;
+
+  &[aria-pressed="true"] {
+    border: 1px solid var(--cbt-rule);
+    background: var(--cbt-sunk);
+    color: var(--cbt-text);
+  }
+}
+
+.cbt-border-image__eye {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 32px;
+  background: var(--cbt-pill);
+  color: var(--cbt-text);
+
+  svg {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.5;
+  }
+
+  &[aria-pressed="true"] {
+    background: var(--cbt-brand);
+    color: #171d23;
+  }
+}
+
+body.hideBorderImage {
+  #cbt-border-image,
+  #cbt-border-image-sidebar {
+    display: none;
+  }
+}

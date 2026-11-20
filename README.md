@@ -11,6 +11,7 @@ Features :
 - ✂️ Autocomplete only the valid values of the properties used in cssbattle solutions (`background`, `border`, `clip-path`, `border-shape`, `rotate`…)
 - 🔷 Edit a `clip-path` with the mouse, right on your code output: drag the points of `polygon()`, `circle()`, `ellipse()`, `inset()`, `rect()`, `xywh()` and `shape()`, each point in its own color, as its values in the code, add or remove polygon points, or start from a ready-made shape (like https://bennettfeely.com/clippy/)
 - 🔶 Edit a `border-shape` the same way: drag the points of the shape stroked along the border, or of the outer and inner shapes the border fills, each in its own reference box
+- 🖼️ See how a `border-image` is cut and laid out: its nine pieces numbered around the element on your code output, and in a panel opening under the output, the image cut by its slices next to the element and its widths, then the nine pieces laid out as in the border, each telling in plain words how it is resized, stretched or tiled and why it is missing. Drag the slices, widths and outsets, play the pieces to their place one by one, switch a repeat or `fill`, and press a piece to see it alone
 - ⛓️ Display your html tags outline/background on your code output
 - 🎚️ Switch all the output tools at once with groups you set up in the options
 - 📷 Screenshot your code output, with the output tools switched on, and the DOM panel below it

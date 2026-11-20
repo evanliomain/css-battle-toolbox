@@ -43,9 +43,22 @@ const WORD = /[^\s,()/:;{}"'<>!]*$/;
  *   `null` when the caret is elsewhere
  */
 export function shapeValueAt(code, pos) {
+  return valueAt(code, pos, PROPERTIES);
+}
+
+/**
+ * The value of one of some properties the caret stands in, shared with the
+ * border-image tool.
+ *
+ * @param {string} code the whole code of the editor
+ * @param {number} pos the caret
+ * @param {string[]} properties
+ * @returns {{ property: string, from: number, to: number, text: string } | null}
+ */
+export function valueAt(code, pos, properties) {
   const before = code.slice(0, pos);
   const declaration = declarationAt(before.replace(WORD, ""));
-  if (null === declaration || !PROPERTIES.includes(declaration.property)) {
+  if (null === declaration || !properties.includes(declaration.property)) {
     return null;
   }
   const from = before.lastIndexOf(":") + 1;
