@@ -86,7 +86,7 @@ mount("dom-tools", {
       hidden.prune(new Set(entries.map((entry) => entry.path)));
       hidden.apply();
 
-      renderLabels(ghostDoc, entries);
+      renderLabels(overlay, entries);
 
       showAll.hidden = 0 === hidden.size;
       showAll.textContent = `${hidden.size} layer${1 === hidden.size ? "" : "s"} hidden — show all`;

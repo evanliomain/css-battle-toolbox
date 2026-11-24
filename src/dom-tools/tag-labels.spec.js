@@ -24,11 +24,21 @@ function place(element, rect) {
   });
 }
 
-function labels(doc) {
-  return Array.from(doc.querySelectorAll("cbt-label"));
+/** The box over the ghost iframe, in the host page. */
+function overlay() {
+  const box = document.createElement("div");
+  box.id = "dom-outline";
+  box.insertAdjacentHTML("beforeend", `<iframe class="cbt-ghost"></iframe>`);
+  document.body.insertAdjacentElement("beforeend", box);
+  return box;
+}
+
+function labels(box) {
+  return Array.from(box.querySelectorAll("cbt-label"));
 }
 
 afterEach(() => {
+  document.body.innerHTML = "";
   vi.restoreAllMocks();
 });
 
@@ -38,9 +48,10 @@ describe("the tag labels", () => {
     const p = doc.querySelector("p");
     place(p, { left: 10, top: 20, width: 50, height: 30 });
 
-    renderLabels(doc, [{ element: p, depth: 2 }]);
+    const box = overlay();
+    renderLabels(box, [{ element: p, depth: 2 }]);
 
-    const [label] = labels(doc);
+    const [label] = labels(box);
     expect(label.textContent).toBe("p");
     expect(label.style.getPropertyValue("--cbt-x")).toBe("14px");
     expect(label.style.getPropertyValue("--cbt-y")).toBe("24px");
@@ -52,9 +63,10 @@ describe("the tag labels", () => {
     const p = doc.querySelector("p");
     place(p, { width: 1, height: 1 });
 
-    renderLabels(doc, [{ element: p, depth: DOM_COLOR.length + 1 }]);
+    const box = overlay();
+    renderLabels(box, [{ element: p, depth: DOM_COLOR.length + 1 }]);
 
-    expect(labels(doc)[0].style.getPropertyValue("--cbt-color")).toBe(
+    expect(labels(box)[0].style.getPropertyValue("--cbt-color")).toBe(
       DOM_COLOR[1],
     );
   });
@@ -66,13 +78,14 @@ describe("the tag labels", () => {
     place(hr, { width: 100 });
     place(b, { height: 8 });
 
-    renderLabels(doc, [
+    const box = overlay();
+    renderLabels(box, [
       { element: i, depth: 0 },
       { element: hr, depth: 0 },
       { element: b, depth: 0 },
     ]);
 
-    expect(labels(doc).map((label) => label.textContent)).toEqual(["hr", "b"]);
+    expect(labels(box).map((label) => label.textContent)).toEqual(["hr", "b"]);
   });
 
   it("greys the label of a layer that is switched off", () => {
@@ -82,24 +95,45 @@ describe("the tag labels", () => {
     place(i, { width: 1, height: 1 });
     place(b, { width: 1, height: 1 });
 
-    renderLabels(doc, [
+    const box = overlay();
+    renderLabels(box, [
       { element: i, depth: 0 },
       { element: b, depth: 0 },
     ]);
 
-    expect(labels(doc).map((label) => label.hasAttribute(HIDDEN))).toEqual([
+    expect(labels(box).map((label) => label.hasAttribute(HIDDEN))).toEqual([
       true,
       false,
     ]);
   });
 
-  it("puts the layer after the body, never inside it", () => {
+  it("draws in the host overlay, out of reach of the ghost's transforms", () => {
     const doc = ghostDoc("<p></p>");
+    const p = doc.querySelector("p");
+    place(p, { width: 1, height: 1 });
+    const box = overlay();
 
-    renderLabels(doc, []);
+    renderLabels(box, [{ element: p, depth: 0 }]);
 
-    // A child of body would change what the player's :last-child matches.
-    expect(doc.documentElement.lastElementChild.localName).toBe("cbt-labels");
-    expect(doc.body.querySelector("cbt-labels")).toBeNull();
+    // Anything inside the ghost descends from <html>, so an `offset` or a
+    // `rotate` on the player's root carried the labels along with it.
+    expect(doc.querySelector("cbt-labels")).toBeNull();
+    expect(box.lastElementChild.localName).toBe("cbt-labels");
+    expect(labels(box)[0].ownerDocument).toBe(document);
+  });
+
+  it("replaces the labels of the previous rebuild", () => {
+    const doc = ghostDoc("<p></p>");
+    const p = doc.querySelector("p");
+    place(p, { width: 1, height: 1 });
+    const box = overlay();
+
+    renderLabels(box, [{ element: p, depth: 0 }]);
+    renderLabels(box, [{ element: p, depth: 0 }]);
+
+    expect(box.querySelectorAll("cbt-labels")).toHaveLength(1);
+    expect(labels(box)).toHaveLength(1);
+    // The ghost iframe stays, under the labels.
+    expect(box.firstElementChild.localName).toBe("iframe");
   });
 });

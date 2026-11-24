@@ -5,7 +5,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DOM_COLOR } from "../utils/dom-color";
 import { buildPanel, setHover } from "./dom-panel";
-import { DEPTH, HIDDEN, HOVER } from "./ghost-sheet";
+import { boxModelImage, DEPTH, HIDDEN, HOVER } from "./ghost-sheet";
 
 /** A ghost-like document, parsed from the given body. */
 function ghostRoot(body, head = "") {
@@ -54,9 +54,7 @@ describe("the tree panel", () => {
     const p = entries.find((entry) => "p" === entry.element.localName);
 
     expect(p.path).toBe(":root>:nth-child(2)>:nth-child(2)");
-    expect(root.querySelector(p.path.replace(":root", "html"))).toBe(
-      p.element,
-    );
+    expect(root.querySelector(p.path.replace(":root", "html"))).toBe(p.element);
   });
 
   it("gives every row an id of its own", () => {
@@ -130,9 +128,10 @@ describe("the tree panel", () => {
 
   it("falls back on the rect for a box whose size is auto", () => {
     const root = ghostRoot("<span></span>");
-    vi.spyOn(root.querySelector("span"), "getBoundingClientRect").mockReturnValue(
-      { width: 12.345, height: 7 },
-    );
+    vi.spyOn(
+      root.querySelector("span"),
+      "getBoundingClientRect",
+    ).mockReturnValue({ width: 12.345, height: 7 });
 
     const { main } = panel(root);
 
@@ -185,9 +184,9 @@ describe("the tree panel", () => {
     expect(eyes[3].getAttribute("aria-pressed")).toBe("false");
     expect(eyes[3].getAttribute("aria-label")).toBe("Hide this layer");
     expect(
-      main.querySelectorAll(".dom-element")[2].classList.contains(
-        "dom-element--off",
-      ),
+      main
+        .querySelectorAll(".dom-element")[2]
+        .classList.contains("dom-element--off"),
     ).toBe(true);
   });
 
@@ -215,14 +214,24 @@ describe("the tree panel", () => {
 });
 
 describe("the hover highlight", () => {
-  it("paints the box model with the widest margin as its band", () => {
-    const root = ghostRoot(`<p style="margin:1px 8px 3px -20px"></p>`);
+  it("paints the box model, each margin on its own side", () => {
+    const root = ghostRoot(
+      `<p style="margin:1px 8px 3px -20px;border:2px solid;border-left-width:5px;padding:4px 6px"></p>`,
+    );
     const p = root.querySelector("p");
 
     setHover(p, true);
 
     expect(p.hasAttribute(HOVER)).toBe(true);
-    expect(p.style.getPropertyValue("--cbt-margin")).toBe("8px");
+    // A negative margin has no band to draw.
+    expect(p.style.getPropertyValue("--cbt-outset")).toBe("1px 8px 3px 0px");
+    expect(p.style.getPropertyValue("--cbt-box")).toBe(
+      boxModelImage([
+        [1, 8, 3, 0],
+        [2, 2, 2, 5],
+        [4, 6, 4, 6],
+      ]),
+    );
   });
 
   it("clears it again", () => {
@@ -233,6 +242,7 @@ describe("the hover highlight", () => {
     setHover(p, false);
 
     expect(p.hasAttribute(HOVER)).toBe(false);
-    expect(p.style.getPropertyValue("--cbt-margin")).toBe("");
+    expect(p.style.getPropertyValue("--cbt-box")).toBe("");
+    expect(p.style.getPropertyValue("--cbt-outset")).toBe("");
   });
 });

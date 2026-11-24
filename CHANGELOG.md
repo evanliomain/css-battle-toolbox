@@ -1,3 +1,9 @@
+# 2.3.1
+
+- DOM tool: The tag names stay upright at the corner of each shape when the `html` is moved or turned, as by an `offset` or a `rotate`, instead of turning and sliding with it
+- DOM tool: Hovering the `html` or the `body` paints their box model on the element itself, through its transforms, instead of in the top-left corner of the output. Each margin is drawn on its own side, not as a band as wide as the widest one
+- DOM tool: The background mode no longer fills the whole output with the color of the `body`
+
 # 2.3.0
 
 - Border-image tool: With the caret in a `border-image` value, see its nine pieces numbered around the element in the output, and in a panel opening under the output, the image cut by its slices next to the element and its widths, then each piece laid out as in the border, telling in plain words how it is resized, stretched or tiled and why it is missing. Drag the slices, widths and outsets, play the pieces to their place one by one, switch a repeat or `fill`, and press a piece to see it alone

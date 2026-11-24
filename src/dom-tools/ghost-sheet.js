@@ -12,11 +12,18 @@ export const OWN = "data-cbt-own";
 export const OUTLINE_FLAG = "data-cbt-outline";
 export const BACKGROUND_FLAG = "data-cbt-background";
 
-/** Devtools-like box model colours. */
-const CONTENT = "rgb(161 197 232 / 0.55)";
-const PADDING = "rgb(196 222 184 / 0.55)";
-const BORDER = "rgb(251 220 169 / 0.55)";
-const MARGIN = "rgb(249 204 158 / 0.45)";
+/**
+ * Devtools-like box model colours. Opaque, because the four boxes are drawn
+ * nested, one over the other: the see-through comes from the opacity of the
+ * group, so a band never shows the colour of the box under it.
+ */
+const BOX_COLORS = [
+  "rgb(249 204 158)", // margin
+  "rgb(251 220 169)", // border
+  "rgb(196 222 184)", // padding
+  "rgb(161 197 232)", // content
+];
+const BOX_OPACITY = 0.55;
 
 /** Reads on both a light and a dark render, and on none of the depth colours. */
 const OFF = "rgb(160 160 160 / 0.9)";
@@ -42,9 +49,14 @@ export function ghostCss() {
   /* The canvas has to stay see-through, and that takes both halves: a
      transparent root background, and a used color-scheme equal to the one on
      the <iframe> element, which createGhost pins to normal for this. Disagree
-     on either and Chrome paints the canvas opaque, hiding the render under it. */
+     on either and Chrome paints the canvas opaque, hiding the render under it.
+   *
+   * Transparent, but not empty: a root with no background at all hands the
+   * canvas the one of <body>, which is then painted over the whole render and
+   * outside the transforms of both — the background mode filled the output
+   * with the colour of body. An image, even a see-through one, stops that. */
   :root {
-    background: transparent !important;
+    background: linear-gradient(transparent, transparent) !important;
     color-scheme: normal !important;
   }
 
@@ -102,11 +114,6 @@ ${colors}
     outline-color: ${OFF} !important;
   }
 
-  cbt-label[${HIDDEN}] {
-    color: ${OFF} !important;
-    -webkit-text-fill-color: ${OFF} !important;
-  }
-
   /* The root is named on its own, element and pseudo-elements alike: a
      descendant combinator cannot reach the element it starts from, so the html
      contour stayed on screen with the option unchecked. */
@@ -123,70 +130,48 @@ ${colors}
     background-color: color-mix(in srgb, var(--cbt-color) 40%, transparent) !important;
   }
 
-  /* Must stay after the depth rule: same specificity, so source order decides. */
+  /* Must stay after the depth rule: same specificity, so source order decides.
+   *
+   * A border-image, not a background: the background of the root is the one of
+   * the canvas, painted outside every transform of <html>, so on a rotated root
+   * the box model showed up in the top-left corner, far from the shape. A
+   * border-image belongs to its element, transform included, and its outset
+   * gives each side its own margin. The image itself comes from boxModelImage,
+   * set inline by setHover. */
   [${HOVER}] {
-    background-image:
-      linear-gradient(${CONTENT}, ${CONTENT}),
-      linear-gradient(${PADDING}, ${PADDING}),
-      linear-gradient(${BORDER}, ${BORDER}) !important;
-    background-clip: content-box, padding-box, border-box !important;
-    background-origin: border-box !important;
-    background-repeat: no-repeat !important;
-    /* An element has a single outline slot, so the margin band takes it over and
-       the depth contour moves to an inset shadow — which follows the
-       border-radius and the transform just the same. */
-    outline: var(--cbt-margin, 0px) solid ${MARGIN} !important;
+    border-image: var(--cbt-box, none) 0 fill / 0 / var(--cbt-outset, 0px) stretch !important;
+    /* The depth contour moves to an inset shadow, so it stays inside the box
+       model rather than over its margin band. */
+    outline: none !important;
     box-shadow: inset 0 0 0 3px var(--cbt-color) !important;
   }
-
-  /* The labels are elements in the played document, so the player's selectors
-     reach them: golfed code is all universal selectors, and a single
-     "* * { scale: -1 }" was enough to mirror every one of them. Only all can
-     cover the properties an enumerated list cannot — scale, zoom, writing-mode,
-     whatever Chrome ships next — and it leaves custom properties alone, so the
-     position set inline on each label survives it.
-   *
-   * Stays before the two rules below: same specificity, so source order is what
-   * lets them style what this one has just stripped. */
-  cbt-labels,
-  cbt-labels::before,
-  cbt-labels::after,
-  cbt-labels *,
-  cbt-labels *::before,
-  cbt-labels *::after {
-    all: initial !important;
-  }
-
-  /* The label layer is fixed rather than absolute: absolute would join the
-     scrollable overflow and could raise a scrollbar the real render has not. */
-  cbt-labels {
-    position: fixed !important;
-    inset: 0 !important;
-    display: block !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    pointer-events: none !important;
-  }
-
-  cbt-label {
-    position: absolute !important;
-    left: var(--cbt-x, 0px) !important;
-    top: var(--cbt-y, 0px) !important;
-    display: block !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    font: 14px sans-serif !important;
-    line-height: 1 !important;
-    white-space: pre !important;
-    color: var(--cbt-color, #fff) !important;
-    -webkit-text-fill-color: var(--cbt-color, #fff) !important;
-    text-shadow: 1px 1px 1px #000 !important;
-  }
-
-  :root:not([${OUTLINE_FLAG}]) cbt-labels {
-    display: none !important;
-  }
 }`;
+}
+
+/**
+ * The box model of one element, as an image to stretch over its margin box.
+ *
+ * The four boxes are nested rectangles, each inset from the edge of the image by
+ * the sum of the bands outside it. The insets are pixels and the sizes are
+ * percentages, so the image needs neither the size of the element nor a
+ * viewBox: it is drawn at whatever size the border-image area ends up.
+ *
+ * @param {number[][]} bands margin, border and padding, each as
+ *   `[top, right, bottom, left]` in pixels
+ * @returns {string} a CSS `url()`
+ */
+export function boxModelImage(bands) {
+  const inset = [0, 0, 0, 0];
+  const rects = BOX_COLORS.map((color, index) => {
+    if (0 < index) {
+      bands[index - 1].forEach((width, side) => {
+        inset[side] += width;
+      });
+    }
+    const [top, right, bottom, left] = inset;
+    return `<rect style="x:${left}px;y:${top}px;width:calc(100% - ${left + right}px);height:calc(100% - ${top + bottom}px)" fill="${color}"/>`;
+  }).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg"><g opacity="${BOX_OPACITY}">${rects}</g></svg>`;
+
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
