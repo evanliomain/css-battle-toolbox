@@ -1,6 +1,6 @@
 import { DOM_COLOR } from "../utils/dom-color";
 import { round } from "../utils/round";
-import { DEPTH, HIDDEN, HOVER } from "./ghost-sheet";
+import { boxModelImage, DEPTH, HIDDEN, HOVER } from "./ghost-sheet";
 
 /** Tags that never paint a box of their own. */
 const SKIPPED = new Set([
@@ -49,17 +49,26 @@ export function buildPanel(ghostRoot, main, hidden) {
 export function setHover(element, isOn) {
   if (!isOn) {
     element.removeAttribute(HOVER);
-    element.style.removeProperty("--cbt-margin");
+    element.style.removeProperty("--cbt-box");
+    element.style.removeProperty("--cbt-outset");
     return;
   }
 
-  // An element has a single outline slot and the margin band takes it, so the
-  // band is uniform: the widest of the four margins. The panel row spells the
-  // four values out, which is what actually helps when they differ.
+  // The border-image is stretched over the margin box: pushed out of the border
+  // box by the margins, each side by its own.
   const styles = getComputedStyle(element);
+  const margin = margins(styles);
   element.style.setProperty(
-    "--cbt-margin",
-    `${Math.max(...margins(styles))}px`,
+    "--cbt-box",
+    boxModelImage([
+      margin,
+      sides(styles, "border", "Width"),
+      sides(styles, "padding"),
+    ]),
+  );
+  element.style.setProperty(
+    "--cbt-outset",
+    margin.map((value) => `${value}px`).join(" "),
   );
   element.setAttribute(HOVER, "");
 }
@@ -213,15 +222,15 @@ function sum(...values) {
 }
 
 function margins(styles) {
-  return [
-    styles.marginTop,
-    styles.marginRight,
-    styles.marginBottom,
-    styles.marginLeft,
-  ].map((value) => {
-    const parsed = parseFloat(value);
-    // A negative margin cannot be drawn as an outline band, and NaN comes back
-    // from jsdom, where margins resolve to "".
+  return sides(styles, "margin");
+}
+
+/** `[top, right, bottom, left]` of one box band, in pixels. */
+function sides(styles, prefix, suffix = "") {
+  return ["Top", "Right", "Bottom", "Left"].map((side) => {
+    const parsed = parseFloat(styles[`${prefix}${side}${suffix}`]);
+    // A negative margin has no band to draw, and NaN comes back from jsdom,
+    // where some lengths resolve to "".
     return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
   });
 }

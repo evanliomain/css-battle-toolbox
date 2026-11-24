@@ -137,3 +137,40 @@
      & Compare handle included. */
   pointer-events: none;
 }
+
+/*
+ * The tag names, drawn over the ghost rather than in it: a transform on the
+ * player's <html> would carry anything inside the ghost along with it. The
+ * ghost fills this box from its corner, so the coordinates set by renderLabels
+ * are the ghost's own.
+ */
+#dom-outline cbt-labels {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+#dom-outline cbt-label {
+  position: absolute;
+  left: var(--cbt-x, 0px);
+  top: var(--cbt-y, 0px);
+  display: block;
+  margin: 0;
+  padding: 0;
+  font: 14px sans-serif;
+  line-height: 1;
+  white-space: pre;
+  color: var(--cbt-color, #fff);
+  text-shadow: 1px 1px 1px #000;
+
+  /* A layer switched off from the panel, greyed like its contour. */
+  &[data-cbt-hidden] {
+    color: rgb(160 160 160 / 0.9);
+  }
+}
+
+/* Shown and hidden with the outlines, like the ghost mirrors the same class. */
+.target-container:not(.display-outline) #dom-outline cbt-labels {
+  display: none;
+}

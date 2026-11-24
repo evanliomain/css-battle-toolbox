@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DOM_COLOR } from "../utils/dom-color";
 import {
+  boxModelImage,
   DEPTH,
   ghostCss,
   HIDDEN,
@@ -19,22 +20,11 @@ function rule(selector) {
 const RGB = String.raw`rgb\([^)]+\)`;
 
 describe("the ghost stylesheet", () => {
-  it("cuts the label layer off from the played code", () => {
-    const css = ghostCss();
-
-    // The labels are elements of the played document, so `* * { scale: -1 }` —
-    // ordinary golf — used to mirror every one of them.
-    expect(css).toContain("cbt-labels *,");
-    expect(css).toContain("all: initial !important;");
-  });
-
-  it("resets the labels before styling them, not after", () => {
-    const css = ghostCss();
-
-    // `cbt-labels *` and `cbt-label` have the same specificity, so the reset
-    // would wipe the position and the colour if it came last.
-    expect(css.indexOf("all: initial")).toBeLessThan(
-      css.indexOf("cbt-label {"),
+  it("keeps the root background see-through, but never empty", () => {
+    // An empty root background hands the canvas the one of <body>, painted over
+    // the whole render and outside every transform.
+    expect(rule(":root")).toContain(
+      "background: linear-gradient(transparent, transparent) !important;",
     );
   });
 
@@ -75,39 +65,83 @@ describe("the ghost stylesheet", () => {
     );
   });
 
-  it("paints the box model of the hovered layer like the devtools", () => {
+  it("paints the box model of the hovered layer as a border-image", () => {
     const hover = rule(`[${HOVER}]`);
-    // One flat gradient per band, painted from the content box outwards.
-    const bands = [
-      ...hover.matchAll(
-        new RegExp(String.raw`linear-gradient\((${RGB}), \1\)`, "g"),
-      ),
-    ].map(([, color]) => color);
-    const margin = hover.match(
-      new RegExp(
-        String.raw`outline: var\(--cbt-margin, 0px\) solid (${RGB}) !important;`,
-      ),
-    );
 
-    expect(bands).toHaveLength(3);
-    expect(margin).not.toBeNull();
-    // Content, padding, border and margin each get their own colour.
-    expect(new Set([...bands, margin[1]]).size).toBe(4);
+    // Not a background: the one of the root is painted on the canvas, outside
+    // the transforms of <html>.
+    expect(hover).not.toContain("background");
     expect(hover).toContain(
-      "background-clip: content-box, padding-box, border-box !important;",
+      "border-image: var(--cbt-box, none) 0 fill / 0 / var(--cbt-outset, 0px) stretch !important;",
+    );
+    expect(hover).toContain("outline: none !important;");
+    expect(hover).toContain(
+      "box-shadow: inset 0 0 0 3px var(--cbt-color) !important;",
     );
   });
 
-  it("greys out the contour and the label of a layer switched off", () => {
+  it("greys out the contour of a layer switched off", () => {
     const off = rule(`[${HIDDEN}]`).match(
       new RegExp(String.raw`outline-color: (${RGB}) !important;`),
     );
-    const label = rule(`cbt-label[${HIDDEN}]`);
 
     expect(off).not.toBeNull();
-    expect(label).toContain(`  color: ${off[1]} !important;`);
-    expect(label).toContain(`-webkit-text-fill-color: ${off[1]} !important;`);
     // Grey, so it reads apart from every depth colour.
     expect(DOM_COLOR).not.toContain(off[1]);
+  });
+
+  it("leaves the labels to the host page", () => {
+    expect(ghostCss()).not.toContain("cbt-label");
+  });
+});
+
+describe("the box model image", () => {
+  /** The SVG behind the data URL. */
+  function svg(bands) {
+    const url = boxModelImage(bands);
+    const prefix = 'url("data:image/svg+xml,';
+    expect(url.startsWith(prefix)).toBe(true);
+    expect(url.endsWith('")')).toBe(true);
+    return decodeURIComponent(url.slice(prefix.length, -2));
+  }
+
+  function rects(bands) {
+    return [
+      ...svg(bands).matchAll(/<rect style="([^"]+)" fill="([^"]+)"\/>/g),
+    ].map(([, style, fill]) => ({ style, fill }));
+  }
+
+  it("nests the margin, border, padding and content boxes, each inset by the bands outside it", () => {
+    const boxes = rects([
+      [1, 2, 3, 4],
+      [10, 20, 30, 40],
+      [100, 200, 300, 400],
+    ]);
+
+    expect(boxes.map(({ style }) => style)).toEqual([
+      "x:0px;y:0px;width:calc(100% - 0px);height:calc(100% - 0px)",
+      "x:4px;y:1px;width:calc(100% - 6px);height:calc(100% - 4px)",
+      "x:44px;y:11px;width:calc(100% - 66px);height:calc(100% - 44px)",
+      "x:444px;y:111px;width:calc(100% - 666px);height:calc(100% - 444px)",
+    ]);
+  });
+
+  it("gives each box its own opaque colour, made see-through as a whole", () => {
+    const zero = [0, 0, 0, 0];
+    const fills = rects([zero, zero, zero]).map(({ fill }) => fill);
+
+    expect(new Set(fills).size).toBe(4);
+    fills.forEach((fill) => expect(fill).toMatch(/^rgb\(\d+ \d+ \d+\)$/));
+    // Opaque boxes under one group opacity: a band never shows the box below.
+    expect(svg([zero, zero, zero])).toMatch(
+      /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"><g opacity="0\.55">.*<\/g><\/svg>$/,
+    );
+  });
+
+  it("escapes the SVG, so the quotes cannot close the url()", () => {
+    const zero = [0, 0, 0, 0];
+    const url = boxModelImage([zero, zero, zero]);
+
+    expect(url.slice(5, -2)).not.toMatch(/["<>#]/);
   });
 });

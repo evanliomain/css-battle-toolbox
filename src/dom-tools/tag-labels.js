@@ -4,17 +4,22 @@ import { HIDDEN } from "./ghost-sheet";
 /**
  * Draws the tag name of every element over its shape.
  *
- * The layer lives in the ghost document, so a bounding rect taken there is
- * already in the coordinate space the labels are positioned in — placing them
- * from the host would mean converting through the ancestor transforms, which is
- * exactly the arithmetic this tool got rid of.
+ * The labels live in the overlay, next to the ghost iframe, and never in the
+ * ghost document itself. Everything in a document descends from <html>, so a
+ * transform on the root — an `offset`, a `rotate`, a `scale`, the stuff of
+ * golfed code — moved and turned the labels along with it, and a fixed layer
+ * was no way out: a transformed ancestor becomes the box `fixed` is relative to.
+ *
+ * The ghost iframe fills the overlay from its top-left corner, with no border,
+ * so a bounding rect taken in the ghost is already in the overlay's coordinates.
  *
  * The rect is axis-aligned, so on a rotated element the label sits at the corner
  * of the bounding box rather than of the shape. For a label, that is close
  * enough; the outline itself is exact.
  */
-export function renderLabels(ghostDoc, entries) {
-  const layer = ghostDoc.createElement("cbt-labels");
+export function renderLabels(overlay, entries) {
+  const doc = overlay.ownerDocument;
+  const layer = doc.createElement("cbt-labels");
 
   entries.forEach(({ element, depth }) => {
     const rect = element.getBoundingClientRect();
@@ -22,7 +27,7 @@ export function renderLabels(ghostDoc, entries) {
       return;
     }
 
-    const label = ghostDoc.createElement("cbt-label");
+    const label = doc.createElement("cbt-label");
     label.textContent = element.localName;
     // Greyed with its contour, so a switched-off layer reads as off from the
     // render alone, without going back to the panel.
@@ -35,8 +40,9 @@ export function renderLabels(ghostDoc, entries) {
     layer.insertAdjacentElement("beforeend", label);
   });
 
-  // Appended after <body>, never inside it: a child of body would change what
-  // the player's `body > *`, :nth-child and :last-child selectors match, and the
-  // ghost would stop laying out like the render.
-  ghostDoc.documentElement.insertAdjacentElement("beforeend", layer);
+  // The ghost is rebuilt on every keystroke, and the labels with it.
+  overlay
+    .querySelectorAll(":scope > cbt-labels")
+    .forEach((old) => old.remove());
+  overlay.insertAdjacentElement("beforeend", layer);
 }
